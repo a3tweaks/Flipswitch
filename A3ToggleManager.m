@@ -28,8 +28,9 @@ static A3ToggleManager *_toggleManager = nil;
 
 + (void)initialize
 {
-    if ([self isEqual:[A3ToggleManager class]] && objc_getClass("SpringBoard") == nil) _toggleManager = [[A3ToggleManager alloc] init];
-    else _toggleManager = [[A3ToggleManagerMain alloc] init];
+	if (self == [A3ToggleManager class]) {
+		_toggleManager = [objc_getClass("SpringBoard") ? [A3ToggleManagerMain alloc] : [self alloc] init];
+	}
 }
 
 + (A3ToggleManager *)sharedInstance
