@@ -120,3 +120,14 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 }
 
 @end
+
+__attribute__((constructor))
+static void constructor(void)
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	// Initialize in SpringBoard automatically so that the bootstrap service gets registered
+	if ([[NSBundle mainBundle].bundleIdentifier isEqualToString:@"com.apple.springboard"]) {
+		[A3ToggleManager sharedInstance];
+	}
+	[pool drain];
+}
