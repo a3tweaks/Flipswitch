@@ -1,0 +1,10 @@
+Package: com.a3tweaks.a3toggleapi
+Name: A3ToggleAPI
+Depends: 
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: An awesome library of some sort!!
+Maintainer: A3Tweaks
+Author: A3Tweaks
+Section: System
+Tag: role::developer
