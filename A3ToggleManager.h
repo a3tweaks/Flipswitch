@@ -19,6 +19,7 @@
 @interface A3ToggleManager (SpringBoard)
 - (void)registerToggle:(id<A3Toggle>)toggle forIdentifier:(NSString *)toggleIdentifier;
 - (void)unregisterToggleIdentifier:(NSString *)toggleIdentifier;
+- (void)stateDidChangeForToggleIdentifier:(NSString *)toggleIdentifier;
 @end
 
 

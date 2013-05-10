@@ -94,6 +94,11 @@ static A3ToggleManager *_toggleManager = nil;
 	// TODO: Throw exception
 }
 
+- (void)stateDidChangeForToggleIdentifier:(NSString *)toggleIdentifier
+{
+	// TODO: Throw exception
+}
+
 @end
 
 
@@ -107,6 +112,11 @@ static A3ToggleManager *_toggleManager = nil;
 - (void)unregisterToggleIdentifier:(NSString *)toggleIdentifier
 {
 	[_toggleImplementations removeObjectForKey:toggleIdentifier];
+}
+
+- (void)stateDidChangeForToggleIdentifier:(NSString *)toggleIdentifier
+{
+	// TODO: Notify others of state changes
 }
 
 - (NSArray *)toggleIdentifiers
