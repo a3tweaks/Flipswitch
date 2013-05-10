@@ -17,7 +17,10 @@ static LMConnection connection = {
 };
 
 __attribute__((visibility("hidden")))
-@interface A3ToggleManagerMain : A3ToggleManager
+@interface A3ToggleManagerMain : A3ToggleManager {
+@private
+	NSMutableDictionary *_toggleImplementations;
+}
 @end
 
 #define kTogglesPath @"/Library/Toggles/"
@@ -47,7 +50,7 @@ static A3ToggleManager *_toggleManager = nil;
     return self;
 }
 
-- (NSArray *)allToggles
+- (NSArray *)toggleIdentifiers
 {
 	return nil;
 }
@@ -79,7 +82,50 @@ static A3ToggleManager *_toggleManager = nil;
 
 @end
 
+@implementation A3ToggleManager (SpringBoard)
+
+- (void)registerToggle:(id<A3Toggle>)toggle forIdentifier:(NSString *)toggleIdentifier
+{
+	// TODO: Throw exception
+}
+
+- (void)unregisterToggleIdentifier:(NSString *)toggleIdentifier;
+{
+	// TODO: Throw exception
+}
+
+@end
+
+
 @implementation A3ToggleManagerMain
+
+- (void)registerToggle:(id<A3Toggle>)toggle forIdentifier:(NSString *)toggleIdentifier
+{
+	[_toggleImplementations setObject:toggle forKey:toggleIdentifier];
+}
+
+- (void)unregisterToggleIdentifier:(NSString *)toggleIdentifier
+{
+	[_toggleImplementations removeObjectForKey:toggleIdentifier];
+}
+
+- (NSArray *)toggleIdentifiers
+{
+	return [_toggleImplementations allKeys];
+}
+
+- (BOOL)toggleStateForToggleID:(NSString *)toggleID
+{
+	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleID];
+	return [toggle stateForToggleIdentifier:toggleID];
+}
+
+- (void)setToggleState:(BOOL)state onToggleID:(NSString *)toggleID
+{
+	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleID];
+	[toggle applyState:state forToggleIdentifier:toggleID];
+}
+
 
 static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef data)
 {
@@ -130,8 +176,15 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 		mach_port_t port = CFMachPortGetPort(machPort);
 		kern_return_t err = bootstrap_register(bootstrap, connection.serverName, port);
 		if (err) NSLog(@"A3 Toggle API: Connection Creation failed with Error: %x", err);
+		_toggleImplementations = [[NSMutableDictionary alloc] init];
 	}
 	return self;
+}
+
+- (void)dealloc
+{
+	[_toggleImplementations release];
+	[super dealloc];
 }
 
 @end
