@@ -1,7 +1,7 @@
 include theos/makefiles/common.mk
 
-LIBRARY_NAME = A3ToggleAPI
-A3ToggleAPI_FILES = A3ToggleManager.m
-A3ToggleAPI_FRAMEWORKS = UIKit
+LIBRARY_NAME = libA3ToggleAPI
+libA3ToggleAPI_FILES = A3ToggleManager.m
+libA3ToggleAPI_FRAMEWORKS = UIKit
 
 include $(THEOS_MAKE_PATH)/library.mk
