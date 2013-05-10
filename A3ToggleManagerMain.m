@@ -25,6 +25,12 @@
 	return [_toggleImplementations allKeys];
 }
 
+- (NSString *)toggleNameForToggleID:(NSString *)toggleID
+{
+	// TODO: Actually read name from toggle implementation, applying localization
+	return toggleID;
+}
+
 - (BOOL)toggleStateForToggleID:(NSString *)toggleID
 {
 	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleID];
