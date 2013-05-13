@@ -1,6 +1,7 @@
 #import "A3ToggleManager.h"
 #import "A3ToggleManagerMain.h"
 #import "A3ToggleService.h"
+#import "A3ToggleProtocol.h"
 
 #import <dlfcn.h>
 #import "LightMessaging/LightMessaging.h"
@@ -55,9 +56,15 @@ static A3ToggleManager *_toggleManager;
 	return LMResponseConsumePropertyList(&responseBuffer);
 }
 
-- (UIImage *)toggleImageWithBackground:(UIImage *)backgroundImage overlay:(UIImage *)overlayMask andState:(BOOL)state
+- (UIImage *)toggleImageForIdentifier:(NSString *)toggleID withBackground:(UIImage *)backgroundImage overlay:(UIImage *)overlayMask andState:(BOOL)state
 {
-	return nil;
+ 	NSDictionary *args = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:toggleID, backgroundImage, overlayMask, state, nil] forKeys:[NSArray arrayWithObjects:@"toggleID", @"toggleBackground", @"toggleOverlay", @"toggleState", nil]];
+
+	LMResponseBuffer responseBuffer;
+	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageGetImageForIdentifierAndState, args, &responseBuffer)) {
+		return nil;
+	}
+	return LMResponseConsumeImage(&responseBuffer);
 }
 
 - (BOOL)toggleStateForToggleID:(NSString *)toggleID

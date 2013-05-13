@@ -9,7 +9,7 @@
 @property (nonatomic, readonly, copy) NSArray *toggleIdentifiers;
 
 - (NSString *)toggleNameForToggleID:(NSString *)toggleID;
-- (UIImage *)toggleImageWithBackground:(UIImage *)backgroundImage overlay:(UIImage *)overlayMask andState:(BOOL)state;
+- (UIImage *)toggleImageForIdentifier:(NSString *)toggleID withBackground:(UIImage *)backgroundImage overlay:(UIImage *)overlayMask andState:(BOOL)state;
 
 - (BOOL)toggleStateForToggleID:(NSString *)toggleID;
 - (void)setToggleState:(BOOL)state onToggleID:(NSString *)toggleID;
@@ -22,9 +22,10 @@
 - (void)stateDidChangeForToggleIdentifier:(NSString *)toggleIdentifier;
 @end
 
-
+/*
 @protocol A3Toggle <NSObject>
 @required
 - (BOOL)stateForToggleIdentifier:(NSString *)toggleIdentifier;
 - (void)applyState:(BOOL)newState forToggleIdentifier:(NSString *)toggleIdentifier;
 @end
+*/

@@ -5,5 +5,6 @@ __attribute__((visibility("hidden")))
 @private
 	NSMutableDictionary *_toggleImplementations;
 }
+- (UIImage *)processImageForBackground:(UIImage *)backgroundImage withToggleMask:(UIImage *)toggleMask withOverlay:(UIImage *)overlay;
 @end
 

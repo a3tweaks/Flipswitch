@@ -1,5 +1,6 @@
 #import "A3ToggleManagerMain.h"
 #import "A3ToggleService.h"
+#import "A3ToggleProtocol.h"
 
 #import "LightMessaging/LightMessaging.h"
 
@@ -27,7 +28,13 @@
 
 - (NSString *)toggleNameForToggleID:(NSString *)toggleID
 {
-	// TODO: Actually read name from toggle implementation, applying localization
+	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleID];
+	if ([toggle respondsToSelector:@selector(toggleNameForIdentifier:)]) return [toggle toggleNameForIdentifier:toggleID];
+	else
+	{
+		//TODO: Read Localisation from shared cache 
+	}
+
 	return toggleID;
 }
 
@@ -78,6 +85,26 @@ static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef da
 			}
 			break;
 		}
+		case A3ToggleServiceMessageGetImageForIdentifierAndState: {
+			NSDictionary *args = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			if ([args isKindOfClass:[NSDictionary class]]) {
+				NSString *identifier = [args objectForKey:@"toggleID"];
+				UIImage *backgroundImage = [args objectForKey:@"toggleBackground"];
+				UIImage *overlayMask = [args objectForKey:@"toggleOverlay"];
+				NSNumber *state = [args objectForKey:@"toggleState"];
+
+				if (identifier != nil && backgroundImage != nil && overlayMask != nil && state != nil)
+				{
+					//TODO: Grab toggle image from toggle
+					UIImage *toggleMask = nil;
+
+					//Quick question: how do I avoid the (A3ToggleManagerMain *) usage for a private method on A3ToggleManagerMain
+					UIImage *createdImage = [(A3ToggleManagerMain *)[A3ToggleManager sharedInstance] processImageForBackground:backgroundImage withToggleMask:toggleMask withOverlay:overlayMask];
+					if (createdImage != nil) LMSendImageReply(replyPort, createdImage);
+				}
+			}
+			break;
+		}
 	}
 	LMSendReply(replyPort, NULL, 0);
 }
@@ -117,6 +144,12 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 		_toggleImplementations = [[NSMutableDictionary alloc] init];
 	}
 	return self;
+}
+
+- (UIImage *)processImageForBackground:(UIImage *)backgroundImage withToggleMask:(UIImage *)toggleMask withOverlay:(UIImage *)overlay
+{
+	//TODO: Apply image mask and lay over background etc
+	return nil;
 }
 
 - (void)dealloc
