@@ -4,6 +4,8 @@
 
 #import "LightMessaging/LightMessaging.h"
 
+#define kTogglesPath @"/Library/Toggles/"
+
 @implementation A3ToggleManagerMain
 
 - (void)registerToggle:(id<A3Toggle>)toggle forIdentifier:(NSString *)toggleIdentifier
@@ -32,7 +34,7 @@
 	if ([toggle respondsToSelector:@selector(toggleNameForIdentifier:)]) return [toggle toggleNameForIdentifier:toggleID];
 	else
 	{
-		//TODO: Read Localisation from shared cache 
+		//TODO: Read Localisation from shared cache
 	}
 
 	return toggleID;
@@ -48,6 +50,30 @@
 {
 	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleID];
 	[toggle applyState:state forToggleIdentifier:toggleID];
+}
+
+- (UIImage *)toggleImageForIdentifier:(NSString *)toggleID withBackground:(UIImage *)backgroundImage overlay:(UIImage *)overlayMask andState:(BOOL)state
+{
+	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleID];
+	if ([toggle respondsToSelector:@selector(imageForToggleIdentifier:withState:)])
+	{
+		UIImage *toggleMask = [toggle imageForToggleIdentifier:toggleID withState:state];
+		UIImage *createdImage = [self processImageForBackground:backgroundImage withToggleMask:toggleMask withOverlay:overlayMask];
+		return createdImage;
+	}
+	else
+	{
+		@throw [NSException exceptionWithName:NSInternalInconsistencyException reason:[NSString stringWithFormat:@"Toggle with ID %@ is required to implement imageForToggleIdentifier:withState:", toggleID] userInfo:nil];
+	}
+
+	return nil;
+}
+
+- (UIImage *)processImageForBackground:(UIImage *)backgroundImage withToggleMask:(UIImage *)toggleMask withOverlay:(UIImage *)overlay
+{
+	//TODO: Apply image mask and lay over background etc
+
+	return nil;
 }
 
 
@@ -95,12 +121,8 @@ static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef da
 
 				if (identifier != nil && backgroundImage != nil && overlayMask != nil && state != nil)
 				{
-					//TODO: Grab toggle image from toggle
-					UIImage *toggleMask = nil;
-
-					//Quick question: how do I avoid the (A3ToggleManagerMain *) usage for a private method on A3ToggleManagerMain
-					UIImage *createdImage = [(A3ToggleManagerMain *)[A3ToggleManager sharedInstance] processImageForBackground:backgroundImage withToggleMask:toggleMask withOverlay:overlayMask];
-					if (createdImage != nil) LMSendImageReply(replyPort, createdImage);
+					UIImage *image = [[A3ToggleManager sharedInstance] toggleImageForIdentifier:identifier withBackground:backgroundImage overlay:overlayMask andState:[state boolValue]];
+					if (image != nil) LMSendImageReply(replyPort, image);
 				}
 			}
 			break;
@@ -141,15 +163,27 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 		mach_port_t port = CFMachPortGetPort(machPort);
 		kern_return_t err = bootstrap_register(bootstrap, kA3ToggleServiceName, port);
 		if (err) NSLog(@"A3 Toggle API: Connection Creation failed with Error: %x", err);
+
 		_toggleImplementations = [[NSMutableDictionary alloc] init];
+		NSArray *toggleDirectoryContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:kTogglesPath error:nil];
+		for (NSString *folder in toggleDirectoryContents)
+		{
+			NSBundle *bundle = [NSBundle bundleWithPath:folder];
+			if (bundle != nil)
+			{
+				Class toggleClass = [bundle principalClass];
+				if ([toggleClass conformsToProtocol:@protocol(A3Toggle)])
+				{
+					id<A3Toggle> toggle = [[toggleClass alloc] init];
+					if (toggle != nil) [_toggleImplementations setObject:toggle forKey:[bundle bundleIdentifier]];
+					[toggle release];
+				}
+				else NSLog(@"Bundle with Identifier %@ doesn't conform to the defined Toggle Protocol", [bundle bundleIdentifier]);
+			}
+		}
+
 	}
 	return self;
-}
-
-- (UIImage *)processImageForBackground:(UIImage *)backgroundImage withToggleMask:(UIImage *)toggleMask withOverlay:(UIImage *)overlay
-{
-	//TODO: Apply image mask and lay over background etc
-	return nil;
 }
 
 - (void)dealloc

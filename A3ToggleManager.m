@@ -11,8 +11,6 @@ static LMConnection connection = {
 	kA3ToggleServiceName
 };
 
-#define kTogglesPath @"/Library/Toggles/"
-
 static A3ToggleManager *_toggleManager;
 
 @implementation A3ToggleManager
