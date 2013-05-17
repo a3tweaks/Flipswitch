@@ -1,7 +1,7 @@
 #import "A3ToggleManager.h"
 #import "A3ToggleManagerMain.h"
 #import "A3ToggleService.h"
-#import "A3ToggleProtocol.h"
+#import "A3Toggle.h"
 
 #import <dlfcn.h>
 #import "LightMessaging/LightMessaging.h"
@@ -45,10 +45,10 @@ static A3ToggleManager *_toggleManager;
 	return LMResponseConsumePropertyList(&responseBuffer);
 }
 
-- (NSString *)toggleNameForToggleID:(NSString *)toggleID
+- (NSString *)titleForToggleID:(NSString *)toggleID
 {
 	LMResponseBuffer responseBuffer;
-	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageGetNameForIdentifier, toggleID, &responseBuffer)) {
+	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageGetTitleForIdentifier, toggleID, &responseBuffer)) {
 		return nil;
 	}
 	return LMResponseConsumePropertyList(&responseBuffer);

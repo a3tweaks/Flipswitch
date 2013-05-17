@@ -7,5 +7,5 @@
 - (UIImage *)imageForToggleIdentifier:(NSString *)toggleIdentifier withState:(BOOL)state;
 
 @optional
-- (NSString *)toggleNameForIdentifier:(NSString *)toggleIdentifier;
+- (NSString *)titleForToggleIdentifier:(NSString *)toggleIdentifier;
 @end

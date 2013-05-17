@@ -1,6 +1,6 @@
 #import "A3ToggleManagerMain.h"
 #import "A3ToggleService.h"
-#import "A3ToggleProtocol.h"
+#import "A3Toggle.h"
 
 #import "LightMessaging/LightMessaging.h"
 
@@ -28,16 +28,10 @@
 	return [_toggleImplementations allKeys];
 }
 
-- (NSString *)toggleNameForToggleID:(NSString *)toggleID
+- (NSString *)titleForToggleID:(NSString *)toggleID
 {
 	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleID];
-	if ([toggle respondsToSelector:@selector(toggleNameForIdentifier:)]) return [toggle toggleNameForIdentifier:toggleID];
-	else
-	{
-		//TODO: Read Localisation from shared cache
-	}
-
-	return toggleID;
+	return [toggle titleForToggleIdentifier:toggleID];
 }
 
 - (BOOL)toggleStateForToggleID:(NSString *)toggleID
@@ -83,11 +77,11 @@ static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef da
 		case A3ToggleServiceMessageGetIdentifiers:
 			LMSendPropertyListReply(replyPort, [A3ToggleManager sharedInstance].toggleIdentifiers);
 			return;
-		case A3ToggleServiceMessageGetNameForIdentifier: {
+		case A3ToggleServiceMessageGetTitleForIdentifier: {
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
-				NSString *name = [[A3ToggleManager sharedInstance] toggleNameForToggleID:identifier];
-				LMSendPropertyListReply(replyPort, name);
+				NSString *title = [[A3ToggleManager sharedInstance] titleForToggleID:identifier];
+				LMSendPropertyListReply(replyPort, title);
 				return;
 			}
 			break;

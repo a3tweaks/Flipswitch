@@ -8,7 +8,7 @@
 
 @property (nonatomic, readonly, copy) NSArray *toggleIdentifiers;
 
-- (NSString *)toggleNameForToggleID:(NSString *)toggleID;
+- (NSString *)titleForToggleID:(NSString *)toggleID;
 - (UIImage *)toggleImageForIdentifier:(NSString *)toggleID withBackground:(UIImage *)backgroundImage overlay:(UIImage *)overlayMask andState:(BOOL)state;
 
 - (BOOL)toggleStateForToggleID:(NSString *)toggleID;
