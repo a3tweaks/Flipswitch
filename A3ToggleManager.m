@@ -54,15 +54,33 @@ static A3ToggleManager *_toggleManager;
 	return LMResponseConsumePropertyList(&responseBuffer);
 }
 
-- (UIImage *)toggleImageForIdentifier:(NSString *)toggleID withBackground:(UIImage *)backgroundImage overlay:(UIImage *)overlayMask andState:(BOOL)state
+- (id)glyphImageIdentifierForToggleID:(NSString *)toggleID controlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale
 {
- 	NSDictionary *args = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:toggleID, backgroundImage, overlayMask, state, nil] forKeys:[NSArray arrayWithObjects:@"toggleID", @"toggleBackground", @"toggleOverlay", @"toggleState", nil]];
+ 	NSDictionary *args = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:toggleID, [NSNumber numberWithFloat:size], [NSNumber numberWithFloat:scale], [NSNumber numberWithInteger:controlState], nil] forKeys:[NSArray arrayWithObjects:@"toggleID", @"size", @"scale", @"controlState", nil]];
 
 	LMResponseBuffer responseBuffer;
-	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageGetImageForIdentifierAndState, args, &responseBuffer)) {
+	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageGetImageIdentifierForToggle, args, &responseBuffer)) {
 		return nil;
 	}
-	return LMResponseConsumeImage(&responseBuffer);
+	return LMResponseConsumePropertyList(&responseBuffer);
+}
+
+- (UIImage *)toggleImageForToggleID:(NSString *)toggleID controlState:(UIControlState)controlState scale:(CGFloat)scale usingTemplateBundle:(NSBundle *)templateBundle;
+{
+	// TODO: Define template format, read in template used to describe what background images to use and how to draw the glyphs
+	id identifier = [self glyphImageIdentifierForToggleID:toggleID controlState:controlState size:29 scale:scale];
+	if ([identifier isKindOfClass:[NSString class]]) {
+		return [UIImage imageWithContentsOfFile:identifier];
+	} else {
+		// TODO: Allow glyph identifiers of data containing image bytes or UImage
+		return nil;
+	}
+}
+
+- (UIImage *)toggleImageForToggleID:(NSString *)toggleID controlState:(UIControlState)controlState usingTemplateBundle:(NSBundle *)templateBundle;
+{
+	CGFloat scale = [UIScreen instancesRespondToSelector:@selector(scale)] ? [UIScreen mainScreen].scale : 1.0f;
+	return [self toggleImageForToggleID:toggleID controlState:controlState scale:scale usingTemplateBundle:templateBundle];
 }
 
 - (BOOL)toggleStateForToggleID:(NSString *)toggleID

@@ -9,7 +9,10 @@
 @property (nonatomic, readonly, copy) NSArray *toggleIdentifiers;
 
 - (NSString *)titleForToggleID:(NSString *)toggleID;
-- (UIImage *)toggleImageForIdentifier:(NSString *)toggleID withBackground:(UIImage *)backgroundImage overlay:(UIImage *)overlayMask andState:(BOOL)state;
+
+- (UIImage *)toggleImageForToggleID:(NSString *)toggleID controlState:(UIControlState)controlState usingTemplateBundle:(NSBundle *)templateBundle;
+- (UIImage *)toggleImageForToggleID:(NSString *)toggleID controlState:(UIControlState)controlState scale:(CGFloat)scale usingTemplateBundle:(NSBundle *)templateBundle;
+- (id)glyphImageIdentifierForToggleID:(NSString *)toggleID controlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale;
 
 - (BOOL)toggleStateForToggleID:(NSString *)toggleID;
 - (void)setToggleState:(BOOL)state onToggleID:(NSString *)toggleID;

@@ -5,5 +5,5 @@ typedef enum {
 	A3ToggleServiceMessageGetTitleForIdentifier = 1,
 	A3ToggleServiceMessageGetStateForIdentifier = 2,
 	A3ToggleServiceMessageSetStateForIdentifier = 3,
-	A3ToggleServiceMessageGetImageForIdentifierAndState = 4,
+	A3ToggleServiceMessageGetImageIdentifierForToggle = 4,
 } A3ToggleServiceMessage;

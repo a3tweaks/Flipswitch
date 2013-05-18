@@ -4,8 +4,8 @@
 @required
 - (BOOL)stateForToggleIdentifier:(NSString *)toggleIdentifier;
 - (void)applyState:(BOOL)newState forToggleIdentifier:(NSString *)toggleIdentifier;
-- (UIImage *)imageForToggleIdentifier:(NSString *)toggleIdentifier withState:(BOOL)state;
 
 @optional
 - (NSString *)titleForToggleIdentifier:(NSString *)toggleIdentifier;
+- (id)glyphImageDescriptorForControlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier;
 @end

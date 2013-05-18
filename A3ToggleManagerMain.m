@@ -46,30 +46,11 @@
 	[toggle applyState:state forToggleIdentifier:toggleID];
 }
 
-- (UIImage *)toggleImageForIdentifier:(NSString *)toggleID withBackground:(UIImage *)backgroundImage overlay:(UIImage *)overlayMask andState:(BOOL)state
+- (id)glyphImageIdentifierForToggleID:(NSString *)toggleID controlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale
 {
 	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleID];
-	if ([toggle respondsToSelector:@selector(imageForToggleIdentifier:withState:)])
-	{
-		UIImage *toggleMask = [toggle imageForToggleIdentifier:toggleID withState:state];
-		UIImage *createdImage = [self processImageForBackground:backgroundImage withToggleMask:toggleMask withOverlay:overlayMask];
-		return createdImage;
-	}
-	else
-	{
-		@throw [NSException exceptionWithName:NSInternalInconsistencyException reason:[NSString stringWithFormat:@"Toggle with ID %@ is required to implement imageForToggleIdentifier:withState:", toggleID] userInfo:nil];
-	}
-
-	return nil;
+	return [toggle glyphImageDescriptorForControlState:controlState size:size scale:scale forToggleIdentifier:toggleID];
 }
-
-- (UIImage *)processImageForBackground:(UIImage *)backgroundImage withToggleMask:(UIImage *)toggleMask withOverlay:(UIImage *)overlay
-{
-	//TODO: Apply image mask and lay over background etc
-
-	return nil;
-}
-
 
 static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef data)
 {
@@ -105,18 +86,18 @@ static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef da
 			}
 			break;
 		}
-		case A3ToggleServiceMessageGetImageForIdentifierAndState: {
+		case A3ToggleServiceMessageGetImageIdentifierForToggle: {
 			NSDictionary *args = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([args isKindOfClass:[NSDictionary class]]) {
-				NSString *identifier = [args objectForKey:@"toggleID"];
-				UIImage *backgroundImage = [args objectForKey:@"toggleBackground"];
-				UIImage *overlayMask = [args objectForKey:@"toggleOverlay"];
-				NSNumber *state = [args objectForKey:@"toggleState"];
-
-				if (identifier != nil && backgroundImage != nil && overlayMask != nil && state != nil)
-				{
-					UIImage *image = [[A3ToggleManager sharedInstance] toggleImageForIdentifier:identifier withBackground:backgroundImage overlay:overlayMask andState:[state boolValue]];
-					if (image != nil) LMSendImageReply(replyPort, image);
+				NSString *toggleID = [args objectForKey:@"toggleID"];
+				CGFloat size = [[args objectForKey:@"size"] floatValue];
+				CGFloat scale = [[args objectForKey:@"scale"] floatValue];
+				UIControlState controlState = [[args objectForKey:@"controlState"] intValue];
+				id imageIdentifier = [[A3ToggleManager sharedInstance] glyphImageIdentifierForToggleID:toggleID controlState:controlState size:size scale:scale];
+				if (imageIdentifier) {
+					// TODO: Allow responding with a string representing file path, data containing image bytes, or UImage
+					LMSendPropertyListReply(replyPort, imageIdentifier);
+					return;
 				}
 			}
 			break;
