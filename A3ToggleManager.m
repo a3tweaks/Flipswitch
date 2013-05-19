@@ -114,17 +114,17 @@ static A3ToggleManager *_toggleManager;
 
 - (void)registerToggle:(id<A3Toggle>)toggle forIdentifier:(NSString *)toggleIdentifier
 {
-	// TODO: Throw exception
+	[NSException raise:NSInternalInconsistencyException format:@"Cannot register toggles outside of SpringBoard!"];
 }
 
 - (void)unregisterToggleIdentifier:(NSString *)toggleIdentifier;
 {
-	// TODO: Throw exception
+	[NSException raise:NSInternalInconsistencyException format:@"Cannot unregister toggles outside of SpringBoard!"];
 }
 
 - (void)stateDidChangeForToggleIdentifier:(NSString *)toggleIdentifier
 {
-	// TODO: Throw exception
+	[NSException raise:NSInternalInconsistencyException format:@"Cannot update toggle state from outside of SpringBoard!"];
 }
 
 @end
