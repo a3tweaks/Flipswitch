@@ -49,18 +49,18 @@ static void TogglesChangedCallback(CFNotificationCenterRef center, void *observe
 	return LMResponseConsumePropertyList(&responseBuffer);
 }
 
-- (NSString *)titleForToggleID:(NSString *)toggleID
+- (NSString *)titleForToggleIdentifier:(NSString *)toggleIdentifier
 {
 	LMResponseBuffer responseBuffer;
-	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageGetTitleForIdentifier, toggleID, &responseBuffer)) {
+	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageGetTitleForIdentifier, toggleIdentifier, &responseBuffer)) {
 		return nil;
 	}
 	return LMResponseConsumePropertyList(&responseBuffer);
 }
 
-- (id)glyphImageIdentifierForToggleID:(NSString *)toggleID controlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale
+- (id)glyphImageIdentifierForToggleIdentifier:(NSString *)toggleIdentifier controlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale
 {
- 	NSDictionary *args = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:toggleID, [NSNumber numberWithFloat:size], [NSNumber numberWithFloat:scale], [NSNumber numberWithInteger:controlState], nil] forKeys:[NSArray arrayWithObjects:@"toggleID", @"size", @"scale", @"controlState", nil]];
+ 	NSDictionary *args = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:toggleIdentifier, [NSNumber numberWithFloat:size], [NSNumber numberWithFloat:scale], [NSNumber numberWithInteger:controlState], nil] forKeys:[NSArray arrayWithObjects:@"toggleIdentifier", @"size", @"scale", @"controlState", nil]];
 
 	LMResponseBuffer responseBuffer;
 	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageGetImageIdentifierForToggle, args, &responseBuffer)) {
@@ -69,10 +69,10 @@ static void TogglesChangedCallback(CFNotificationCenterRef center, void *observe
 	return LMResponseConsumePropertyList(&responseBuffer);
 }
 
-- (UIImage *)toggleImageForToggleID:(NSString *)toggleID controlState:(UIControlState)controlState scale:(CGFloat)scale usingTemplateBundle:(NSBundle *)templateBundle;
+- (UIImage *)toggleImageForToggleIdentifier:(NSString *)toggleIdentifier controlState:(UIControlState)controlState scale:(CGFloat)scale usingTemplateBundle:(NSBundle *)templateBundle;
 {
 	// TODO: Define template format, read in template used to describe what background images to use and how to draw the glyphs
-	id identifier = [self glyphImageIdentifierForToggleID:toggleID controlState:controlState size:29 scale:scale];
+	id identifier = [self glyphImageIdentifierForToggleIdentifier:toggleIdentifier controlState:controlState size:29 scale:scale];
 	if ([identifier isKindOfClass:[NSString class]]) {
 		return [UIImage imageWithContentsOfFile:identifier];
 	} else {
@@ -81,45 +81,45 @@ static void TogglesChangedCallback(CFNotificationCenterRef center, void *observe
 	}
 }
 
-- (UIImage *)toggleImageForToggleID:(NSString *)toggleID controlState:(UIControlState)controlState usingTemplateBundle:(NSBundle *)templateBundle;
+- (UIImage *)toggleImageForToggleIdentifier:(NSString *)toggleIdentifier controlState:(UIControlState)controlState usingTemplateBundle:(NSBundle *)templateBundle;
 {
 	CGFloat scale = [UIScreen instancesRespondToSelector:@selector(scale)] ? [UIScreen mainScreen].scale : 1.0f;
-	return [self toggleImageForToggleID:toggleID controlState:controlState scale:scale usingTemplateBundle:templateBundle];
+	return [self toggleImageForToggleIdentifier:toggleIdentifier controlState:controlState scale:scale usingTemplateBundle:templateBundle];
 }
 
-- (A3ToggleState)toggleStateForToggleID:(NSString *)toggleID
+- (A3ToggleState)toggleStateForToggleIdentifier:(NSString *)toggleIdentifier
 {
 	LMResponseBuffer responseBuffer;
-	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageGetStateForIdentifier, toggleID, &responseBuffer)) {
+	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageGetStateForIdentifier, toggleIdentifier, &responseBuffer)) {
 		return NO;
 	}
 	return LMResponseConsumeInteger(&responseBuffer);
 }
 
-- (void)applyActionForToggleID:(NSString *)toggleID
+- (void)applyActionForToggleIdentifier:(NSString *)toggleIdentifier
 {
-	LMConnectionSendOneWayData(&connection, A3ToggleServiceMessageApplyActionForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:toggleID format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
+	LMConnectionSendOneWayData(&connection, A3ToggleServiceMessageApplyActionForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:toggleIdentifier format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
 
-- (void)setToggleState:(A3ToggleState)state onToggleID:(NSString *)toggleID
+- (void)setToggleState:(A3ToggleState)state onToggleIdentifier:(NSString *)toggleIdentifier
 {
-	NSArray *propertyList = [NSArray arrayWithObjects:[NSNumber numberWithBool:state], toggleID, nil];
+	NSArray *propertyList = [NSArray arrayWithObjects:[NSNumber numberWithBool:state], toggleIdentifier, nil];
 	LMConnectionSendOneWayData(&connection, A3ToggleServiceMessageSetStateForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:propertyList format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
 
 
-- (BOOL)hasAlternateActionForToggleID:(NSString *)toggleID
+- (BOOL)hasAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier
 {
 	LMResponseBuffer responseBuffer;
-	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageHasAlternateActionForIdentifier, toggleID, &responseBuffer)) {
+	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageHasAlternateActionForIdentifier, toggleIdentifier, &responseBuffer)) {
 		return NO;
 	}
 	return LMResponseConsumeInteger(&responseBuffer);
 }
 
-- (void)applyAlternateActionForToggleID:(NSString *)toggleID
+- (void)applyAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier
 {
-	LMConnectionSendOneWayData(&connection, A3ToggleServiceMessageApplyAlternateActionForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:toggleID format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
+	LMConnectionSendOneWayData(&connection, A3ToggleServiceMessageApplyAlternateActionForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:toggleIdentifier format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
 
 @end

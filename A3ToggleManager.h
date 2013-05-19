@@ -8,18 +8,18 @@
 
 @property (nonatomic, readonly, copy) NSArray *toggleIdentifiers;
 
-- (NSString *)titleForToggleID:(NSString *)toggleID;
+- (NSString *)titleForToggleIdentifier:(NSString *)toggleIdentifier;
 
-- (UIImage *)toggleImageForToggleID:(NSString *)toggleID controlState:(UIControlState)controlState usingTemplateBundle:(NSBundle *)templateBundle;
-- (UIImage *)toggleImageForToggleID:(NSString *)toggleID controlState:(UIControlState)controlState scale:(CGFloat)scale usingTemplateBundle:(NSBundle *)templateBundle;
-- (id)glyphImageIdentifierForToggleID:(NSString *)toggleID controlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale;
+- (UIImage *)toggleImageForToggleIdentifier:(NSString *)toggleIdentifier controlState:(UIControlState)controlState usingTemplateBundle:(NSBundle *)templateBundle;
+- (UIImage *)toggleImageForToggleIdentifier:(NSString *)toggleIdentifier controlState:(UIControlState)controlState scale:(CGFloat)scale usingTemplateBundle:(NSBundle *)templateBundle;
+- (id)glyphImageIdentifierForToggleIdentifier:(NSString *)toggleIdentifier controlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale;
 
-- (A3ToggleState)toggleStateForToggleID:(NSString *)toggleID;
-- (void)setToggleState:(A3ToggleState)state onToggleID:(NSString *)toggleID;
-- (void)applyActionForToggleID:(NSString *)toggleID;
+- (A3ToggleState)toggleStateForToggleIdentifier:(NSString *)toggleIdentifier;
+- (void)setToggleState:(A3ToggleState)state onToggleIdentifier:(NSString *)toggleIdentifier;
+- (void)applyActionForToggleIdentifier:(NSString *)toggleID;
 
-- (BOOL)hasAlternateActionForToggleID:(NSString *)toggleID;
-- (void)applyAlternateActionForToggleID:(NSString *)toggleID;
+- (BOOL)hasAlternateActionForToggleIdentifier:(NSString *)toggleID;
+- (void)applyAlternateActionForToggleIdentifier:(NSString *)toggleID;
 
 @end
 
