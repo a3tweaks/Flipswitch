@@ -50,4 +50,12 @@
 	return [self imagePathForA3ImageName:@"glyph" imageSize:closestSize controlState:controlState inDirectory:nil];
 }
 
+- (void)toggleWasRegisteredForIdentifier:(NSString *)toggleIdentifier
+{
+}
+
+- (void)toggleWasUnregisteredForIdentifier:(NSString *)toggleIdentifier
+{
+}
+
 @end

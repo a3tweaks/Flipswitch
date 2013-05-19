@@ -26,12 +26,22 @@
 			[NSException raise:NSInvalidArgumentException format:@"Toggle instance passed to -[A3ToggleManager registerToggle:forIdentifier] must override stateForToggleIdentifier:"];
 		}
 	}
+	id<A3Toggle> oldToggle = [[_toggleImplementations objectForKey:toggleIdentifier] retain];
 	[_toggleImplementations setObject:toggle forKey:toggleIdentifier];
+	[toggle toggleWasRegisteredForIdentifier:toggleIdentifier];
+	[oldToggle toggleWasUnregisteredForIdentifier:toggleIdentifier];
+	[oldToggle release];
 }
 
 - (void)unregisterToggleIdentifier:(NSString *)toggleIdentifier
 {
+	if (!toggleIdentifier) {
+		[NSException raise:NSInvalidArgumentException format:@"Toggle identifier passed to -[A3ToggleManager unregisterToggle:forIdentifier:] must not be nil"];
+	}
+	id<A3Toggle> oldToggle = [[_toggleImplementations objectForKey:toggleIdentifier] retain];
 	[_toggleImplementations removeObjectForKey:toggleIdentifier];
+	[oldToggle toggleWasUnregisteredForIdentifier:toggleIdentifier];
+	[oldToggle release];
 }
 
 - (void)stateDidChangeForToggleIdentifier:(NSString *)toggleIdentifier

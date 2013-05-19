@@ -37,4 +37,10 @@ typedef enum {
 // Provides a bundle to look for localizations/images in
 // By default returns the bundle for the current class
 
+- (void)toggleWasRegisteredForIdentifier:(NSString *)toggleIdentifier;
+// Called when toggle is first registered
+
+- (void)toggleWasUnregisteredForIdentifier:(NSString *)toggleIdentifier;
+// Called when toggle is unregistered
+
 @end
