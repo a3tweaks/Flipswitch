@@ -4,6 +4,7 @@
 #import "A3Toggle.h"
 
 #import <dlfcn.h>
+#import <UIKit/UIKit2.h>
 #import "LightMessaging/LightMessaging.h"
 
 static LMConnection connection = {
@@ -72,16 +73,61 @@ static void TogglesChangedCallback(CFNotificationCenterRef center, void *observe
 	return LMResponseConsumePropertyList(&responseBuffer);
 }
 
-- (UIImage *)toggleImageForToggleIdentifier:(NSString *)toggleIdentifier controlState:(UIControlState)controlState scale:(CGFloat)scale usingTemplateBundle:(NSBundle *)templateBundle;
+- (UIImage *)toggleImageForToggleIdentifier:(NSString *)toggleIdentifier controlState:(UIControlState)controlState scale:(CGFloat)scale usingTemplateBundle:(NSBundle *)template
 {
-	// TODO: Define template format, read in template used to describe what background images to use and how to draw the glyphs
-	id identifier = [self glyphImageIdentifierForToggleIdentifier:toggleIdentifier controlState:controlState size:29 scale:scale];
-	if ([identifier isKindOfClass:[NSString class]]) {
-		return [UIImage imageWithContentsOfFile:identifier];
-	} else {
-		// TODO: Allow glyph identifiers of data containing image bytes or UImage
+	CGSize size;
+	size.width = [[template objectForInfoDictionaryKey:@"width"] floatValue];
+	if (size.width == 0.0f)
 		return nil;
+	size.height = [[template objectForInfoDictionaryKey:@"height"] floatValue];
+	if (size.height == 0.0f)
+		return nil;
+	if (&UIGraphicsBeginImageContextWithOptions != NULL) {
+		UIGraphicsBeginImageContextWithOptions(size, NO, 0.0f);
+	} else {
+		UIGraphicsBeginImageContext(size);
 	}
+	CGContextRef context = UIGraphicsGetCurrentContext();
+	for (NSDictionary *layer in [template objectForInfoDictionaryKey:@"layers"]) {
+		CGPoint position = CGPointMake([[layer objectForKey:@"x"] floatValue], [[layer objectForKey:@"y"] floatValue]);
+		NSString *type = [layer objectForKey:@"type"];
+		if (!type || [type isEqualToString:@"image"]) {
+			NSString *fileName = [layer objectForKey:@"fileName"];
+			if (fileName) {
+				UIImage *image = [UIImage imageNamed:fileName inBundle:template];
+				[image drawAtPoint:position];
+			}
+		} else if ([type isEqualToString:@"glyph"]) {
+			CGFloat glyphSize = [[layer objectForKey:@"size"] floatValue];
+			id identifier = [self glyphImageIdentifierForToggleIdentifier:toggleIdentifier controlState:controlState size:glyphSize scale:scale];
+			if ([identifier isKindOfClass:[NSString class]]) {
+				UIImage *image;
+				if ([identifier hasSuffix:@".pdf"]) {
+					CGPDFDocumentRef pdf = CGPDFDocumentCreateWithURL((CFURLRef)[NSURL fileURLWithPath:identifier]);
+					if (pdf) {
+						CGPDFPageRef firstPage = CGPDFDocumentGetPage(pdf, 1);
+						CGRect rect = CGPDFPageGetBoxRect(firstPage, kCGPDFCropBox);
+						CGContextScaleCTM(context, 1.0f, -1.0f);
+						CGContextTranslateCTM(context, 0, -size.height);
+						CGContextScaleCTM(context, glyphSize / rect.size.width, glyphSize / rect.size.height);
+						CGContextTranslateCTM(context, -rect.origin.x, -rect.origin.y);
+						CGContextDrawPDFPage(context, firstPage);
+						CGPDFDocumentRelease(pdf);
+					} else {
+						NSLog(@"PDF failed!");
+					}
+				} else if ((image = [UIImage imageWithContentsOfFile:identifier])) {
+					identifier = image;
+				}
+			}
+			if ([identifier isKindOfClass:[UIImage class]]) {
+				[identifier drawInRect:(CGRect){ position, (CGSize){ glyphSize, glyphSize } }];
+			}
+		}
+	}
+	UIImage *result = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
+	return result;
 }
 
 - (UIImage *)toggleImageForToggleIdentifier:(NSString *)toggleIdentifier controlState:(UIControlState)controlState usingTemplateBundle:(NSBundle *)templateBundle;

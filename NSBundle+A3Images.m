@@ -4,7 +4,7 @@
 
 - (NSArray *)A3ImageImageFileTypes
 {
-	return [NSArray arrayWithObject:@"png"];
+	return [NSArray arrayWithObjects:@"pdf", @"png", nil];
 }
 
 - (NSUInteger)imageSizeForA3ImageName:(NSString *)imageName closestToSize:(CGFloat)sourceSize inDirectory:(NSString *)directory
@@ -55,7 +55,7 @@ static NSString *ApplyControlStateSuffixToString(NSString *prefix, UIControlStat
 		return nil;
 	if (imageSize == NSNotFound)
 		return nil;
-	NSString *prefix = [imageName stringByAppendingFormat:@"-%u", imageSize];
+	NSString *prefix = imageSize ? [imageName stringByAppendingFormat:@"-%u", imageSize] : imageName;
 	for (NSString *fileType in self.A3ImageImageFileTypes) {
 		UIControlState bitsToKeep[] = {
 			~UIControlStateNormal,
