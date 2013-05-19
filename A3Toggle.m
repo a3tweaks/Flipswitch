@@ -3,6 +3,11 @@
 
 @implementation NSObject (A3Toggle)
 
+- (NSBundle *)A3ToggleBundle
+{
+	return [NSBundle bundleForClass:[self class]];
+}
+
 - (A3ToggleState)stateForToggleIdentifier:(NSString *)toggleIdentifier
 {
 	return A3ToggleStateIndeterminate;
@@ -31,12 +36,12 @@
 
 - (NSString *)titleForToggleIdentifier:(NSString *)toggleIdentifier
 {
-	return [[NSBundle bundleForClass:[self class]] objectForInfoDictionaryKey:@"CFBundleDisplayName"] ?: toggleIdentifier;
+	return [[self A3ToggleBundle] objectForInfoDictionaryKey:@"CFBundleDisplayName"] ?: toggleIdentifier;
 }
 
 - (id)glyphImageDescriptorForControlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier;
 {
-	NSBundle *bundle = [NSBundle bundleForClass:[self class]];
+	NSBundle *bundle = [self A3ToggleBundle];
 	if (!bundle)
 		return nil;
 	NSUInteger closestSize = [self imageSizeForA3ImageName:@"glyph" closestToSize:size * scale inDirectory:nil];

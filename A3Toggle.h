@@ -13,4 +13,5 @@ typedef enum {
 - (void)applyActionForToggleIdentifier:(NSString *)toggleIdentifier;
 - (NSString *)titleForToggleIdentifier:(NSString *)toggleIdentifier;
 - (id)glyphImageDescriptorForControlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier;
+@property (nonatomic, readonly, retain) NSBundle *A3ToggleBundle;
 @end
