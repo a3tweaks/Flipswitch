@@ -4,7 +4,7 @@
 
 @interface A3ToggleManager : NSObject
 
-+ (A3ToggleManager *)sharedInstance;
++ (A3ToggleManager *)sharedToggleManager;
 
 @property (nonatomic, readonly, copy) NSArray *toggleIdentifiers;
 

@@ -22,7 +22,7 @@ static A3ToggleManager *_toggleManager;
 	}
 }
 
-+ (A3ToggleManager *)sharedInstance
++ (A3ToggleManager *)sharedToggleManager
 {
     return _toggleManager;
 }

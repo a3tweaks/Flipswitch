@@ -78,12 +78,12 @@ static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef da
 {
 	switch ((A3ToggleServiceMessage)messageId) {
 		case A3ToggleServiceMessageGetIdentifiers:
-			LMSendPropertyListReply(replyPort, [A3ToggleManager sharedInstance].toggleIdentifiers);
+			LMSendPropertyListReply(replyPort, [A3ToggleManager sharedToggleManager].toggleIdentifiers);
 			return;
 		case A3ToggleServiceMessageGetTitleForIdentifier: {
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
-				NSString *title = [[A3ToggleManager sharedInstance] titleForToggleID:identifier];
+				NSString *title = [[A3ToggleManager sharedToggleManager] titleForToggleID:identifier];
 				LMSendPropertyListReply(replyPort, title);
 				return;
 			}
@@ -92,7 +92,7 @@ static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef da
 		case A3ToggleServiceMessageGetStateForIdentifier: {
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
-				LMSendIntegerReply(replyPort, [[A3ToggleManager sharedInstance] toggleStateForToggleID:identifier]);
+				LMSendIntegerReply(replyPort, [[A3ToggleManager sharedToggleManager] toggleStateForToggleID:identifier]);
 				return;
 			}
 			break;
@@ -103,7 +103,7 @@ static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef da
 				NSNumber *state = [args objectAtIndex:0];
 				NSString *identifier = [args objectAtIndex:1];
 				if ([state isKindOfClass:[NSNumber class]] && [identifier isKindOfClass:[NSString class]]) {
-					[[A3ToggleManager sharedInstance] setToggleState:[state integerValue] onToggleID:identifier];
+					[[A3ToggleManager sharedToggleManager] setToggleState:[state integerValue] onToggleID:identifier];
 				}
 			}
 			break;
@@ -115,7 +115,7 @@ static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef da
 				CGFloat size = [[args objectForKey:@"size"] floatValue];
 				CGFloat scale = [[args objectForKey:@"scale"] floatValue];
 				UIControlState controlState = [[args objectForKey:@"controlState"] intValue];
-				id imageIdentifier = [[A3ToggleManager sharedInstance] glyphImageIdentifierForToggleID:toggleID controlState:controlState size:size scale:scale];
+				id imageIdentifier = [[A3ToggleManager sharedToggleManager] glyphImageIdentifierForToggleID:toggleID controlState:controlState size:size scale:scale];
 				if (imageIdentifier) {
 					// TODO: Allow responding with a string representing file path, data containing image bytes, or UImage
 					LMSendPropertyListReply(replyPort, imageIdentifier);
@@ -127,7 +127,7 @@ static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef da
 		case A3ToggleServiceMessageApplyActionForIdentifier: {
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
-				[[A3ToggleManager sharedInstance] applyActionForToggleID:identifier];
+				[[A3ToggleManager sharedToggleManager] applyActionForToggleID:identifier];
 			}
 			break;
 		}
@@ -204,7 +204,7 @@ static void constructor(void)
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	// Initialize in SpringBoard automatically so that the bootstrap service gets registered
 	if ([[NSBundle mainBundle].bundleIdentifier isEqualToString:@"com.apple.springboard"]) {
-		[A3ToggleManager sharedInstance];
+		[A3ToggleManager sharedToggleManager];
 	}
 	[pool drain];
 }
