@@ -30,7 +30,7 @@ static void TogglesChangedCallback(CFNotificationCenterRef center, void *observe
 			_toggleManager = [[A3ToggleManagerMain alloc] init];
 		} else {
 			_toggleManager = [[self alloc] init];
-			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), toggleIdentifier, TogglesChangedCallback, (CFStringRef)A3ToggleManagerTogglesChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
+			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), self, TogglesChangedCallback, (CFStringRef)A3ToggleManagerTogglesChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
 		}
 	}
 }
