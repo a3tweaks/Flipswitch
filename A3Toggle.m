@@ -3,7 +3,7 @@
 
 @implementation NSObject (A3Toggle)
 
-- (NSBundle *)A3ToggleBundle
+- (NSBundle *)bundleForA3ToggleIdentifier:(NSString *)toggleIdentifier
 {
 	return [NSBundle bundleForClass:[self class]];
 }
@@ -15,7 +15,7 @@
 
 - (void)applyState:(A3ToggleState)newState forToggleIdentifier:(NSString *)toggleIdentifier
 {
-	if (newState == A3ToggleStateIndeterminate || newState == [self stateForToggleIdentifier:toggleIdentifier]) {
+	if (newState == A3ToggleStateIndeterminate || newState != [self stateForToggleIdentifier:toggleIdentifier]) {
 		[(id<A3ToggleState>)self flipToggleStateForToggleIdentifier:toggleIdentifier];
 	}
 }
@@ -36,12 +36,12 @@
 
 - (NSString *)titleForToggleIdentifier:(NSString *)toggleIdentifier
 {
-	return [[self A3ToggleBundle] objectForInfoDictionaryKey:@"CFBundleDisplayName"] ?: toggleIdentifier;
+	return [[self bundleForA3ToggleIdentifier:toggleIdentifier] objectForInfoDictionaryKey:@"CFBundleDisplayName"] ?: toggleIdentifier;
 }
 
 - (id)glyphImageDescriptorForControlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier;
 {
-	NSBundle *bundle = [self A3ToggleBundle];
+	NSBundle *bundle = [self bundleForA3ToggleIdentifier:toggleIdentifier];
 	if (!bundle)
 		return nil;
 	NSUInteger closestSize = [self imageSizeForA3ImageName:@"glyph" closestToSize:size * scale inDirectory:nil];
