@@ -1,9 +1,15 @@
 #import <UIKit/UIKit.h>
 
+typedef enum {
+	A3ToggleStateOff = 0,
+	A3ToggleStateOn = 1,
+	A3ToggleStateIndeterminate = -1
+} A3ToggleState;
+
 @protocol A3Toggle <NSObject>
 @required
-- (BOOL)stateForToggleIdentifier:(NSString *)toggleIdentifier;
-- (void)applyState:(BOOL)newState forToggleIdentifier:(NSString *)toggleIdentifier;
+- (A3ToggleState)stateForToggleIdentifier:(NSString *)toggleIdentifier;
+- (void)applyState:(A3ToggleState)newState forToggleIdentifier:(NSString *)toggleIdentifier;
 
 @optional
 - (NSString *)titleForToggleIdentifier:(NSString *)toggleIdentifier;

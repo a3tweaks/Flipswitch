@@ -1,6 +1,6 @@
 #import <UIKit/UIKit.h>
 
-@protocol A3Toggle;
+#import "A3Toggle.h"
 
 @interface A3ToggleManager : NSObject
 
@@ -14,8 +14,8 @@
 - (UIImage *)toggleImageForToggleID:(NSString *)toggleID controlState:(UIControlState)controlState scale:(CGFloat)scale usingTemplateBundle:(NSBundle *)templateBundle;
 - (id)glyphImageIdentifierForToggleID:(NSString *)toggleID controlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale;
 
-- (BOOL)toggleStateForToggleID:(NSString *)toggleID;
-- (void)setToggleState:(BOOL)state onToggleID:(NSString *)toggleID;
+- (A3ToggleState)toggleStateForToggleID:(NSString *)toggleID;
+- (void)setToggleState:(A3ToggleState)state onToggleID:(NSString *)toggleID;
 
 @end
 

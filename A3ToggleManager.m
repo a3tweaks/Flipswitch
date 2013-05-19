@@ -83,7 +83,7 @@ static A3ToggleManager *_toggleManager;
 	return [self toggleImageForToggleID:toggleID controlState:controlState scale:scale usingTemplateBundle:templateBundle];
 }
 
-- (BOOL)toggleStateForToggleID:(NSString *)toggleID
+- (A3ToggleState)toggleStateForToggleID:(NSString *)toggleID
 {
 	LMResponseBuffer responseBuffer;
 	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageGetStateForIdentifier, toggleID, &responseBuffer)) {
@@ -92,7 +92,7 @@ static A3ToggleManager *_toggleManager;
 	return LMResponseConsumeInteger(&responseBuffer);
 }
 
-- (void)setToggleState:(BOOL)state onToggleID:(NSString *)toggleID
+- (void)setToggleState:(A3ToggleState)state onToggleID:(NSString *)toggleID
 {
 	NSArray *propertyList = [NSArray arrayWithObjects:[NSNumber numberWithBool:state], toggleID, nil];
 	LMConnectionSendOneWayData(&connection, A3ToggleServiceMessageSetStateForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:propertyList format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);

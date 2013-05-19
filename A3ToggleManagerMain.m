@@ -34,13 +34,13 @@
 	return [toggle titleForToggleIdentifier:toggleID];
 }
 
-- (BOOL)toggleStateForToggleID:(NSString *)toggleID
+- (A3ToggleState)toggleStateForToggleID:(NSString *)toggleID
 {
 	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleID];
 	return [toggle stateForToggleIdentifier:toggleID];
 }
 
-- (void)setToggleState:(BOOL)state onToggleID:(NSString *)toggleID
+- (void)setToggleState:(A3ToggleState)state onToggleID:(NSString *)toggleID
 {
 	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleID];
 	[toggle applyState:state forToggleIdentifier:toggleID];
