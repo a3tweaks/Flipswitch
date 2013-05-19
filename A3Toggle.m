@@ -16,7 +16,7 @@
 - (void)applyState:(A3ToggleState)newState forToggleIdentifier:(NSString *)toggleIdentifier
 {
 	if (newState == A3ToggleStateIndeterminate || newState != [self stateForToggleIdentifier:toggleIdentifier]) {
-		[(id<A3ToggleState>)self flipToggleStateForToggleIdentifier:toggleIdentifier];
+		[(id<A3Toggle>)self applyActionForToggleIdentifier:toggleIdentifier];
 	}
 }
 
@@ -44,10 +44,10 @@
 	NSBundle *bundle = [self bundleForA3ToggleIdentifier:toggleIdentifier];
 	if (!bundle)
 		return nil;
-	NSUInteger closestSize = [self imageSizeForA3ImageName:@"glyph" closestToSize:size * scale inDirectory:nil];
+	NSUInteger closestSize = [bundle imageSizeForA3ImageName:@"glyph" closestToSize:size * scale inDirectory:nil];
 	if (closestSize == NSNotFound)
 		return nil;
-	return [self imagePathForA3ImageName:@"glyph" imageSize:closestSize controlState:controlState inDirectory:nil];
+	return [bundle imagePathForA3ImageName:@"glyph" imageSize:closestSize controlState:controlState inDirectory:nil];
 }
 
 - (void)toggleWasRegisteredForIdentifier:(NSString *)toggleIdentifier
