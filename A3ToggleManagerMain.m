@@ -63,7 +63,8 @@
 
 - (void)stateDidChangeForToggleIdentifier:(NSString *)toggleIdentifier
 {
-	// TODO: Notify others of state changes
+	NSDictionary *userInfo = toggleIdentifier ? [NSDictionary dictionaryWithObject:toggleIdentifier forKey:A3ToggleManagerToggleIdentifierKey] : nil;
+	[[NSNotificationCenter defaultCenter] postNotificationName:A3ToggleManagerToggleStateChangedNotification object:self userInfo:userInfo];
 }
 
 - (NSArray *)toggleIdentifiers

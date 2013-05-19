@@ -13,6 +13,9 @@ static LMConnection connection = {
 
 NSString * const A3ToggleManagerTogglesChangedNotification = @"A3ToggleManagerTogglesChangedNotification";
 
+NSString * const A3ToggleManagerToggleStateChangedNotification = @"A3ToggleManagerToggleStateChangedNotification";
+NSString * const A3ToggleManagerToggleIdentifierKey = @"toggleIdentifier";
+
 
 static A3ToggleManager *_toggleManager;
 

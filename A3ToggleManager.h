@@ -30,6 +30,10 @@
 @end
 
 extern NSString * const A3ToggleManagerTogglesChangedNotification;
+
+extern NSString * const A3ToggleManagerToggleStateChangedNotification;
+extern NSString * const A3ToggleManagerToggleIdentifierKey;
+
 /*
 @protocol A3Toggle <NSObject>
 @required
