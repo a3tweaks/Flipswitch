@@ -29,6 +29,7 @@
 - (void)stateDidChangeForToggleIdentifier:(NSString *)toggleIdentifier;
 @end
 
+extern NSString * const A3ToggleManagerTogglesChangedNotification;
 /*
 @protocol A3Toggle <NSObject>
 @required

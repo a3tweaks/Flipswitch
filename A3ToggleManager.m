@@ -11,14 +11,27 @@ static LMConnection connection = {
 	kA3ToggleServiceName
 };
 
+NSString * const A3ToggleManagerTogglesChangedNotification = @"A3ToggleManagerTogglesChangedNotification";
+
+
 static A3ToggleManager *_toggleManager;
 
 @implementation A3ToggleManager
 
+static void TogglesChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+{
+	[[NSNotificationCenter defaultCenter] postNotificationName:A3ToggleManagerTogglesChangedNotification object:_toggleManager userInfo:nil];
+}
+
 + (void)initialize
 {
 	if (self == [A3ToggleManager class]) {
-		_toggleManager = [objc_getClass("SpringBoard") ? [A3ToggleManagerMain alloc] : [self alloc] init];
+		if (objc_getClass("SpringBoard")) {
+			_toggleManager = [[A3ToggleManagerMain alloc] init];
+		} else {
+			_toggleManager = [[self alloc] init];
+			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), toggleIdentifier, TogglesChangedCallback, (CFStringRef)A3ToggleManagerTogglesChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
+		}
 	}
 }
 

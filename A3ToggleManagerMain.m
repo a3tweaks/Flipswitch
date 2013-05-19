@@ -4,6 +4,8 @@
 
 #import "LightMessaging/LightMessaging.h"
 
+#import <notify.h>
+
 #define kTogglesPath @"/Library/Toggles/"
 
 @implementation A3ToggleManagerMain
@@ -31,6 +33,10 @@
 	[toggle toggleWasRegisteredForIdentifier:toggleIdentifier];
 	[oldToggle toggleWasUnregisteredForIdentifier:toggleIdentifier];
 	[oldToggle release];
+	if (!hasUpdatedToggles) {
+		hasUpdatedToggles = YES;
+		[self performSelector:@selector(_sendTogglesChanged) withObject:nil afterDelay:0.0];
+	}
 }
 
 - (void)unregisterToggleIdentifier:(NSString *)toggleIdentifier
@@ -42,6 +48,17 @@
 	[_toggleImplementations removeObjectForKey:toggleIdentifier];
 	[oldToggle toggleWasUnregisteredForIdentifier:toggleIdentifier];
 	[oldToggle release];
+	if (!hasUpdatedToggles) {
+		hasUpdatedToggles = YES;
+		[self performSelector:@selector(_sendTogglesChanged) withObject:nil afterDelay:0.0];
+	}
+}
+
+- (void)_sendTogglesChanged
+{
+	hasUpdatedToggles = NO;
+	notify_post([A3ToggleManagerTogglesChangedNotification UTF8String]);
+	[[NSNotificationCenter defaultCenter] postNotificationName:A3ToggleManagerTogglesChangedNotification object:self userInfo:nil];
 }
 
 - (void)stateDidChangeForToggleIdentifier:(NSString *)toggleIdentifier
