@@ -31,8 +31,7 @@
 
 - (NSString *)titleForToggleIdentifier:(NSString *)toggleIdentifier
 {
-	// TODO: Read from bundle/plist metadata
-	return toggleIdentifier;
+	return [[NSBundle bundleForClass:[self class]] objectForInfoDictionaryKey:@"CFBundleDisplayName"] ?: toggleIdentifier;
 }
 
 - (id)glyphImageDescriptorForControlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier;
