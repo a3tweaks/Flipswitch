@@ -16,10 +16,10 @@
 
 - (A3ToggleState)toggleStateForToggleIdentifier:(NSString *)toggleIdentifier;
 - (void)setToggleState:(A3ToggleState)state onToggleIdentifier:(NSString *)toggleIdentifier;
-- (void)applyActionForToggleIdentifier:(NSString *)toggleID;
+- (void)applyActionForToggleIdentifier:(NSString *)toggleIdentifier;
 
-- (BOOL)hasAlternateActionForToggleIdentifier:(NSString *)toggleID;
-- (void)applyAlternateActionForToggleIdentifier:(NSString *)toggleID;
+- (BOOL)hasAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier;
+- (void)applyAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier;
 
 @end
 
