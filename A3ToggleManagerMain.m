@@ -227,7 +227,7 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 		NSArray *toggleDirectoryContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:kTogglesPath error:nil];
 		for (NSString *folder in toggleDirectoryContents)
 		{
-			NSBundle *bundle = [NSBundle bundleWithPath:folder];
+			NSBundle *bundle = [NSBundle bundleWithPath:[kTogglesPath stringByAppendingPathComponent:folder]];
 			if (bundle != nil)
 			{
 				Class toggleClass = [bundle principalClass];
