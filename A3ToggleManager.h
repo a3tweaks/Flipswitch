@@ -18,6 +18,9 @@
 - (void)setToggleState:(A3ToggleState)state onToggleID:(NSString *)toggleID;
 - (void)applyActionForToggleID:(NSString *)toggleID;
 
+- (BOOL)hasAlternateActionForToggleID:(NSString *)toggleID;
+- (void)applyAlternateActionForToggleID:(NSString *)toggleID;
+
 @end
 
 @interface A3ToggleManager (SpringBoard)

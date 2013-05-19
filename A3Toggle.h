@@ -43,4 +43,12 @@ typedef enum {
 - (void)toggleWasUnregisteredForIdentifier:(NSString *)toggleIdentifier;
 // Called when toggle is unregistered
 
+- (BOOL)hasAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier;
+// Gets whether the toggle supports an alternate or "hold" action
+// By default queries if toggle responds to applyAlternateActionForToggleIdentifier:
+
+- (void)applyAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier;
+// Applies the alternate or "hold" action
+// By default does nothing
+
 @end

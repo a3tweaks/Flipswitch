@@ -84,6 +84,18 @@
 	return [toggle glyphImageDescriptorForControlState:controlState size:size scale:scale forToggleIdentifier:toggleID];
 }
 
+- (BOOL)hasAlternateActionForToggleID:(NSString *)toggleID
+{
+	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleID];
+	return [toggle hasAlternateActionForToggleIdentifier:toggleID];
+}
+
+- (void)applyAlternateActionForToggleID:(NSString *)toggleID
+{
+	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleID];
+	[toggle applyAlternateActionForToggleIdentifier:toggleID];
+}
+
 static void processMessage(A3ToggleManagerMain *self, SInt32 messageId, mach_port_t replyPort, CFDataRef data)
 {
 	switch ((A3ToggleServiceMessage)messageId) {
@@ -138,6 +150,21 @@ static void processMessage(A3ToggleManagerMain *self, SInt32 messageId, mach_por
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
 				[self applyActionForToggleID:identifier];
+			}
+			break;
+		}
+		case A3ToggleServiceMessageHasAlternateActionForIdentifier: {
+			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			if ([identifier isKindOfClass:[NSString class]]) {
+				LMSendIntegerReply(replyPort, [self hasAlternateActionForToggleID:identifier]);
+				return;
+			}
+			break;
+		}
+		case A3ToggleServiceMessageApplyAlternateActionForIdentifier: {
+			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			if ([identifier isKindOfClass:[NSString class]]) {
+				[self applyAlternateActionForToggleID:identifier];
 			}
 			break;
 		}

@@ -58,4 +58,13 @@
 {
 }
 
+- (BOOL)hasAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier
+{
+	return [self methodForSelector:@selector(applyAlternateActionForToggleIdentifier:)] != [NSObject instanceMethodForSelector:@selector(applyAlternateActionForToggleIdentifier:)];
+}
+
+- (void)applyAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier
+{
+}
+
 @end

@@ -27,15 +27,6 @@ static A3ToggleManager *_toggleManager;
     return _toggleManager;
 }
 
-- (A3ToggleManager *)init
-{
-    if ((self = [super init]))
-    {
-
-    }
-    return self;
-}
-
 - (NSArray *)toggleIdentifiers
 {
 	LMResponseBuffer responseBuffer;
@@ -103,9 +94,19 @@ static A3ToggleManager *_toggleManager;
 	LMConnectionSendOneWayData(&connection, A3ToggleServiceMessageSetStateForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:propertyList format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
 
-- (void)dealloc
-{    
-    [super dealloc];
+
+- (BOOL)hasAlternateActionForToggleID:(NSString *)toggleID
+{
+	LMResponseBuffer responseBuffer;
+	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageHasAlternateActionForIdentifier, toggleID, &responseBuffer)) {
+		return NO;
+	}
+	return LMResponseConsumeInteger(&responseBuffer);
+}
+
+- (void)applyAlternateActionForToggleID:(NSString *)toggleID
+{
+	LMConnectionSendOneWayData(&connection, A3ToggleServiceMessageApplyAlternateActionForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:toggleID format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
 
 @end
