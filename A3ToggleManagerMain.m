@@ -74,16 +74,16 @@
 	return [toggle glyphImageDescriptorForControlState:controlState size:size scale:scale forToggleIdentifier:toggleID];
 }
 
-static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef data)
+static void processMessage(A3ToggleManagerMain *self, SInt32 messageId, mach_port_t replyPort, CFDataRef data)
 {
 	switch ((A3ToggleServiceMessage)messageId) {
 		case A3ToggleServiceMessageGetIdentifiers:
-			LMSendPropertyListReply(replyPort, [A3ToggleManager sharedToggleManager].toggleIdentifiers);
+			LMSendPropertyListReply(replyPort, self.toggleIdentifiers);
 			return;
 		case A3ToggleServiceMessageGetTitleForIdentifier: {
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
-				NSString *title = [[A3ToggleManager sharedToggleManager] titleForToggleID:identifier];
+				NSString *title = [self titleForToggleID:identifier];
 				LMSendPropertyListReply(replyPort, title);
 				return;
 			}
@@ -92,7 +92,7 @@ static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef da
 		case A3ToggleServiceMessageGetStateForIdentifier: {
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
-				LMSendIntegerReply(replyPort, [[A3ToggleManager sharedToggleManager] toggleStateForToggleID:identifier]);
+				LMSendIntegerReply(replyPort, [self toggleStateForToggleID:identifier]);
 				return;
 			}
 			break;
@@ -103,7 +103,7 @@ static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef da
 				NSNumber *state = [args objectAtIndex:0];
 				NSString *identifier = [args objectAtIndex:1];
 				if ([state isKindOfClass:[NSNumber class]] && [identifier isKindOfClass:[NSString class]]) {
-					[[A3ToggleManager sharedToggleManager] setToggleState:[state integerValue] onToggleID:identifier];
+					[self setToggleState:[state integerValue] onToggleID:identifier];
 				}
 			}
 			break;
@@ -115,7 +115,7 @@ static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef da
 				CGFloat size = [[args objectForKey:@"size"] floatValue];
 				CGFloat scale = [[args objectForKey:@"scale"] floatValue];
 				UIControlState controlState = [[args objectForKey:@"controlState"] intValue];
-				id imageIdentifier = [[A3ToggleManager sharedToggleManager] glyphImageIdentifierForToggleID:toggleID controlState:controlState size:size scale:scale];
+				id imageIdentifier = [self glyphImageIdentifierForToggleID:toggleID controlState:controlState size:size scale:scale];
 				if (imageIdentifier) {
 					// TODO: Allow responding with a string representing file path, data containing image bytes, or UImage
 					LMSendPropertyListReply(replyPort, imageIdentifier);
@@ -127,7 +127,7 @@ static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef da
 		case A3ToggleServiceMessageApplyActionForIdentifier: {
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
-				[[A3ToggleManager sharedToggleManager] applyActionForToggleID:identifier];
+				[self applyActionForToggleID:identifier];
 			}
 			break;
 		}
@@ -148,7 +148,7 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 	size_t length = LMMessageGetDataLength(request);
 	mach_port_t replyPort = request->head.msgh_remote_port;
 	CFDataRef cfdata = CFDataCreateWithBytesNoCopy(kCFAllocatorDefault, data ?: &data, length, kCFAllocatorNull);
-	processMessage(request->head.msgh_id, replyPort, cfdata);
+	processMessage(info, request->head.msgh_id, replyPort, cfdata);
 	if (cfdata)
 		CFRelease(cfdata);
 	LMResponseBufferFree(bytes);
@@ -160,7 +160,7 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 	{
 		mach_port_t bootstrap = MACH_PORT_NULL;
 		task_get_bootstrap_port(mach_task_self(), &bootstrap);
-		CFMachPortContext context = { 0, NULL, NULL, NULL, NULL };
+		CFMachPortContext context = { 0, self, NULL, NULL, NULL };
 		CFMachPortRef machPort = CFMachPortCreate(kCFAllocatorDefault, machPortCallback, &context, NULL);
 		CFRunLoopSourceRef machPortSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, machPort, 0);
 		CFRunLoopAddSource(CFRunLoopGetCurrent(), machPortSource, kCFRunLoopDefaultMode);
