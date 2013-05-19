@@ -92,6 +92,11 @@ static A3ToggleManager *_toggleManager;
 	return LMResponseConsumeInteger(&responseBuffer);
 }
 
+- (void)applyActionForToggleID:(NSString *)toggleID
+{
+	LMConnectionSendOneWayData(&connection, A3ToggleServiceMessageApplyActionForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:toggleID format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
+}
+
 - (void)setToggleState:(A3ToggleState)state onToggleID:(NSString *)toggleID
 {
 	NSArray *propertyList = [NSArray arrayWithObjects:[NSNumber numberWithBool:state], toggleID, nil];

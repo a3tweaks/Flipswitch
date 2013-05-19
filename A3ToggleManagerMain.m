@@ -10,6 +10,22 @@
 
 - (void)registerToggle:(id<A3Toggle>)toggle forIdentifier:(NSString *)toggleIdentifier
 {
+	if (!toggleIdentifier) {
+		[NSException raise:NSInvalidArgumentException format:@"Toggle identifier passed to -[A3ToggleManager registerToggle:forIdentifier:] must not be nil"];
+	}
+	if (!toggle) {
+		[NSException raise:NSInvalidArgumentException format:@"Toggle instance passed to -[A3ToggleManager] registerToggle:forIdentifier:] must not be nil"];
+	}
+	// Verify that toggle is either a valid action-like toggle or setting-like toggle
+	if ([(NSObject *)toggle methodForSelector:@selector(applyState:forToggleIdentifier:)] == [NSObject instanceMethodForSelector:@selector(applyState:forToggleIdentifier:)]) {
+		if ([(NSObject *)toggle methodForSelector:@selector(applyActionForToggleIdentifier:)] == [NSObject instanceMethodForSelector:@selector(applyActionForToggleIdentifier:)]) {
+			[NSException raise:NSInvalidArgumentException format:@"Toggle instance passed to -[A3ToggleManager registerToggle:forIdentifier] must override either applyState:forToggleIdentifier: or applyActionForToggleIdentifier:"];
+		}
+	} else {
+		if ([(NSObject *)toggle methodForSelector:@selector(stateForToggleIdentifier:)] == [NSObject instanceMethodForSelector:@selector(stateForToggleIdentifier:)]) {
+			[NSException raise:NSInvalidArgumentException format:@"Toggle instance passed to -[A3ToggleManager registerToggle:forIdentifier] must override stateForToggleIdentifier:"];
+		}
+	}
 	[_toggleImplementations setObject:toggle forKey:toggleIdentifier];
 }
 
@@ -44,6 +60,12 @@
 {
 	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleID];
 	[toggle applyState:state forToggleIdentifier:toggleID];
+}
+
+- (void)applyActionForToggleID:(NSString *)toggleID
+{
+	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleID];
+	[toggle applyActionForToggleIdentifier:toggleID];
 }
 
 - (id)glyphImageIdentifierForToggleID:(NSString *)toggleID controlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale
@@ -99,6 +121,13 @@ static void processMessage(SInt32 messageId, mach_port_t replyPort, CFDataRef da
 					LMSendPropertyListReply(replyPort, imageIdentifier);
 					return;
 				}
+			}
+			break;
+		}
+		case A3ToggleServiceMessageApplyActionForIdentifier: {
+			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			if ([identifier isKindOfClass:[NSString class]]) {
+				[[A3ToggleManager sharedInstance] applyActionForToggleID:identifier];
 			}
 			break;
 		}

@@ -7,11 +7,10 @@ typedef enum {
 } A3ToggleState;
 
 @protocol A3Toggle <NSObject>
-@required
+@optional
 - (A3ToggleState)stateForToggleIdentifier:(NSString *)toggleIdentifier;
 - (void)applyState:(A3ToggleState)newState forToggleIdentifier:(NSString *)toggleIdentifier;
-
-@optional
+- (void)applyActionForToggleIdentifier:(NSString *)toggleIdentifier;
 - (NSString *)titleForToggleIdentifier:(NSString *)toggleIdentifier;
 - (id)glyphImageDescriptorForControlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier;
 @end

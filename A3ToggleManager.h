@@ -16,6 +16,7 @@
 
 - (A3ToggleState)toggleStateForToggleID:(NSString *)toggleID;
 - (void)setToggleState:(A3ToggleState)state onToggleID:(NSString *)toggleID;
+- (void)applyActionForToggleID:(NSString *)toggleID;
 
 @end
 
