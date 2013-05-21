@@ -96,18 +96,16 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 		if ([identifier hasSuffix:@".pdf"]) {
 			CGPDFDocumentRef pdf = CGPDFDocumentCreateWithURL((CFURLRef)[NSURL fileURLWithPath:identifier]);
 			if (pdf) {
-				//CGContextSetShadowWithColor(context, CGSizeMake(0.0f, size.height), 0.0f, color);
-				CGContextTranslateCTM(context, 0.0f, -contextSize.height);
-				//CGContextFillRect(context, CGRectMake(0.0f, 0.0f, glyphSize, glyphSize));
+				CGContextTranslateCTM(context, 0.0f, contextSize.height);
 				CGContextScaleCTM(context, 1.0f, -1.0f);
 				CGContextTranslateCTM(context, 0, -glyphSize);
 				CGPDFPageRef firstPage = CGPDFDocumentGetPage(pdf, 1);
 				CGRect rect = CGPDFPageGetBoxRect(firstPage, kCGPDFCropBox);
-				// Shadows are always in the current CTM. whiskey. tango. foxtrot.
 				CGFloat scale = rect.size.height / glyphSize;
-				CGContextSetShadowWithColor(context, CGSizeMake(0.0f, contextSize.height * -scale), blur * scale, color);
 				CGContextScaleCTM(context, glyphSize / rect.size.width, glyphSize / rect.size.height);
 				CGContextTranslateCTM(context, -rect.origin.x, -rect.origin.y);
+				// Shadows are always in the current CTM. whiskey. tango. foxtrot.
+				CGContextSetShadowWithColor(context, CGSizeMake(0.0f, contextSize.height * scale), blur * scale, color);
 				CGContextDrawPDFPage(context, firstPage);
 				CGPDFDocumentRelease(pdf);
 			}
@@ -138,7 +136,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 		scale = 1.0f;
 	}
 	size_t maskWidth = size.width * scale;
-	size_t maskHeight = size.height * scale;
+	size_t maskHeight = size.height * scale * 2;
 	void *maskData = NULL;
 	void *secondMaskData = NULL;
 	CGContextRef context = UIGraphicsGetCurrentContext();
@@ -172,13 +170,14 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 					maskData = malloc(maskWidth * maskHeight);
 				memset(maskData, '\0', maskWidth * maskHeight);
 				CGContextRef maskContext = CGBitmapContextCreate(maskData, maskWidth, maskHeight, 8, maskWidth, NULL, kCGImageAlphaOnly);
+				CGContextScaleCTM(maskContext, scale, scale);
 				CGContextSetBlendMode(maskContext, kCGBlendModeCopy);
-				[self drawGlyphImageIdentifier:identifier toSize:glyphSize * scale atPosition:CGPointMake((position.x + cutoutX) * scale, (position.y + cutoutY) * scale) color:[UIColor whiteColor].CGColor blur:cutoutBlur * scale inContext:maskContext ofSize:CGSizeMake(maskWidth, maskHeight)];
+				[self drawGlyphImageIdentifier:identifier toSize:glyphSize atPosition:CGPointMake(position.x + cutoutX, position.y + cutoutY) color:[UIColor whiteColor].CGColor blur:cutoutBlur inContext:maskContext ofSize:size];
 				CGContextRelease(maskContext);
 				CGDataProviderRef dataProvider = CGDataProviderCreateWithCFData((CFDataRef)[NSData dataWithBytesNoCopy:maskData length:maskWidth * maskHeight freeWhenDone:NO]);
 				CGImageRef maskImage = CGImageMaskCreate(maskWidth, maskHeight, 8, 8, maskWidth, dataProvider, NULL, TRUE);
 				CGDataProviderRelease(dataProvider);
-				CGContextClipToMask(context, CGRectMake(0.0f, 0.0f, size.width, size.height), maskImage);
+				CGContextClipToMask(context, CGRectMake(0.0f, 0.0f, size.width, size.height + size.height), maskImage);
 				CGImageRelease(maskImage);
 			}
 			UIImage *image;
@@ -198,10 +197,11 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 				memset(localMaskData, '\0', maskWidth * maskHeight);
 				CGContextRef maskContext = CGBitmapContextCreate(localMaskData, maskWidth, maskHeight, 8, maskWidth, NULL, kCGImageAlphaOnly);
 				CGContextSetBlendMode(maskContext, kCGBlendModeCopy);
-				[self drawGlyphImageIdentifier:identifier toSize:glyphSize * scale atPosition:CGPointMake(position.x * scale, position.y * scale) color:[UIColor whiteColor].CGColor blur:blur * scale inContext:maskContext ofSize:CGSizeMake(maskWidth, maskHeight)];
+				CGContextScaleCTM(maskContext, scale, scale);
+				[self drawGlyphImageIdentifier:identifier toSize:glyphSize atPosition:position color:[UIColor whiteColor].CGColor blur:blur inContext:maskContext ofSize:size];
 				CGImageRef maskImage = CGBitmapContextCreateImage(maskContext);
 				CGContextRelease(maskContext);
-				CGContextClipToMask(context, CGRectMake(0.0f, 0.0f, size.width, size.height), maskImage);
+				CGContextClipToMask(context, CGRectMake(0.0f, 0.0f, size.width, size.height + size.height), maskImage);
 				CGImageRelease(maskImage);
 				[image drawInRect:CGRectMake(position.x - blur, position.y - blur, glyphSize + blur + blur, glyphSize + blur + blur)];
 			} else {
