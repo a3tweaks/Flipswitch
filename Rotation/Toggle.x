@@ -17,6 +17,16 @@
 
 static BOOL rotationEnabled;
 
+//Headers Fix
+@interface SBIconLabel : UILabel
+@end
+
+@interface SBIcon : NSObject
+@end
+
+@interface SBApplicationIcon : SBIcon
+@end
+
 // OS 4.0
 
 @interface SBOrientationLockManager : NSObject {

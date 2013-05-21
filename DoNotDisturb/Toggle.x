@@ -190,6 +190,7 @@ typedef struct {
 static BBSettingsGateway *gateway;
 static BOOL enabled;
 
+%config(generator=internal)
 %hook SpringBoard
 
 - (void)_reportAppLaunchFinished
@@ -210,7 +211,7 @@ static BOOL enabled;
 
 - (A3ToggleState)stateForToggleIdentifier:(NSString *)toggleIdentifier
 {
-	return enabled;
+	return (A3ToggleState)enabled;
 }
 
 - (void)applyState:(A3ToggleState)newState forToggleIdentifier:(NSString *)toggleIdentifier
