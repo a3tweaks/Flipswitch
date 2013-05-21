@@ -10,7 +10,5 @@ DoNotDisturb_INSTALL_PATH = /Library/Toggles
 ADDITIONAL_CFLAGS = -I../
 ADDITIONAL_LDFLAGS = -L../.theos/obj
 
-SUBPROJECTS = DoNotDisturb
-
 include $(THEOS_MAKE_PATH)/library.mk
 include $(THEOS_MAKE_PATH)/bundle.mk
