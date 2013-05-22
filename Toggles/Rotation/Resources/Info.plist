@@ -5,11 +5,11 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>DoNotDisturb</string>
+	<string>Rotation</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.rpetrich.toggle.do-not-disturb</string>
+	<string>com.a3tweaks.toggle.rotation</string>
 	<key>CFBundleDisplayName</key>
-	<string>Do Not Disturb</string>
+	<string>Rotation</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -25,6 +25,6 @@
 	<key>MinimumOSVersion</key>
 	<string>2.0</string>
 	<key>NSPrincipalClass</key>
-	<string>DoNotDisturbToggle</string>
+	<string>RotationToggle</string>
 </dict>
 </plist>

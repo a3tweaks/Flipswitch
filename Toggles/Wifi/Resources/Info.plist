@@ -5,11 +5,11 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>Rotation</string>
+	<string>Wifi</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.rpetrich.toggle.rotation</string>
+	<string>com.a3tweaks.toggle.wifi</string>
 	<key>CFBundleDisplayName</key>
-	<string>Rotation</string>
+	<string>Wifi</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -25,6 +25,6 @@
 	<key>MinimumOSVersion</key>
 	<string>2.0</string>
 	<key>NSPrincipalClass</key>
-	<string>RotationToggle</string>
+	<string>WifiToggle</string>
 </dict>
 </plist>

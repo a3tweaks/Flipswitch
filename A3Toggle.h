@@ -51,4 +51,8 @@ typedef enum {
 // Applies the alternate or "hold" action
 // By default does nothing
 
+- (void)attemptToOpenURL:(NSString *)urlString;
+// A helper method which opens a url using [[UIApplication sharedApplication] openURL:]
+// E.g. A tap and hold to launch a particular settings page
+
 @end

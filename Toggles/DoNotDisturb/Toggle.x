@@ -234,4 +234,9 @@ static BOOL enabled;
 	});
 }
 
+- (void)applyAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier
+{
+	[self attemptToOpenURL:@"prefs:path=DND"];
+}
+
 @end

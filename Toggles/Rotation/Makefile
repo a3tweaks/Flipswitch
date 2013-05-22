@@ -7,8 +7,8 @@ Rotation_LIBRARIES = A3ToggleAPI
 Rotation_PRIVATE_FRAMEWORKS = GraphicsServices
 Rotation_INSTALL_PATH = /Library/Toggles
 
-ADDITIONAL_CFLAGS = -I../
-ADDITIONAL_LDFLAGS = -L../$(THEOS_OBJ_PATH)
+ADDITIONAL_CFLAGS = -I../../
+ADDITIONAL_LDFLAGS = -L../../$(THEOS_OBJ_PATH)
 
 include $(THEOS_MAKE_PATH)/library.mk
 include $(THEOS_MAKE_PATH)/bundle.mk

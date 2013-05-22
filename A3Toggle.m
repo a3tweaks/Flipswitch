@@ -67,4 +67,13 @@
 {
 }
 
+- (void)attemptToOpenURL:(NSString *)urlString
+{
+	if (urlString != nil)
+    {
+        NSURL *url = [NSURL URLWithString:urlString];
+        [[UIApplication sharedApplication] openURL:url];
+    }
+}
+
 @end
