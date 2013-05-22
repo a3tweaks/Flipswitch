@@ -17,7 +17,7 @@
 
 static BOOL rotationEnabled;
 
-//Headers Fix
+//Header Dependencies
 @interface SBIconLabel : UILabel
 @end
 
