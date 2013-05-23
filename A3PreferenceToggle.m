@@ -4,35 +4,25 @@
 
 #import <notify.h>
 
-static inline NSBundle *BundleForToggleIdentifier(NSString *toggleIdentifier)
-{
-	return [NSBundle bundleWithPath:[@"/Library/Toggles/" stringByAppendingPathComponent:toggleIdentifier]];
-}
-
 @implementation A3PreferenceToggle
 
-- (id)init
+- (id)initWithBundle:(NSBundle *)_bundle
 {
 	if ((self = [super init])) {
-		notificationRegistrations = [[NSMutableDictionary alloc] init];
+		bundle = [_bundle retain];
 	}
 	return self;
 }
 
 - (void)dealloc
 {
-	[notificationRegistrations release];
+	[bundle release];
+	[toggleIdentifier_ release];
 	[super dealloc];
-}
-
-- (NSBundle *)bundleForA3ToggleIdentifier:(NSString *)toggleIdentifier
-{
-	return BundleForToggleIdentifier(toggleIdentifier);
 }
 
 - (A3ToggleState)stateForToggleIdentifier:(NSString *)toggleIdentifier
 {
-	NSBundle *bundle = [self bundleForA3ToggleIdentifier:toggleIdentifier];
 	NSString *key = [bundle objectForInfoDictionaryKey:@"key"];
 	NSString *defaults = [bundle objectForInfoDictionaryKey:@"defaults"] ?: bundle.bundleIdentifier;
 	CFPropertyListRef value = CFPreferencesCopyAppValue((CFStringRef)key, (CFStringRef)defaults);
@@ -48,7 +38,6 @@ static inline NSBundle *BundleForToggleIdentifier(NSString *toggleIdentifier)
 {
 	if (newState == A3ToggleStateIndeterminate)
 		return;
-	NSBundle *bundle = [self bundleForA3ToggleIdentifier:toggleIdentifier];
 	NSString *key = [bundle objectForInfoDictionaryKey:@"key"];
 	NSString *defaults = [bundle objectForInfoDictionaryKey:@"defaults"] ?: bundle.bundleIdentifier;
 	if ([[bundle objectForInfoDictionaryKey:@"negate"] boolValue])
@@ -61,43 +50,39 @@ static inline NSBundle *BundleForToggleIdentifier(NSString *toggleIdentifier)
 	}
 }
 
-static void A3PreferenceToggleChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+- (void)_preferenceChanged
 {
-	NSString *toggleIdentifier = observer;
-	NSBundle *bundle = BundleForToggleIdentifier(toggleIdentifier);
 	NSString *defaults = [bundle objectForInfoDictionaryKey:@"defaults"] ?: bundle.bundleIdentifier;
 	if (defaults) {
 		CFPreferencesAppSynchronize((CFStringRef)defaults);
 	}
-	[[A3ToggleManager sharedToggleManager] stateDidChangeForToggleIdentifier:observer];
+	[[A3ToggleManager sharedToggleManager] stateDidChangeForToggleIdentifier: toggleIdentifier_];
+}
+
+static void A3PreferenceToggleChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+{
+	A3PreferenceToggle *toggle = observer;
+	[toggle _preferenceChanged];
 }
 
 - (void)toggleWasRegisteredForIdentifier:(NSString *)toggleIdentifier
 {
-	NSBundle *bundle = [self bundleForA3ToggleIdentifier:toggleIdentifier];
+	[toggleIdentifier_ release];
+	toggleIdentifier_ = [toggleIdentifier copy];
 	NSString *notification = [bundle objectForInfoDictionaryKey:@"PostNotification"];
 	if ([notification isKindOfClass:[NSString class]]) {
-		toggleIdentifier = [toggleIdentifier copy];
-		CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), toggleIdentifier, A3PreferenceToggleChangedCallback, (CFStringRef)notification, NULL, CFNotificationSuspensionBehaviorCoalesce);
-		[notificationRegistrations setObject:notification forKey:toggleIdentifier];
-		[toggleIdentifier release];
+		CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), self, A3PreferenceToggleChangedCallback, (CFStringRef)notification, NULL, CFNotificationSuspensionBehaviorCoalesce);
 	}
 }
 
 - (void)toggleWasUnregisteredForIdentifier:(NSString *)toggleIdentifier
 {
-	NSString *notification = [notificationRegistrations objectForKey:toggleIdentifier];
-	if (notification) {
-		// Must unregister with the exact same observer pointer we registered with. Slow, but this shouldn't be in the common path
-		for (NSString *key in notificationRegistrations) {
-			if ([key isEqualToString:toggleIdentifier]) {
-				toggleIdentifier = key;
-				break;
-			}
-		}
-		CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(), toggleIdentifier, (CFStringRef)notification, NULL);
-		[notificationRegistrations removeObjectForKey:toggleIdentifier];
+	NSString *notification = [bundle objectForInfoDictionaryKey:@"PostNotification"];
+	if ([notification isKindOfClass:[NSString class]]) {
+		CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(), self, (CFStringRef)notification, NULL);
 	}
+	[toggleIdentifier_ release];
+	toggleIdentifier_ = nil;
 }
 
 @end

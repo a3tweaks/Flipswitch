@@ -1,6 +1,7 @@
 #import "A3ToggleManagerMain.h"
 #import "A3ToggleService.h"
 #import "A3Toggle.h"
+#import "A3PreferenceToggle.h"
 
 #import "LightMessaging/LightMessaging.h"
 
@@ -233,7 +234,7 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 				Class toggleClass = [bundle principalClass];
 				if ([toggleClass conformsToProtocol:@protocol(A3Toggle)])
 				{
-					id<A3Toggle> toggle = [[toggleClass alloc] init];
+					id<A3Toggle> toggle = [toggleClass respondsToSelector:@selector(initWithBundle:)] ? [[toggleClass alloc] initWithBundle:bundle] : [[toggleClass alloc] init];
 					if (toggle != nil) [_toggleImplementations setObject:toggle forKey:[bundle bundleIdentifier]];
 					[toggle release];
 				}
