@@ -45,21 +45,23 @@
 	NSBundle *bundle = [self bundleForA3ToggleIdentifier:toggleIdentifier];
 	if (!bundle)
 		return nil;
-	NSUInteger closestSize;
+	NSString *stateName;
 	switch (toggleState) {
 		case A3ToggleStateOn:
-			closestSize = [bundle imageSizeForA3ImageName:@"on" closestToSize:size * scale inDirectory:nil];
-			if (closestSize != NSNotFound)
-				return [bundle imagePathForA3ImageName:@"on" imageSize:closestSize controlState:UIControlStateNormal inDirectory:nil];
+			stateName = @"on";
 			break;
 		case A3ToggleStateOff:
-			closestSize = [bundle imageSizeForA3ImageName:@"off" closestToSize:size * scale inDirectory:nil];
-			if (closestSize != NSNotFound)
-				return [bundle imagePathForA3ImageName:@"off" imageSize:closestSize controlState:UIControlStateNormal inDirectory:nil];
+			stateName = @"off";
 			break;
 		case A3ToggleStateIndeterminate:
+		default:
+			stateName = @"indeterminate";
 			break;
 	}
+	NSUInteger closestSize;
+	closestSize = [bundle imageSizeForA3ImageName:stateName closestToSize:size * scale inDirectory:nil];
+	if (closestSize != NSNotFound)
+		return [bundle imagePathForA3ImageName:stateName imageSize:closestSize controlState:UIControlStateNormal inDirectory:nil];
 	closestSize = [bundle imageSizeForA3ImageName:@"glyph" closestToSize:size * scale inDirectory:nil];
 	if (closestSize != NSNotFound)
 		return [bundle imagePathForA3ImageName:@"glyph" imageSize:closestSize controlState:UIControlStateNormal inDirectory:nil];
