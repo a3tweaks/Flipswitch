@@ -8,3 +8,6 @@ SUBPROJECTS = Toggles/AirplaneMode Toggles/DoNotDisturb Toggles/Rotation Toggles
 
 include $(THEOS_MAKE_PATH)/library.mk
 include $(THEOS_MAKE_PATH)/aggregate.mk
+
+stage::
+	$(ECHO_NOTHING)rsync -a A3Toggle.h A3ToggleManager.h $(THEOS_STAGING_DIR)/usr/lib/A3ToggleAPI/ $(FW_RSYNC_EXCLUDES)$(ECHO_END)
