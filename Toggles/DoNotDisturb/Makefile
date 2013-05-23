@@ -1,4 +1,4 @@
-include theos/makefiles/common.mk
+include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = DoNotDisturb
 DoNotDisturb_FILES = Toggle.x
@@ -8,7 +8,7 @@ DoNotDisturb_LIBRARIES = A3ToggleAPI
 DoNotDisturb_INSTALL_PATH = /Library/Toggles
 
 ADDITIONAL_CFLAGS = -I../../
-ADDITIONAL_LDFLAGS = -L../../$(THEOS_OBJ_PATH)
+ADDITIONAL_LDFLAGS = -L../../$(THEOS_OBJ_DIR_NAME)
 
 include $(THEOS_MAKE_PATH)/library.mk
 include $(THEOS_MAKE_PATH)/bundle.mk

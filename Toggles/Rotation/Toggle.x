@@ -3,7 +3,7 @@
 #import <CoreFoundation/CoreFoundation.h>
 #import <CaptainHook/CaptainHook.h>
 #import <GraphicsServices/GraphicsServices.h>
-#import <SpringBoard/SpringBoard.h>
+//#import <SpringBoard/SpringBoard.h>
 
 #import <A3Toggle.h>
 #import <A3ToggleManager.h>
@@ -49,6 +49,8 @@ static BOOL rotationEnabled;
 - (void)setLockOverrideEnabled:(BOOL)enabled forReason:(NSString *)reason;
 - (UIInterfaceOrientation)userLockOrientation;
 @end
+
+@class SBApplication;
 
 @interface SBNowPlayingBar : NSObject {
 	UIView *_containerView;
@@ -110,7 +112,7 @@ static BOOL rotationEnabled;
 @property (readonly, assign, nonatomic) UIButton *toggleButton;
 @end
 
-@interface SpringBoard (OS40)
+@interface SpringBoard : UIApplication
 - (UIInterfaceOrientation)activeInterfaceOrientation;
 @end
 
