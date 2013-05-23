@@ -40,15 +40,30 @@
 	return [[self bundleForA3ToggleIdentifier:toggleIdentifier] objectForInfoDictionaryKey:@"CFBundleDisplayName"] ?: toggleIdentifier;
 }
 
-- (id)glyphImageDescriptorForControlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier;
+- (id)glyphImageDescriptorOfToggleState:(A3ToggleState)toggleState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier
 {
 	NSBundle *bundle = [self bundleForA3ToggleIdentifier:toggleIdentifier];
 	if (!bundle)
 		return nil;
-	NSUInteger closestSize = [bundle imageSizeForA3ImageName:@"glyph" closestToSize:size * scale inDirectory:nil];
-	if (closestSize == NSNotFound)
-		return nil;
-	return [bundle imagePathForA3ImageName:@"glyph" imageSize:closestSize controlState:controlState inDirectory:nil];
+	NSUInteger closestSize;
+	switch (toggleState) {
+		case A3ToggleStateOn:
+			closestSize = [bundle imageSizeForA3ImageName:@"on" closestToSize:size * scale inDirectory:nil];
+			if (closestSize != NSNotFound)
+				return [bundle imagePathForA3ImageName:@"on" imageSize:closestSize controlState:UIControlStateNormal inDirectory:nil];
+			break;
+		case A3ToggleStateOff:
+			closestSize = [bundle imageSizeForA3ImageName:@"off" closestToSize:size * scale inDirectory:nil];
+			if (closestSize != NSNotFound)
+				return [bundle imagePathForA3ImageName:@"off" imageSize:closestSize controlState:UIControlStateNormal inDirectory:nil];
+			break;
+		case A3ToggleStateIndeterminate:
+			break;
+	}
+	closestSize = [bundle imageSizeForA3ImageName:@"glyph" closestToSize:size * scale inDirectory:nil];
+	if (closestSize != NSNotFound)
+		return [bundle imagePathForA3ImageName:@"glyph" imageSize:closestSize controlState:UIControlStateNormal inDirectory:nil];
+	return nil;
 }
 
 - (void)toggleWasRegisteredForIdentifier:(NSString *)toggleIdentifier

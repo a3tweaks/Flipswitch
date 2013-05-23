@@ -62,12 +62,12 @@ static void TogglesChangedCallback(CFNotificationCenterRef center, void *observe
 	return LMResponseConsumePropertyList(&responseBuffer);
 }
 
-- (id)glyphImageIdentifierForToggleIdentifier:(NSString *)toggleIdentifier controlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale
+- (id)glyphImageDescriptorOfToggleState:(A3ToggleState)toggleState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier;
 {
- 	NSDictionary *args = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:toggleIdentifier, [NSNumber numberWithFloat:size], [NSNumber numberWithFloat:scale], [NSNumber numberWithInteger:controlState], nil] forKeys:[NSArray arrayWithObjects:@"toggleIdentifier", @"size", @"scale", @"controlState", nil]];
+ 	NSDictionary *args = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:toggleIdentifier, [NSNumber numberWithFloat:size], [NSNumber numberWithFloat:scale], [NSNumber numberWithInteger:toggleState], nil] forKeys:[NSArray arrayWithObjects:@"toggleIdentifier", @"size", @"scale", @"toggleState", nil]];
 
 	LMResponseBuffer responseBuffer;
-	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageGetImageIdentifierForToggle, args, &responseBuffer)) {
+	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageGetImageDescriptorForToggle, args, &responseBuffer)) {
 		return nil;
 	}
 	return LMResponseConsumePropertyList(&responseBuffer);
@@ -88,13 +88,13 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	return [UIColor colorWithRed:r / 255.0f green:g / 255.0f blue:b / 255.0f alpha:1.0f];
 }
 
-- (void)drawGlyphImageIdentifier:(id)identifier toSize:(CGFloat)glyphSize atPosition:(CGPoint)position color:(CGColorRef)color blur:(CGFloat)blur inContext:(CGContextRef)context ofSize:(CGSize)contextSize
+- (void)drawGlyphImageDescriptor:(id)descriptor toSize:(CGFloat)glyphSize atPosition:(CGPoint)position color:(CGColorRef)color blur:(CGFloat)blur inContext:(CGContextRef)context ofSize:(CGSize)contextSize
 {
 	CGContextTranslateCTM(context, position.x, position.y);
-	if ([identifier isKindOfClass:[NSString class]]) {
+	if ([descriptor isKindOfClass:[NSString class]]) {
 		UIImage *image;
-		if ([identifier hasSuffix:@".pdf"]) {
-			CGPDFDocumentRef pdf = CGPDFDocumentCreateWithURL((CFURLRef)[NSURL fileURLWithPath:identifier]);
+		if ([descriptor hasSuffix:@".pdf"]) {
+			CGPDFDocumentRef pdf = CGPDFDocumentCreateWithURL((CFURLRef)[NSURL fileURLWithPath:descriptor]);
 			if (pdf) {
 				CGContextTranslateCTM(context, 0.0f, contextSize.height);
 				CGContextScaleCTM(context, 1.0f, -1.0f);
@@ -109,18 +109,18 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 				CGContextDrawPDFPage(context, firstPage);
 				CGPDFDocumentRelease(pdf);
 			}
-		} else if ((image = [UIImage imageWithContentsOfFile:identifier])) {
-			identifier = image;
+		} else if ((image = [UIImage imageWithContentsOfFile:descriptor])) {
+			descriptor = image;
 		}
 	}
-	if ([identifier isKindOfClass:[UIImage class]]) {
+	if ([descriptor isKindOfClass:[UIImage class]]) {
 		CGContextSetShadowWithColor(context, CGSizeMake(0.0f, contextSize.height), blur, color);
 		CGContextTranslateCTM(context, 0.0f, -contextSize.height);
-		[identifier drawInRect:CGRectMake(0.0f, 0.0f, glyphSize, glyphSize)];
+		[descriptor drawInRect:CGRectMake(0.0f, 0.0f, glyphSize, glyphSize)];
 	}
 }
 
-- (UIImage *)toggleImageForToggleIdentifier:(NSString *)toggleIdentifier controlState:(UIControlState)controlState scale:(CGFloat)scale usingTemplateBundle:(NSBundle *)template
+- (UIImage *)imageOfToggleState:(A3ToggleState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier usingTemplate:(NSBundle *)template
 {
 	CGSize size;
 	size.width = [[template objectForInfoDictionaryKey:@"width"] floatValue];
@@ -159,7 +159,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 		} else if ([type isEqualToString:@"glyph"]) {
 			CGFloat blur = [[layer objectForKey:@"blur"] floatValue];
 			CGFloat glyphSize = [[layer objectForKey:@"size"] floatValue];
-			id identifier = [self glyphImageIdentifierForToggleIdentifier:toggleIdentifier controlState:controlState size:glyphSize scale:scale];
+			id descriptor = [self glyphImageDescriptorOfToggleState:state size:glyphSize scale:scale forToggleIdentifier:toggleIdentifier];
 			NSString *fileName = [layer objectForKey:@"fileName"];
 			BOOL hasCutout = [[layer objectForKey:@"cutout"] boolValue];
 			if (hasCutout) {
@@ -172,7 +172,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 				CGContextRef maskContext = CGBitmapContextCreate(maskData, maskWidth, maskHeight, 8, maskWidth, NULL, kCGImageAlphaOnly);
 				CGContextScaleCTM(maskContext, scale, scale);
 				CGContextSetBlendMode(maskContext, kCGBlendModeCopy);
-				[self drawGlyphImageIdentifier:identifier toSize:glyphSize atPosition:CGPointMake(position.x + cutoutX, position.y + cutoutY) color:[UIColor whiteColor].CGColor blur:cutoutBlur inContext:maskContext ofSize:size];
+				[self drawGlyphImageDescriptor:descriptor toSize:glyphSize atPosition:CGPointMake(position.x + cutoutX, position.y + cutoutY) color:[UIColor whiteColor].CGColor blur:cutoutBlur inContext:maskContext ofSize:size];
 				CGContextRelease(maskContext);
 				CGDataProviderRef dataProvider = CGDataProviderCreateWithCFData((CFDataRef)[NSData dataWithBytesNoCopy:maskData length:maskWidth * maskHeight freeWhenDone:NO]);
 				CGImageRef maskImage = CGImageMaskCreate(maskWidth, maskHeight, 8, 8, maskWidth, dataProvider, NULL, TRUE);
@@ -198,7 +198,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 				CGContextRef maskContext = CGBitmapContextCreate(localMaskData, maskWidth, maskHeight, 8, maskWidth, NULL, kCGImageAlphaOnly);
 				CGContextSetBlendMode(maskContext, kCGBlendModeCopy);
 				CGContextScaleCTM(maskContext, scale, scale);
-				[self drawGlyphImageIdentifier:identifier toSize:glyphSize atPosition:position color:[UIColor whiteColor].CGColor blur:blur inContext:maskContext ofSize:size];
+				[self drawGlyphImageDescriptor:descriptor toSize:glyphSize atPosition:position color:[UIColor whiteColor].CGColor blur:blur inContext:maskContext ofSize:size];
 				CGImageRef maskImage = CGBitmapContextCreateImage(maskContext);
 				CGContextRelease(maskContext);
 				CGContextClipToMask(context, CGRectMake(0.0f, 0.0f, size.width, size.height + size.height), maskImage);
@@ -207,7 +207,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 			} else {
 				// Fast path for a solid color
 				CGColorRef color = (ColorWithHexString([layer objectForKey:@"color"]) ?: [UIColor blackColor]).CGColor;
-				[self drawGlyphImageIdentifier:identifier toSize:glyphSize atPosition:position color:color blur:blur inContext:context ofSize:size];
+				[self drawGlyphImageDescriptor:descriptor toSize:glyphSize atPosition:position color:color blur:blur inContext:context ofSize:size];
 			}
 		}
 		CGContextRestoreGState(context);
@@ -221,10 +221,10 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	return result;
 }
 
-- (UIImage *)toggleImageForToggleIdentifier:(NSString *)toggleIdentifier controlState:(UIControlState)controlState usingTemplateBundle:(NSBundle *)templateBundle;
+- (UIImage *)imageOfToggleState:(A3ToggleState)state controlState:(UIControlState)controlState forToggleIdentifier:(NSString *)toggleIdentifier usingTemplate:(NSBundle *)template
 {
 	CGFloat scale = [UIScreen instancesRespondToSelector:@selector(scale)] ? [UIScreen mainScreen].scale : 1.0f;
-	return [self toggleImageForToggleIdentifier:toggleIdentifier controlState:controlState scale:scale usingTemplateBundle:templateBundle];
+	return [self imageOfToggleState:state controlState:controlState scale:scale forToggleIdentifier:toggleIdentifier usingTemplate:template];
 }
 
 - (A3ToggleState)toggleStateForToggleIdentifier:(NSString *)toggleIdentifier

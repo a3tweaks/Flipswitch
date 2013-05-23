@@ -97,10 +97,10 @@
 	[toggle applyActionForToggleIdentifier:toggleIdentifier];
 }
 
-- (id)glyphImageIdentifierForToggleIdentifier:(NSString *)toggleIdentifier controlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale
+- (id)glyphImageDescriptorOfToggleState:(A3ToggleState)toggleState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier;
 {
 	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleIdentifier];
-	return [toggle glyphImageDescriptorForControlState:controlState size:size scale:scale forToggleIdentifier:toggleIdentifier];
+	return [toggle glyphImageDescriptorOfToggleState:toggleState size:size scale:scale forToggleIdentifier:toggleIdentifier];
 }
 
 - (BOOL)hasAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier
@@ -149,17 +149,17 @@ static void processMessage(A3ToggleManagerMain *self, SInt32 messageId, mach_por
 			}
 			break;
 		}
-		case A3ToggleServiceMessageGetImageIdentifierForToggle: {
+		case A3ToggleServiceMessageGetImageDescriptorForToggle: {
 			NSDictionary *args = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([args isKindOfClass:[NSDictionary class]]) {
 				NSString *toggleIdentifier = [args objectForKey:@"toggleIdentifier"];
 				CGFloat size = [[args objectForKey:@"size"] floatValue];
 				CGFloat scale = [[args objectForKey:@"scale"] floatValue];
-				UIControlState controlState = [[args objectForKey:@"controlState"] intValue];
-				id imageIdentifier = [self glyphImageIdentifierForToggleIdentifier:toggleIdentifier controlState:controlState size:size scale:scale];
-				if (imageIdentifier) {
+				A3ToggleState toggleState = [[args objectForKey:@"toggleState"] intValue];
+				id imageDescriptor = [self glyphImageDescriptorOfToggleState:toggleState size:size scale:scale forToggleIdentifier:toggleIdentifier];
+				if (imageDescriptor) {
 					// TODO: Allow responding with a string representing file path, data containing image bytes, or UImage
-					LMSendPropertyListReply(replyPort, imageIdentifier);
+					LMSendPropertyListReply(replyPort, imageDescriptor);
 					return;
 				}
 			}

@@ -29,7 +29,7 @@ typedef enum {
 // Returns the localized title for the toggle.
 // By default reads the CFBundleDisplayName out of the toggle's bundle.
 
-- (id)glyphImageDescriptorForControlState:(UIControlState)controlState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier;
+- (id)glyphImageDescriptorOfToggleState:(A3ToggleState)toggleState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier;
 // Provide an image descriptor that best displays at the requested size and scale
 // By default looks through the bundle to find a glyph image
 
