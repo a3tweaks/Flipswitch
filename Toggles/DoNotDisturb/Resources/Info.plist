@@ -26,5 +26,7 @@
 	<string>2.0</string>
 	<key>NSPrincipalClass</key>
 	<string>DoNotDisturbToggle</string>
+	<key>alternate-action-url</key>
+	<string>prefs:path=DND</string>
 </dict>
 </plist>

@@ -262,6 +262,11 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	LMConnectionSendOneWayData(&connection, A3ToggleServiceMessageApplyAlternateActionForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:toggleIdentifier format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
 
+- (void)openURLAsAlternateAction:(NSURL *)url
+{
+	[[UIApplication sharedApplication] openURL:url];
+}
+
 @end
 
 @implementation A3ToggleManager (SpringBoard)

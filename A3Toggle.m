@@ -1,4 +1,5 @@
 #import "A3Toggle.h"
+#import "A3ToggleManager.h"
 #import "NSBundle+A3Images.h"
 
 @implementation NSObject (A3Toggle)
@@ -60,20 +61,22 @@
 
 - (BOOL)hasAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier
 {
-	return [self methodForSelector:@selector(applyAlternateActionForToggleIdentifier:)] != [NSObject instanceMethodForSelector:@selector(applyAlternateActionForToggleIdentifier:)];
+	if ([self methodForSelector:@selector(applyAlternateActionForToggleIdentifier:)] != [NSObject instanceMethodForSelector:@selector(applyAlternateActionForToggleIdentifier:)])
+		return YES;
+	if ([[self bundleForA3ToggleIdentifier:toggleIdentifier] objectForInfoDictionaryKey:@"alternate-action-url"])
+		return YES;
+	return NO;
 }
 
 - (void)applyAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier
 {
-}
-
-- (void)attemptToOpenURL:(NSString *)urlString
-{
-	if (urlString != nil)
-    {
-        NSURL *url = [NSURL URLWithString:urlString];
-        [[UIApplication sharedApplication] openURL:url];
-    }
+	id urlValue = [[self bundleForA3ToggleIdentifier:toggleIdentifier] objectForInfoDictionaryKey:@"alternate-action-url"];
+	if (urlValue) {
+		NSURL *url = [NSURL URLWithString:[urlValue description]];
+		if (url) {
+			[[A3ToggleManager sharedToggleManager] openURLAsAlternateAction:url];
+		}
+	}
 }
 
 @end

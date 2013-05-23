@@ -26,5 +26,7 @@
 	<string>2.0</string>
 	<key>NSPrincipalClass</key>
 	<string>AirplaneModeToggle</string>
+	<key>alternate-action-url</key>
+	<string>prefs:path=AIRPLANE_MODE</string>
 </dict>
 </plist>

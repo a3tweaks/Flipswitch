@@ -30,9 +30,4 @@ static BOOL enabled;
 	[[%c(SBTelephonyManager) sharedTelephonyManager] setIsInAirplaneMode:enabled];
 }
 
-- (void)applyAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier
-{
-	[self attemptToOpenURL:@"prefs:path=AIRPLANE_MODE"];
-}
-
 @end

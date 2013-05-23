@@ -30,9 +30,4 @@ static BOOL enabled;
 	[[%c(SBWiFiManager) sharedInstance] setWiFiEnabled:enabled];
 }
 
-- (void)applyAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier
-{
-	[self attemptToOpenURL:@"prefs:root=WIFI"];
-}
-
 @end

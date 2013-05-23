@@ -45,14 +45,10 @@ typedef enum {
 
 - (BOOL)hasAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier;
 // Gets whether the toggle supports an alternate or "hold" action
-// By default queries if toggle responds to applyAlternateActionForToggleIdentifier:
+// By default queries if toggle responds to applyAlternateActionForToggleIdentifier: or if it has a "alternate-action-url" key set
 
 - (void)applyAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier;
 // Applies the alternate or "hold" action
-// By default does nothing
-
-- (void)attemptToOpenURL:(NSString *)urlString;
-// A helper method which opens a url using [[UIApplication sharedApplication] openURL:]
-// E.g. A tap and hold to launch a particular settings page
+// By default launches the URL stored in the "alternate-action-url" key of the toggle's bundle
 
 @end

@@ -21,6 +21,8 @@
 - (BOOL)hasAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier;
 - (void)applyAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier;
 
+- (void)openURLAsAlternateAction:(NSURL *)url;
+
 @end
 
 @interface A3ToggleManager (SpringBoard)

@@ -21,6 +21,11 @@
 	[super dealloc];
 }
 
+- (NSBundle *)bundleForA3ToggleIdentifier:(NSString *)toggleIdentifier
+{
+	return bundle;
+}
+
 - (A3ToggleState)stateForToggleIdentifier:(NSString *)toggleIdentifier
 {
 	NSString *key = [bundle objectForInfoDictionaryKey:@"key"];
