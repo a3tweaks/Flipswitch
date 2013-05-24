@@ -59,12 +59,12 @@
 			break;
 	}
 	NSUInteger closestSize;
-	closestSize = [bundle imageSizeForA3ImageName:stateName closestToSize:size * scale inDirectory:nil];
+	closestSize = [bundle imageSizeForA3ImageName:stateName closestToSize:size inDirectory:nil];
 	if (closestSize != NSNotFound)
-		return [bundle imagePathForA3ImageName:stateName imageSize:closestSize controlState:UIControlStateNormal inDirectory:nil];
-	closestSize = [bundle imageSizeForA3ImageName:@"glyph" closestToSize:size * scale inDirectory:nil];
+		return [bundle imagePathForA3ImageName:stateName imageSize:closestSize preferredScale:scale controlState:UIControlStateNormal inDirectory:nil];
+	closestSize = [bundle imageSizeForA3ImageName:@"glyph" closestToSize:size inDirectory:nil];
 	if (closestSize != NSNotFound)
-		return [bundle imagePathForA3ImageName:@"glyph" imageSize:closestSize controlState:UIControlStateNormal inDirectory:nil];
+		return [bundle imagePathForA3ImageName:@"glyph" imageSize:closestSize preferredScale:scale controlState:UIControlStateNormal inDirectory:nil];
 	return nil;
 }
 

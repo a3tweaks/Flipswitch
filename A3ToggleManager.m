@@ -2,6 +2,7 @@
 #import "A3ToggleManagerMain.h"
 #import "A3ToggleService.h"
 #import "A3Toggle.h"
+#import "NSBundle+A3Images.h"
 
 #import <dlfcn.h>
 #import <UIKit/UIKit2.h>
@@ -153,7 +154,8 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 		if (!type || [type isEqualToString:@"image"]) {
 			NSString *fileName = [layer objectForKey:@"fileName"];
 			if (fileName) {
-				UIImage *image = [UIImage imageNamed:fileName inBundle:template];
+				NSString *fullPath = [template imagePathForA3ImageName:fileName imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
+				UIImage *image = [UIImage imageWithContentsOfFile:fullPath];
 				[image drawAtPoint:position];
 			}
 		} else if ([type isEqualToString:@"glyph"]) {
@@ -181,7 +183,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 				CGImageRelease(maskImage);
 			}
 			UIImage *image;
-			if (fileName && (image = [UIImage imageNamed:fileName inBundle:template])) {
+			if (fileName && (image = [UIImage imageWithContentsOfFile:[template imagePathForA3ImageName:fileName imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil]])) {
 				// Slow path to draw an image
 				void *localMaskData;
 				if (hasCutout) {

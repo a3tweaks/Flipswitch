@@ -37,13 +37,14 @@
 	return NSNotFound;
 }
 
-- (NSString *)imagePathForA3ImageName:(NSString *)imageName imageSize:(NSUInteger)imageSize controlState:(UIControlState)controlState inDirectory:(NSString *)directory;
+- (NSString *)imagePathForA3ImageName:(NSString *)imageName imageSize:(NSUInteger)imageSize preferredScale:(CGFloat)preferredScale controlState:(UIControlState)controlState inDirectory:(NSString *)directory loadedControlState:(UIControlState *)outImageControlState
 {
 	if (!imageName)
 		return nil;
 	if (imageSize == NSNotFound)
 		return nil;
 	NSString *suffix = imageSize ? [NSString stringWithFormat:@"-%u", imageSize] : @"";
+	NSString *scaleSuffix = preferredScale > 1.0f ? [NSString stringWithFormat:@"@%.0fx"] : nil;
 	for (NSString *fileType in self.A3ImageImageFileTypes) {
 		UIControlState bitsToKeep[] = {
 			~UIControlStateNormal,
@@ -52,12 +53,25 @@
 			~(UIControlStateDisabled | UIControlStateHighlighted | UIControlStateSelected)
 		};
 		for (size_t i = 0; i < sizeof(bitsToKeep) / sizeof(*bitsToKeep); i++) {
-			NSString *filePath = [self pathForResource:[ApplyControlStateVariantToName(imageName, controlState & bitsToKeep[i]) stringByAppendingString:suffix] ofType:fileType inDirectory:directory];
-			if (filePath)
+			UIControlState newState = controlState & bitsToKeep[i];
+			NSString *name = [ApplyControlStateVariantToName(imageName, newState) stringByAppendingString:suffix];
+			NSString *filePath = scaleSuffix ? [self pathForResource:[name stringByAppendingString:scaleSuffix] ofType:fileType inDirectory:directory] : nil;
+			if (!filePath)
+				filePath = [self pathForResource:name ofType:fileType inDirectory:directory];
+			if (filePath) {
+				if (outImageControlState) {
+					*outImageControlState = newState;
+				}
 				return filePath;
+			}
 		}
 	}
 	return nil;
+}
+
+- (NSString *)imagePathForA3ImageName:(NSString *)imageName imageSize:(NSUInteger)imageSize preferredScale:(CGFloat)preferredScale controlState:(UIControlState)controlState inDirectory:(NSString *)directory
+{
+	return [self imagePathForA3ImageName:imageName imageSize:imageSize preferredScale:preferredScale controlState:controlState inDirectory:directory loadedControlState:NULL];
 }
 
 @end
