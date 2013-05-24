@@ -1,4 +1,5 @@
 #import "NSBundle+A3Images.h"
+#import "ControlStateVariants.h"
 
 @implementation NSBundle (A3Images)
 
@@ -13,14 +14,14 @@
 		NSArray *images = [self pathsForResourcesOfType:fileType inDirectory:directory];
 		NSMutableIndexSet *sizes = [[NSMutableIndexSet alloc] init];
 		for (NSString *fullPath in images) {
-			NSString *fileName = [[fullPath lastPathComponent] stringByDeletingPathExtension];
-			NSArray *components = [fileName componentsSeparatedByString:@"-"];
-			NSUInteger count = [components count];
-			if (count && [[components objectAtIndex:0] isEqualToString:imageName]) {
-				if (count == 1)
+			NSString *fileName = [fullPath lastPathComponent];
+			NSInteger location = [fileName rangeOfString:@"-" options:NSLiteralSearch | NSBackwardsSearch].location;
+			if (location == NSNotFound) {
+				if ([fileName isEqualToString:imageName])
 					[sizes addIndex:0];
-				else {
-					NSInteger value = (NSUInteger)[[components objectAtIndex:1] integerValue];
+			} else {
+				if ([[fileName substringToIndex:location] isEqualToString:imageName]) {
+					NSInteger value = (NSUInteger)[[fileName substringFromIndex:location + 1] integerValue];
 					if (value > 0)
 						[sizes addIndex:(NSUInteger)value];
 				}
@@ -36,26 +37,13 @@
 	return NSNotFound;
 }
 
-static NSString *ApplyControlStateSuffixToString(NSString *prefix, UIControlState controlState) {
-	if (!controlState)
-		return prefix;
-	NSMutableString *result = [[prefix mutableCopy] autorelease];
-	if (controlState & UIControlStateSelected)
-		[result appendString:@"-on"];
-	if (controlState & UIControlStateHighlighted)
-		[result appendString:@"-down"];
-	if (controlState & UIControlStateDisabled)
-		[result appendString:@"-disabled"];
-	return result;
-}
-
 - (NSString *)imagePathForA3ImageName:(NSString *)imageName imageSize:(NSUInteger)imageSize controlState:(UIControlState)controlState inDirectory:(NSString *)directory;
 {
 	if (!imageName)
 		return nil;
 	if (imageSize == NSNotFound)
 		return nil;
-	NSString *prefix = imageSize ? [imageName stringByAppendingFormat:@"-%u", imageSize] : imageName;
+	NSString *suffix = imageSize ? [NSString stringWithFormat:@"-%u", imageSize] : @"";
 	for (NSString *fileType in self.A3ImageImageFileTypes) {
 		UIControlState bitsToKeep[] = {
 			~UIControlStateNormal,
@@ -64,7 +52,7 @@ static NSString *ApplyControlStateSuffixToString(NSString *prefix, UIControlStat
 			~(UIControlStateDisabled | UIControlStateHighlighted | UIControlStateSelected)
 		};
 		for (size_t i = 0; i < sizeof(bitsToKeep) / sizeof(*bitsToKeep); i++) {
-			NSString *filePath = [self pathForResource:ApplyControlStateSuffixToString(prefix, controlState & bitsToKeep[i]) ofType:fileType inDirectory:directory];
+			NSString *filePath = [self pathForResource:[ApplyControlStateVariantToName(imageName, controlState & bitsToKeep[i]) stringByAppendingString:suffix] ofType:fileType inDirectory:directory];
 			if (filePath)
 				return filePath;
 		}
