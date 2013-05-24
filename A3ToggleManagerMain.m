@@ -79,6 +79,12 @@
 	return [toggle titleForToggleIdentifier:toggleIdentifier];
 }
 
+- (BOOL)shouldShowToggleForToggleIdentifier:(NSString *)toggleIdentifier
+{
+	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleIdentifier];
+	return [toggle shouldShowToggleForToggleIdentifier:toggleIdentifier];
+}
+
 - (A3ToggleState)toggleStateForToggleIdentifier:(NSString *)toggleIdentifier
 {
 	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleIdentifier];
@@ -184,6 +190,13 @@ static void processMessage(A3ToggleManagerMain *self, SInt32 messageId, mach_por
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
 				[self applyAlternateActionForToggleIdentifier:identifier];
+			}
+			break;
+		}
+		case A3ToggleServiceMessageShouldToggleBeShown: {
+			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			if ([identifier isKindOfClass:[NSString class]]) {
+				LMSendIntegerReply(replyPort, [self shouldShowToggleForToggleIdentifier:identifier]);
 			}
 			break;
 		}

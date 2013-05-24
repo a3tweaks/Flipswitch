@@ -9,4 +9,5 @@ typedef enum {
 	A3ToggleServiceMessageApplyActionForIdentifier = 5,
 	A3ToggleServiceMessageHasAlternateActionForIdentifier = 6,
 	A3ToggleServiceMessageApplyAlternateActionForIdentifier = 7,
+	A3ToggleServiceMessageShouldToggleBeShown = 8,
 } A3ToggleServiceMessage;

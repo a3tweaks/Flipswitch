@@ -2,6 +2,8 @@
 #import "A3ToggleManager.h"
 #import "NSBundle+A3Images.h"
 
+extern BOOL GSSystemHasCapability(NSString *capability);
+
 @implementation NSObject (A3Toggle)
 
 - (NSBundle *)bundleForA3ToggleIdentifier:(NSString *)toggleIdentifier
@@ -38,6 +40,17 @@
 - (NSString *)titleForToggleIdentifier:(NSString *)toggleIdentifier
 {
 	return [[self bundleForA3ToggleIdentifier:toggleIdentifier] objectForInfoDictionaryKey:@"CFBundleDisplayName"] ?: toggleIdentifier;
+}
+
+- (BOOL)shouldShowToggleForToggleIdentifier:(NSString *)toggleIdentifier
+{
+	id key = [[self bundleForA3ToggleIdentifier:toggleIdentifier] objectForInfoDictionaryKey:@"required-capability-key"];
+	if ([key isKindOfClass:[NSString class]])
+	{
+		return GSSystemHasCapability((NSString *)key);
+	}
+
+	return YES;
 }
 
 - (id)glyphImageDescriptorOfToggleState:(A3ToggleState)toggleState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier

@@ -64,7 +64,16 @@ static void TogglesChangedCallback(CFNotificationCenterRef center, void *observe
 	return LMResponseConsumePropertyList(&responseBuffer);
 }
 
-- (id)glyphImageDescriptorOfToggleState:(A3ToggleState)toggleState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier;
+- (BOOL)shouldShowToggleForToggleIdentifier:(NSString *)toggleIdentifier
+{
+	LMResponseBuffer responseBuffer;
+	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageShouldToggleBeShown, toggleIdentifier, &responseBuffer)) {
+		return NO;
+	}
+	return LMResponseConsumeInteger(&responseBuffer);
+}
+
+- (id)glyphImageDescriptorOfToggleState:(A3ToggleState)toggleState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier
 {
  	NSDictionary *args = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:toggleIdentifier, [NSNumber numberWithFloat:size], [NSNumber numberWithFloat:scale], [NSNumber numberWithInteger:toggleState], nil] forKeys:[NSArray arrayWithObjects:@"toggleIdentifier", @"size", @"scale", @"toggleState", nil]];
 
