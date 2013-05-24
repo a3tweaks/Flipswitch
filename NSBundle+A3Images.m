@@ -46,15 +46,9 @@
 	NSString *suffix = imageSize ? [NSString stringWithFormat:@"-%u", imageSize] : @"";
 	NSString *scaleSuffix = preferredScale > 1.0f ? [NSString stringWithFormat:@"@%.0fx"] : nil;
 	for (NSString *fileType in self.A3ImageImageFileTypes) {
-		UIControlState bitsToKeep[] = {
-			~UIControlStateNormal,
-			~UIControlStateDisabled,
-			~(UIControlStateDisabled | UIControlStateHighlighted),
-			~(UIControlStateDisabled | UIControlStateHighlighted | UIControlStateSelected)
-		};
-		for (size_t i = 0; i < sizeof(bitsToKeep) / sizeof(*bitsToKeep); i++) {
-			UIControlState newState = controlState & bitsToKeep[i];
-			NSString *name = [ApplyControlStateVariantToName(imageName, newState) stringByAppendingString:suffix];
+		for (size_t i = 0; i < sizeof(ControlStateVariantMasks) / sizeof(*ControlStateVariantMasks); i++) {
+			UIControlState newState = controlState & ControlStateVariantMasks[i];
+			NSString *name = [ControlStateVariantApply(imageName, newState) stringByAppendingString:suffix];
 			NSString *filePath = scaleSuffix ? [self pathForResource:[name stringByAppendingString:scaleSuffix] ofType:fileType inDirectory:directory] : nil;
 			if (!filePath)
 				filePath = [self pathForResource:name ofType:fileType inDirectory:directory];

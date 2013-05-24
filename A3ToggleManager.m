@@ -3,6 +3,7 @@
 #import "A3ToggleService.h"
 #import "A3Toggle.h"
 #import "NSBundle+A3Images.h"
+#import "ControlStateVariants.h"
 
 #import <dlfcn.h>
 #import <UIKit/UIKit2.h>
@@ -143,7 +144,14 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	CGContextRef context = UIGraphicsGetCurrentContext();
 	CGContextSetFillColorWithColor(context, [UIColor redColor].CGColor);
 	CGContextFillRect(context, CGRectMake(0.0f, 0.0f, size.width, size.height));
-	for (NSDictionary *layer in [template objectForInfoDictionaryKey:@"layers"]) {
+	NSDictionary *layers;
+	for (size_t i = 0; i < sizeof(ControlStateVariantMasks) / sizeof(*ControlStateVariantMasks); i++) {
+		UIControlState newState = controlState & ControlStateVariantMasks[i];
+		layers = [template objectForInfoDictionaryKey:ControlStateVariantApply(@"layers", newState)];
+		if (layers)
+			break;
+	}
+	for (NSDictionary *layer in layers) {
 		CGContextSaveGState(context);
 		id temp = [layer objectForKey:@"opacity"];
 		if (temp) {
