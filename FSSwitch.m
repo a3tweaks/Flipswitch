@@ -17,6 +17,15 @@ NSString *NSStringFromFSSwitchState(FSSwitchState state)
 	}
 }
 
+FSSwitchState FSSwitchStateFromNSString(NSString *stateString)
+{
+	if ([stateString isEqualToString:@"on"])
+		return FSSwitchStateOn;
+	if ([stateString isEqualToString:@"off"])
+		return FSSwitchStateOff;
+	return FSSwitchStateIndeterminate;
+}
+
 
 @implementation NSObject (FSSwitch)
 

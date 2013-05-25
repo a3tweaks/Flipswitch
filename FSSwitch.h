@@ -7,6 +7,7 @@ typedef enum {
 } FSSwitchState;
 
 extern NSString *NSStringFromFSSwitchState(FSSwitchState state);
+extern FSSwitchState FSSwitchStateFromNSString(NSString *stateString);
 
 @protocol FSSwitch <NSObject>
 @optional

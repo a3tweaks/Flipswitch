@@ -207,7 +207,8 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 			}
 		} else if ([type isEqualToString:@"glyph"]) {
 			CGFloat glyphSize = [[layer objectForKey:@"size"] floatValue];
-			id descriptor = [self _glyphImageDescriptorOfState:state size:glyphSize scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
+			NSString *toggleState = [layer objectForKey:@"state"];
+			id descriptor = [self _glyphImageDescriptorOfState:toggleState ? FSSwitchStateFromNSString(toggleState) : state size:glyphSize scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
 			[keys addObject:descriptor ?: @""];
 			NSString *fileName = [layer objectForKey:@"fileName"];
 			if (fileName) {
@@ -274,7 +275,8 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 			CGContextSetAlpha(context, alpha);
 			CGFloat blur = [[layer objectForKey:@"blur"] floatValue];
 			CGFloat glyphSize = [[layer objectForKey:@"size"] floatValue];
-			id descriptor = [self _glyphImageDescriptorOfState:state size:glyphSize scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
+			NSString *toggleState = [layer objectForKey:@"state"];
+			id descriptor = [self _glyphImageDescriptorOfState:toggleState ? FSSwitchStateFromNSString(toggleState) : state size:glyphSize scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
 			NSString *fileName = [layer objectForKey:@"fileName"];
 			BOOL hasCutout = [[layer objectForKey:@"cutout"] boolValue];
 			if (hasCutout) {
