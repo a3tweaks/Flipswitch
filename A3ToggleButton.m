@@ -52,7 +52,8 @@
 
 - (void)displayLayer:(CALayer *)layer
 {
-	UIImage *image = [[A3ToggleManager sharedToggleManager] imageOfToggleState:A3ToggleStateOn controlState:self.state forToggleIdentifier:toggleIdentifier usingTemplate:template];
+	A3ToggleManager *sharedToggleManager = [A3ToggleManager sharedToggleManager];
+	UIImage *image = [sharedToggleManager imageOfToggleState:[sharedToggleManager stateForToggleIdentifier:toggleIdentifier] controlState:self.state forToggleIdentifier:toggleIdentifier usingTemplate:template];
 	[self setImage:image forState:UIControlStateNormal];
 }
 
