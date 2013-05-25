@@ -34,7 +34,7 @@
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
-	[[%c(SBWiFiManager) sharedInstance] setWiFiEnabled:enabled];
+	[[%c(SBWiFiManager) sharedInstance] setWiFiEnabled:newState];
 }
 
 @end

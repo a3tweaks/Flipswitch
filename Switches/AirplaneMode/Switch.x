@@ -34,7 +34,7 @@
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
-	[[%c(SBTelephonyManager) sharedTelephonyManager] setIsInAirplaneMode:enabled];
+	[[%c(SBTelephonyManager) sharedTelephonyManager] setIsInAirplaneMode:newState];
 }
 
 @end
