@@ -13,6 +13,7 @@
 @interface WifiSwitch : NSObject <FSSwitch>
 @end
 
+%config(generator=internal);
 %hook SBWiFiManager
 
 - (void)_powerStateDidChange

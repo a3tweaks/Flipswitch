@@ -243,7 +243,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	void *maskData = NULL;
 	void *secondMaskData = NULL;
 	CGContextRef context = UIGraphicsGetCurrentContext();
-	CGContextSetFillColorWithColor(context, [UIColor redColor].CGColor);
+	CGContextSetFillColorWithColor(context, [UIColor clearColor].CGColor);
 	CGContextFillRect(context, CGRectMake(0.0f, 0.0f, size.width, size.height));
 	for (NSDictionary *layer in layers) {
 		CGContextSaveGState(context);
@@ -256,7 +256,22 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 			if (fileName) {
 				NSString *fullPath = [template imagePathForFlipswitchImageName:fileName imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
 				UIImage *image = [UIImage imageWithContentsOfFile:fullPath];
-				[image drawAtPoint:position blendMode:kCGBlendModeNormal alpha:alpha];
+				CGSize desiredSize = image.size;
+				if (image.size.width > size.width || image.size.height > size.height)
+				{
+        			if (image.size.width >= image.size.height)
+        			{
+            			float heightToWidth = image.size.height / image.size.width;
+            			desiredSize = CGSizeMake(size.width, roundf(heightToWidth * size.width));
+        			}
+        			else
+        			{
+            			float widthToHeight = image.size.width / image.size.height;
+            			desiredSize = CGSizeMake(roundf(widthToHeight * size.height), size.height);
+        			}
+        		}
+
+				[image drawInRect:(CGRect){position, desiredSize} blendMode:kCGBlendModeNormal alpha:alpha];
 			}
 		} else if ([type isEqualToString:@"glyph"]) {
 			CGContextSetAlpha(context, alpha);

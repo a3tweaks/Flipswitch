@@ -13,6 +13,7 @@
 @interface AirplaneModeSwitch : NSObject <FSSwitch>
 @end
 
+%config(generator=internal);
 %hook SBTelephonyManager
 
 - (void)airplaneModeChanged
