@@ -72,7 +72,7 @@ NSString *NSStringFromA3ToggleState(A3ToggleState state)
 	NSBundle *bundle = [self bundleForA3ToggleIdentifier:toggleIdentifier];
 	if (!bundle)
 		return nil;
-	NSString *stateName = NSStringFromA3ToggleState(toggleState);
+	NSString *stateName = [@"glyph-" stringByAppendingString:NSStringFromA3ToggleState(toggleState)];
 	NSUInteger closestSize;
 	closestSize = [bundle imageSizeForA3ImageName:stateName closestToSize:size inDirectory:nil];
 	if (closestSize != NSNotFound)
