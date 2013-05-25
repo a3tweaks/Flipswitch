@@ -10,6 +10,10 @@
 
 #define kTogglesPath @"/Library/Toggles/"
 
+@interface UIApplication (Private)
+- (void)applicationOpenURL:(NSURL *)url;
+@end
+
 static NSInteger stateChangeCount;
 
 @implementation A3ToggleManagerMain
@@ -135,6 +139,11 @@ static NSInteger stateChangeCount;
 {
 	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleIdentifier];
 	[toggle applyAlternateActionForToggleIdentifier:toggleIdentifier];
+}
+
+- (void)openURLAsAlternateAction:(NSURL *)url
+{
+	[[UIApplication sharedApplication] applicationOpenURL:url];
 }
 
 static void processMessage(A3ToggleManagerMain *self, SInt32 messageId, mach_port_t replyPort, CFDataRef data)
