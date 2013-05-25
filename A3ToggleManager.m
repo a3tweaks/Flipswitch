@@ -22,6 +22,7 @@ NSString * const A3ToggleManagerToggleIdentifierKey = @"toggleIdentifier";
 
 
 static A3ToggleManager *_toggleManager;
+static NSMutableDictionary *_cachedToggleImages;
 
 @implementation A3ToggleManager
 
@@ -39,7 +40,14 @@ static void TogglesChangedCallback(CFNotificationCenterRef center, void *observe
 			_toggleManager = [[self alloc] init];
 			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), self, TogglesChangedCallback, (CFStringRef)A3ToggleManagerTogglesChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
 		}
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_didReceiveMemoryWarning) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
 	}
+}
+
++ (void)_didReceiveMemoryWarning
+{
+	[_cachedToggleImages release];
+	_cachedToggleImages = nil;
 }
 
 + (A3ToggleManager *)sharedToggleManager
@@ -132,6 +140,65 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	}
 }
 
+- (id)_layersKeyForToggleState:(A3ToggleState)state controlState:(UIControlState)controlState usingTemplate:(NSBundle *)template layers:(NSArray **)outLayers
+{
+	NSString *stateName = [@"layers-" stringByAppendingString:NSStringFromA3ToggleState(state)];
+	for (size_t i = 0; i < sizeof(ControlStateVariantMasks) / sizeof(*ControlStateVariantMasks); i++) {
+		UIControlState newState = controlState & ControlStateVariantMasks[i];
+		NSString *key = ControlStateVariantApply(stateName, newState);
+		NSArray *layers = [template objectForInfoDictionaryKey:key];
+		if (layers) {
+			if (outLayers)
+				*outLayers = layers;
+			return key;
+		}
+	}
+	for (size_t i = 0; i < sizeof(ControlStateVariantMasks) / sizeof(*ControlStateVariantMasks); i++) {
+		UIControlState newState = controlState & ControlStateVariantMasks[i];
+		NSString *key = ControlStateVariantApply(@"layers", newState);
+		NSArray *layers = [template objectForInfoDictionaryKey:key];
+		if (layers) {
+			if (outLayers)
+				*outLayers = layers;
+			return key;
+		}
+	}
+	return nil;
+}
+
+- (id)_cacheKeyForToggleState:(A3ToggleState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier usingTemplate:(NSBundle *)template layers:(NSArray **)outLayers
+{
+	NSArray *layers;
+	NSString *layersKey = [self _layersKeyForToggleState:state controlState:controlState usingTemplate:template layers:&layers];
+	if (!layersKey)
+		return nil;
+	NSMutableArray *keys = [[NSMutableArray alloc] initWithObjects:template.bundlePath, [NSNumber numberWithFloat:scale], layersKey, toggleIdentifier, nil];
+	for (NSDictionary *layer in layers) {
+		NSString *type = [layer objectForKey:@"type"];
+		if (!type || [type isEqualToString:@"image"]) {
+			NSString *fileName = [layer objectForKey:@"fileName"];
+			if (fileName) {
+				NSString *fullPath = [template imagePathForA3ImageName:fileName imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
+				[keys addObject:fullPath ?: @""];
+			}
+		} else if ([type isEqualToString:@"glyph"]) {
+			CGFloat glyphSize = [[layer objectForKey:@"size"] floatValue];
+			id descriptor = [self glyphImageDescriptorOfToggleState:state size:glyphSize scale:scale forToggleIdentifier:toggleIdentifier];
+			[keys addObject:descriptor ?: @""];
+			NSString *fileName = [layer objectForKey:@"fileName"];
+			if (fileName) {
+				NSString *fullPath = [template imagePathForA3ImageName:fileName imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
+				[keys addObject:fullPath ?: @""];
+			}
+		}
+	}
+	if (outLayers)
+		*outLayers = layers;
+	NSArray *result = [keys copy];
+	[keys release];
+	return [result autorelease];
+}
+
 - (UIImage *)imageOfToggleState:(A3ToggleState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier usingTemplate:(NSBundle *)template
 {
 	CGSize size;
@@ -141,6 +208,13 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	size.height = [[template objectForInfoDictionaryKey:@"height"] floatValue];
 	if (size.height == 0.0f)
 		return nil;
+	NSArray *layers;
+	id cacheKey = [self _cacheKeyForToggleState:state controlState:controlState scale:scale forToggleIdentifier:toggleIdentifier usingTemplate:template layers:&layers];
+	if (!cacheKey)
+		return nil;
+	UIImage *result = [_cachedToggleImages objectForKey:cacheKey];
+	if (result)
+		return result;
 	if (&UIGraphicsBeginImageContextWithOptions != NULL) {
 		UIGraphicsBeginImageContextWithOptions(size, NO, scale);
 	} else {
@@ -154,13 +228,6 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	CGContextRef context = UIGraphicsGetCurrentContext();
 	CGContextSetFillColorWithColor(context, [UIColor redColor].CGColor);
 	CGContextFillRect(context, CGRectMake(0.0f, 0.0f, size.width, size.height));
-	NSDictionary *layers;
-	for (size_t i = 0; i < sizeof(ControlStateVariantMasks) / sizeof(*ControlStateVariantMasks); i++) {
-		UIControlState newState = controlState & ControlStateVariantMasks[i];
-		layers = [template objectForInfoDictionaryKey:ControlStateVariantApply(@"layers", newState)];
-		if (layers)
-			break;
-	}
 	for (NSDictionary *layer in layers) {
 		CGContextSaveGState(context);
 		id temp = [layer objectForKey:@"opacity"];
@@ -232,7 +299,10 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 		}
 		CGContextRestoreGState(context);
 	}
-	UIImage *result = UIGraphicsGetImageFromCurrentImageContext();
+	result = UIGraphicsGetImageFromCurrentImageContext();
+	if (!_cachedToggleImages)
+		_cachedToggleImages = [[NSMutableDictionary alloc] init];
+	[_cachedToggleImages setObject:result forKey:cacheKey];
 	UIGraphicsEndImageContext();
 	if (maskData)
 		free(maskData);
