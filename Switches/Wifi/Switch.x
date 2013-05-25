@@ -13,7 +13,15 @@
 @interface WifiSwitch : NSObject <FSSwitch>
 @end
 
-static BOOL enabled;
+%hook SBWiFiManager
+
+- (void)_powerStateDidChange
+{
+	%orig();
+	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[WifiSwitch class]].bundleIdentifier];
+}
+
+%end
 
 @implementation WifiSwitch
 
@@ -26,7 +34,6 @@ static BOOL enabled;
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
-	enabled = newState;
 	[[%c(SBWiFiManager) sharedInstance] setWiFiEnabled:enabled];
 }
 

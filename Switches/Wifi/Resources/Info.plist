@@ -28,5 +28,7 @@
 	<string>WifiSwitch</string>
 	<key>alternate-action-url</key>
 	<string>prefs:root=WIFI</string>
+	<key>lazy-load</key>
+	<true/>
 </dict>
 </plist>
