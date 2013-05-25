@@ -172,7 +172,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	NSString *layersKey = [self _layersKeyForToggleState:state controlState:controlState usingTemplate:template layers:&layers];
 	if (!layersKey)
 		return nil;
-	NSMutableArray *keys = [[NSMutableArray alloc] initWithObjects:template.bundlePath, [NSNumber numberWithFloat:scale], layersKey, toggleIdentifier, nil];
+	NSMutableArray *keys = [[NSMutableArray alloc] initWithObjects:template.bundlePath, [NSNumber numberWithFloat:scale], layersKey, nil];
 	for (NSDictionary *layer in layers) {
 		NSString *type = [layer objectForKey:@"type"];
 		if (!type || [type isEqualToString:@"image"]) {
