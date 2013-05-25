@@ -54,7 +54,6 @@
 {
 	UIImage *image = [[A3ToggleManager sharedToggleManager] imageOfToggleState:A3ToggleStateOn controlState:self.state forToggleIdentifier:toggleIdentifier usingTemplate:template];
 	[self setImage:image forState:UIControlStateNormal];
-	[super displayLayer:layer];
 }
 
 - (void)_pressed
