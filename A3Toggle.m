@@ -4,6 +4,20 @@
 
 extern BOOL GSSystemHasCapability(NSString *capability);
 
+NSString *NSStringFromA3ToggleState(A3ToggleState state)
+{
+	switch (state) {
+		case A3ToggleStateOn:
+			return @"on";
+		case A3ToggleStateOff:
+			return @"off";
+		case A3ToggleStateIndeterminate:
+		default:
+			return @"indeterminate";
+	}
+}
+
+
 @implementation NSObject (A3Toggle)
 
 - (NSBundle *)bundleForA3ToggleIdentifier:(NSString *)toggleIdentifier
@@ -58,19 +72,7 @@ extern BOOL GSSystemHasCapability(NSString *capability);
 	NSBundle *bundle = [self bundleForA3ToggleIdentifier:toggleIdentifier];
 	if (!bundle)
 		return nil;
-	NSString *stateName;
-	switch (toggleState) {
-		case A3ToggleStateOn:
-			stateName = @"on";
-			break;
-		case A3ToggleStateOff:
-			stateName = @"off";
-			break;
-		case A3ToggleStateIndeterminate:
-		default:
-			stateName = @"indeterminate";
-			break;
-	}
+	NSString *stateName = NSStringFromA3ToggleState(toggleState);
 	NSUInteger closestSize;
 	closestSize = [bundle imageSizeForA3ImageName:stateName closestToSize:size inDirectory:nil];
 	if (closestSize != NSNotFound)

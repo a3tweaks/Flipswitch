@@ -6,6 +6,8 @@ typedef enum {
 	A3ToggleStateIndeterminate = -1
 } A3ToggleState;
 
+extern NSString *NSStringFromA3ToggleState(A3ToggleState state);
+
 @protocol A3Toggle <NSObject>
 @optional
 
