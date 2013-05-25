@@ -166,6 +166,20 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	return nil;
 }
 
+- (NSString *)_glyphImageDescriptorOfState:(FSSwitchState)switchState size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
+{
+	NSString *imageName = [switchIdentifier stringByAppendingFormat:@"-glyph-%@", NSStringFromFSSwitchState(switchState)];
+	NSUInteger closestSize;
+	closestSize = [template imageSizeForFlipswitchImageName:imageName closestToSize:size inDirectory:nil];
+	if (closestSize != NSNotFound)
+		return [template imagePathForFlipswitchImageName:imageName imageSize:closestSize preferredScale:scale controlState:UIControlStateNormal inDirectory:nil];
+	imageName = [switchIdentifier stringByAppendingString:@"-glyph"];
+	closestSize = [template imageSizeForFlipswitchImageName:imageName closestToSize:size inDirectory:nil];
+	if (closestSize != NSNotFound)
+		return [template imagePathForFlipswitchImageName:imageName imageSize:closestSize preferredScale:scale controlState:UIControlStateNormal inDirectory:nil];
+	return [self glyphImageDescriptorOfState:switchState size:size scale:scale forSwitchIdentifier:switchIdentifier];
+}
+
 - (id)_cacheKeyForSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template layers:(NSArray **)outLayers prerenderedFileName:(NSString **)outImageFileName
 {
 	NSString *imagePath = [template imagePathForFlipswitchImageName:[switchIdentifier stringByAppendingFormat:@"-prerendered-%@", NSStringFromFSSwitchState(state)] imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
@@ -182,7 +196,6 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	NSString *layersKey = [self _layersKeyForSwitchState:state controlState:controlState usingTemplate:template layers:&layers];
 	if (!layersKey)
 		return nil;
-	NSString *glyphImageName = [switchIdentifier stringByAppendingString:@"-glyph"];
 	NSMutableArray *keys = [[NSMutableArray alloc] initWithObjects:template.bundlePath, [NSNumber numberWithFloat:scale], layersKey, nil];
 	for (NSDictionary *layer in layers) {
 		NSString *type = [layer objectForKey:@"type"];
@@ -194,13 +207,8 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 			}
 		} else if ([type isEqualToString:@"glyph"]) {
 			CGFloat glyphSize = [[layer objectForKey:@"size"] floatValue];
-			NSInteger localGlyphSize = [template imageSizeForFlipswitchImageName:glyphImageName closestToSize:glyphSize * scale inDirectory:nil];
-			if (localGlyphSize != NSNotFound) {
-				[keys addObject:[NSNumber numberWithInteger:localGlyphSize]];
-			} else {
-				id descriptor = [self glyphImageDescriptorOfState:state size:glyphSize scale:scale forSwitchIdentifier:switchIdentifier];
-				[keys addObject:descriptor ?: @""];
-			}
+			id descriptor = [self _glyphImageDescriptorOfState:state size:glyphSize scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
+			[keys addObject:descriptor ?: @""];
 			NSString *fileName = [layer objectForKey:@"fileName"];
 			if (fileName) {
 				NSString *fullPath = [template imagePathForFlipswitchImageName:fileName imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
@@ -248,7 +256,6 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	size_t maskHeight = size.height * scale * 2;
 	void *maskData = NULL;
 	void *secondMaskData = NULL;
-	NSString *glyphImageName = [switchIdentifier stringByAppendingString:@"-glyph"];
 	CGContextRef context = UIGraphicsGetCurrentContext();
 	for (NSDictionary *layer in layers) {
 		CGContextSaveGState(context);
@@ -267,13 +274,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 			CGContextSetAlpha(context, alpha);
 			CGFloat blur = [[layer objectForKey:@"blur"] floatValue];
 			CGFloat glyphSize = [[layer objectForKey:@"size"] floatValue];
-			id descriptor;
-			NSInteger localGlyphSize = [template imageSizeForFlipswitchImageName:glyphImageName closestToSize:glyphSize * scale inDirectory:nil];
-			if (localGlyphSize != NSNotFound) {
-				descriptor = [template imagePathForFlipswitchImageName:glyphImageName imageSize:glyphSize * scale preferredScale:1.0f controlState:UIControlStateNormal inDirectory:nil];
-			} else {
-				descriptor = [self glyphImageDescriptorOfState:state size:glyphSize scale:scale forSwitchIdentifier:switchIdentifier];
-			}
+			id descriptor = [self _glyphImageDescriptorOfState:state size:glyphSize scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
 			NSString *fileName = [layer objectForKey:@"fileName"];
 			BOOL hasCutout = [[layer objectForKey:@"cutout"] boolValue];
 			if (hasCutout) {
