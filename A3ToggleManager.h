@@ -12,13 +12,14 @@
 - (BOOL)shouldShowToggleForToggleIdentifier:(NSString *)toggleIdentifier;
 
 - (UIButton *)buttonForToggleIdentifier:(NSString *)toggleIdentifier usingTemplate:(NSBundle *)template;
+
 - (UIImage *)imageOfToggleState:(A3ToggleState)state controlState:(UIControlState)controlState forToggleIdentifier:(NSString *)toggleIdentifier usingTemplate:(NSBundle *)template;
 - (UIImage *)imageOfToggleState:(A3ToggleState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier usingTemplate:(NSBundle *)template;
 
 - (id)glyphImageDescriptorOfToggleState:(A3ToggleState)toggleState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier;
 
-- (A3ToggleState)toggleStateForToggleIdentifier:(NSString *)toggleIdentifier;
-- (void)setToggleState:(A3ToggleState)state onToggleIdentifier:(NSString *)toggleIdentifier;
+- (A3ToggleState)stateForToggleIdentifier:(NSString *)toggleIdentifier;
+- (void)setState:(A3ToggleState)state forToggleIdentifier:(NSString *)toggleIdentifier;
 - (void)applyActionForToggleIdentifier:(NSString *)toggleIdentifier;
 
 - (BOOL)hasAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier;

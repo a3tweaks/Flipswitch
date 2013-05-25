@@ -31,13 +31,13 @@
 - (A3ToggleState)stateForToggleIdentifier:(NSString *)toggleIdentifier
 {
 	[self lazyLoadWithToggleIdentifier:toggleIdentifier];
-	return [[A3ToggleManager sharedToggleManager] toggleStateForToggleIdentifier:toggleIdentifier];
+	return [[A3ToggleManager sharedToggleManager] stateForToggleIdentifier:toggleIdentifier];
 }
 
 - (void)applyState:(A3ToggleState)newState forToggleIdentifier:(NSString *)toggleIdentifier
 {
 	[self lazyLoadWithToggleIdentifier:toggleIdentifier];
-	[[A3ToggleManager sharedToggleManager] setToggleState:newState onToggleIdentifier:toggleIdentifier];
+	[[A3ToggleManager sharedToggleManager] setState:newState forToggleIdentifier:toggleIdentifier];
 }
 
 - (void)applyActionForToggleIdentifier:(NSString *)toggleIdentifier

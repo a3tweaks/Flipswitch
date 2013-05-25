@@ -342,7 +342,7 @@ cache_and_return_result:
 	return [[[A3ToggleButton alloc] initWithToggleIdentifier:toggleIdentifier template:template] autorelease];
 }
 
-- (A3ToggleState)toggleStateForToggleIdentifier:(NSString *)toggleIdentifier
+- (A3ToggleState)stateForToggleIdentifier:(NSString *)toggleIdentifier
 {
 	LMResponseBuffer responseBuffer;
 	if (LMConnectionSendTwoWayPropertyList(&connection, A3ToggleServiceMessageGetStateForIdentifier, toggleIdentifier, &responseBuffer)) {
@@ -356,7 +356,7 @@ cache_and_return_result:
 	LMConnectionSendOneWayData(&connection, A3ToggleServiceMessageApplyActionForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:toggleIdentifier format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
 
-- (void)setToggleState:(A3ToggleState)state onToggleIdentifier:(NSString *)toggleIdentifier
+- (void)setState:(A3ToggleState)state forToggleIdentifier:(NSString *)toggleIdentifier
 {
 	NSArray *propertyList = [NSArray arrayWithObjects:[NSNumber numberWithBool:state], toggleIdentifier, nil];
 	LMConnectionSendOneWayData(&connection, A3ToggleServiceMessageSetStateForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:propertyList format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);

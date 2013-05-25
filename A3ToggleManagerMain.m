@@ -89,13 +89,13 @@ static NSInteger stateChangeCount;
 	return [toggle shouldShowToggleForToggleIdentifier:toggleIdentifier];
 }
 
-- (A3ToggleState)toggleStateForToggleIdentifier:(NSString *)toggleIdentifier
+- (A3ToggleState)stateForToggleIdentifier:(NSString *)toggleIdentifier
 {
 	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleIdentifier];
 	return [toggle stateForToggleIdentifier:toggleIdentifier];
 }
 
-- (void)setToggleState:(A3ToggleState)state onToggleIdentifier:(NSString *)toggleIdentifier
+- (void)setState:(A3ToggleState)state forToggleIdentifier:(NSString *)toggleIdentifier
 {
 	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleIdentifier];
 	// Workaround toggles that don't explicitly send state change notifications :(
@@ -155,7 +155,7 @@ static void processMessage(A3ToggleManagerMain *self, SInt32 messageId, mach_por
 		case A3ToggleServiceMessageGetStateForIdentifier: {
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
-				LMSendIntegerReply(replyPort, [self toggleStateForToggleIdentifier:identifier]);
+				LMSendIntegerReply(replyPort, [self stateForToggleIdentifier:identifier]);
 				return;
 			}
 			break;
@@ -166,7 +166,7 @@ static void processMessage(A3ToggleManagerMain *self, SInt32 messageId, mach_por
 				NSNumber *state = [args objectAtIndex:0];
 				NSString *identifier = [args objectAtIndex:1];
 				if ([state isKindOfClass:[NSNumber class]] && [identifier isKindOfClass:[NSString class]]) {
-					[self setToggleState:[state integerValue] onToggleIdentifier:identifier];
+					[self setState:[state integerValue] forToggleIdentifier:identifier];
 				}
 			}
 			break;
