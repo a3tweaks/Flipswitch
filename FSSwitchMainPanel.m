@@ -268,7 +268,7 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 			NSBundle *bundle = [NSBundle bundleWithPath:[kSwitchsPath stringByAppendingPathComponent:folder]];
 			if (bundle) {
 				Class switchClass = [[bundle objectForInfoDictionaryKey:@"lazy-load"] boolValue] ? [FSLazySwitch class] : [bundle principalClass];
-				id<FSSwitch> switchImplementation = [switchClass respondsToSelector:@selector(initWithBundle:)] ? [[switchClass alloc] initWithBundle:bundle] : [[switchClass alloc] init];
+				id<FSSwitch> switchImplementation = [switchClass instancesRespondToSelector:@selector(initWithBundle:)] ? [[switchClass alloc] initWithBundle:bundle] : [[switchClass alloc] init];
 				if (switchImplementation)
 					[self registerSwitch:switchImplementation forIdentifier:bundle.bundleIdentifier];
 				[switchImplementation release];
