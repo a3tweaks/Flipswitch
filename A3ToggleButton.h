@@ -5,6 +5,7 @@ __attribute__((visibility("hidden")))
 @private
 	NSBundle *template;
 	NSString *toggleIdentifier;
+	BOOL skippingForHold;
 }
 - (id)initWithToggleIdentifier:(NSString *)toggleIdentifier_ template:(NSBundle *)template_;
 @end

@@ -57,9 +57,42 @@
 	[self setImage:image forState:UIControlStateNormal];
 }
 
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+	[super touchesBegan:touches withEvent:event];
+	skippingForHold = NO;
+	[self performSelector:@selector(_held) withObject:nil afterDelay:1.0];
+}
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+{
+	[super touchesMoved:touches withEvent:event];
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(_held) object:nil];
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+	[super touchesEnded:touches withEvent:event];
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(_held) object:nil];
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+	[super touchesCancelled:touches withEvent:event];
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(_held) object:nil];
+}
+
 - (void)_pressed
 {
-	[[A3ToggleManager sharedToggleManager] applyActionForToggleIdentifier:toggleIdentifier];
+	if (!skippingForHold) {
+		[[A3ToggleManager sharedToggleManager] applyActionForToggleIdentifier:toggleIdentifier];
+	}
+}
+
+- (void)_held
+{
+	skippingForHold = YES;
+	[[A3ToggleManager sharedToggleManager] applyAlternateActionForToggleIdentifier:toggleIdentifier];
 }
 
 @end
