@@ -116,16 +116,15 @@ static BOOL rotationEnabled;
 - (UIInterfaceOrientation)activeInterfaceOrientation;
 @end
 
-CHDeclareClass(SBOrientationLockManager)
-CHDeclareClass(SBAppSwitcherController)
-
 // 4.0-4.2
 
-CHDeclareClass(SBNowPlayingBar)
+%group iOS4
 
-CHOptimizedMethod(1, self, void, SBNowPlayingBar, _orientationLockHit, id, sender)
+%hook SBNowPlayingBar
+
+- (void)_orientationLockHit:(id)sender
 {
-	SBOrientationLockManager *lockManager = CHSharedInstance(SBOrientationLockManager);
+	SBOrientationLockManager *lockManager = [%c(SBOrientationLockManager) sharedInstance];
 	NSString *labelText;
 	BOOL isLocked = [lockManager isLocked];
 	if (isLocked) {
@@ -172,14 +171,14 @@ CHOptimizedMethod(1, self, void, SBNowPlayingBar, _orientationLockHit, id, sende
 
 // 4.3
 
-CHOptimizedMethod(1, self, void, SBNowPlayingBar, _toggleButtonHit, id, sender)
+- (void)_toggleButtonHit:(id)sender
 {
 	SBNowPlayingBarView **nowPlayingBarView = CHIvarRef(self, _barView, SBNowPlayingBarView *);
 	if (!nowPlayingBarView || [*nowPlayingBarView toggleType] != 0) {
-		CHSuper(1, SBNowPlayingBar, _toggleButtonHit, sender);
+		%orig();
 		return;
 	}
-	SBOrientationLockManager *lockManager = CHSharedInstance(SBOrientationLockManager);
+	SBOrientationLockManager *lockManager = [%c(SBOrientationLockManager) sharedInstance];
 	BOOL isLocked = [lockManager isLocked];
 	if (isLocked) {
 		[lockManager unlock];
@@ -200,6 +199,29 @@ CHOptimizedMethod(1, self, void, SBNowPlayingBar, _toggleButtonHit, id, sender)
 	orientationLockButton.selected = !isLocked;
 }
 
+%end
+
+@interface RotationToggle : NSObject <A3Toggle>
+@end
+
+%hook SBOrientationLockManager
+
+- (void)unlock
+{
+	%orig();
+	[[A3ToggleManager sharedToggleManager] stateDidChangeForToggleIdentifier:[NSBundle bundleForClass:[RotationToggle class]].bundleIdentifier];
+}
+
+- (void)lock:(UIUserInterfaceIdiom)lock
+{
+	%orig();
+	[[A3ToggleManager sharedToggleManager] stateDidChangeForToggleIdentifier:[NSBundle bundleForClass:[RotationToggle class]].bundleIdentifier];
+}
+
+%end
+
+%end
+
 #pragma mark Preferences
 
 static void ReloadPreferences()
@@ -211,15 +233,12 @@ static void ReloadPreferences()
 
 #pragma mark Toggle
 
-@interface RotationToggle : NSObject <A3Toggle>
-@end
-
 @implementation RotationToggle
 
 - (A3ToggleState)stateForToggleIdentifier:(NSString *)toggleIdentifier
 {
 	if (IsOS4)
-		return ![CHSharedInstance(SBOrientationLockManager) isLocked];
+		return ![[%c(SBOrientationLockManager) sharedInstance] isLocked];
 	else
 		return rotationEnabled;
 }
@@ -229,7 +248,7 @@ static void ReloadPreferences()
 	if (newState == A3ToggleStateIndeterminate)
 		return;
 	if (IsOS4) {
-		SBOrientationLockManager *lockManager = CHSharedInstance(SBOrientationLockManager);
+		SBOrientationLockManager *lockManager = [%c(SBOrientationLockManager) sharedInstance];
 		if (newState) {
 			[lockManager unlock];
 			if ([lockManager respondsToSelector:@selector(lockOverrideEnabled)] ? [lockManager lockOverrideEnabled] : [lockManager lockOverride])
@@ -245,7 +264,7 @@ static void ReloadPreferences()
 				}
 			}
 		}
-		SBNowPlayingBar **nowPlayingBar = CHIvarRef([CHClass(SBAppSwitcherController) sharedInstanceIfAvailable], _nowPlaying, SBNowPlayingBar *);
+		SBNowPlayingBar **nowPlayingBar = CHIvarRef([%c(SBAppSwitcherController) sharedInstanceIfAvailable], _nowPlaying, SBNowPlayingBar *);
 		if (nowPlayingBar)
 			[CHIvar(*nowPlayingBar, _orientationLockButton, UIButton *) setSelected:[lockManager isLocked]];
 	} else {
@@ -257,12 +276,13 @@ static void ReloadPreferences()
 		[dict release];
 		[data writeToFile:@kSettingsFilePath options:NSAtomicWrite error:NULL];
 		notify_post(kSettingsChangeNotification);
+		[[A3ToggleManager sharedToggleManager] stateDidChangeForToggleIdentifier:[NSBundle bundleForClass:[RotationToggle class]].bundleIdentifier];
 	}
 }
 
 - (void)applyAlternateActionForToggleIdentifier:(NSString *)toggleIdentifier
 {
-	SBOrientationLockManager *lockManager = CHSharedInstance(SBOrientationLockManager);
+	SBOrientationLockManager *lockManager = [%c(SBOrientationLockManager) sharedInstance];
 	if ([lockManager isLocked]) {
 		switch ([lockManager respondsToSelector:@selector(userLockOrientation)] ? [lockManager userLockOrientation] : [lockManager lockOrientation]) {
 			case UIInterfaceOrientationPortrait:
@@ -287,29 +307,30 @@ static void ReloadPreferences()
 
 // OS 3.x
 
-CHDeclareClass(UIApplication)
+%group iOS3
 
-CHOptimizedMethod(2, self, void, UIApplication, handleEvent, GSEventRef, gsEvent, withNewEvent, UIEvent *, newEvent)
+%hook UIApplication
+
+- (void)handleEvent:(GSEventRef)gsEvent withNewEvent:(UIEvent *)newEvent
 {
 	if (gsEvent)
 		if (GSEventGetType(gsEvent) == 50)
 			if (!rotationEnabled)
 				return;
-	CHSuper(2, UIApplication, handleEvent, gsEvent, withNewEvent, newEvent);
+	%orig();
 }
+
+%end
+
+%end
 
 CHConstructor
 {
+	%init();
 	if (IsOS4) {
-		if (CHLoadLateClass(SBOrientationLockManager)) {
-			CHLoadLateClass(SBAppSwitcherController);
-			CHLoadLateClass(SBNowPlayingBar);
-			CHHook(1, SBNowPlayingBar, _orientationLockHit);
-			CHHook(1, SBNowPlayingBar, _toggleButtonHit);
-		}
+		%init(iOS4);
 	} else {
-		CHLoadLateClass(UIApplication);
-		CHHook(2, UIApplication, handleEvent, withNewEvent);
+		%init(iOS3);
 		ReloadPreferences();
 		CFNotificationCenterAddObserver(
 			CFNotificationCenterGetDarwinNotifyCenter(),
