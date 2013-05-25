@@ -13,6 +13,7 @@
 @interface AirplaneModeSwitch : NSObject <FSSwitch>
 @end
 
+%config(generator=internal);
 %hook SBTelephonyManager
 
 - (void)airplaneModeChanged
@@ -34,7 +35,7 @@
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
-	[[%c(SBTelephonyManager) sharedTelephonyManager] setIsInAirplaneMode:enabled];
+	[[%c(SBTelephonyManager) sharedTelephonyManager] setIsInAirplaneMode:newState];
 }
 
 @end

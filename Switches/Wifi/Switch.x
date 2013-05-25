@@ -13,6 +13,7 @@
 @interface WifiSwitch : NSObject <FSSwitch>
 @end
 
+%config(generator=internal);
 %hook SBWiFiManager
 
 - (void)_powerStateDidChange
@@ -34,7 +35,7 @@
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
-	[[%c(SBWiFiManager) sharedInstance] setWiFiEnabled:enabled];
+	[[%c(SBWiFiManager) sharedInstance] setWiFiEnabled:newState];
 }
 
 @end
