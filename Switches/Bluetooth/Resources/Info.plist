@@ -5,11 +5,11 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>AirplaneMode</string>
+	<string>Bluetooth</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.a3tweaks.switch.airplanemode</string>
+	<string>com.a3tweaks.switch.bluetooth</string>
 	<key>CFBundleDisplayName</key>
-	<string>Airplane Mode</string>
+	<string>Bluetooth</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -25,9 +25,9 @@
 	<key>MinimumOSVersion</key>
 	<string>5.0</string>
 	<key>NSPrincipalClass</key>
-	<string>AirplaneModeSwitch</string>
+	<string>BluetoothSwitch</string>
 	<key>alternate-action-url</key>
-	<string>prefs:path=AIRPLANE_MODE</string>
+	<string>prefs:root=General&amp;path=Bluetooth</string>
 	<key>lazy-load</key>
 	<true/>
 </dict>

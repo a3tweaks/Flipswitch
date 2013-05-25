@@ -5,11 +5,11 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>AirplaneMode</string>
+	<string>Respring</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.a3tweaks.switch.airplanemode</string>
+	<string>com.a3tweaks.switch.respring</string>
 	<key>CFBundleDisplayName</key>
-	<string>Airplane Mode</string>
+	<string>Respring</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -25,10 +25,6 @@
 	<key>MinimumOSVersion</key>
 	<string>5.0</string>
 	<key>NSPrincipalClass</key>
-	<string>AirplaneModeSwitch</string>
-	<key>alternate-action-url</key>
-	<string>prefs:path=AIRPLANE_MODE</string>
-	<key>lazy-load</key>
-	<true/>
+	<string>RespringSwitch</string>
 </dict>
 </plist>

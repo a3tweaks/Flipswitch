@@ -190,7 +190,6 @@ typedef struct {
 static BBSettingsGateway *gateway;
 static BOOL enabled;
 
-%config(generator=internal)
 %hook SpringBoard
 
 - (void)_reportAppLaunchFinished

@@ -23,7 +23,7 @@
 	<key>DTPlatformName</key>
 	<string>iphoneos</string>
 	<key>MinimumOSVersion</key>
-	<string>2.0</string>
+	<string>5.0</string>
 	<key>NSPrincipalClass</key>
 	<string>WifiSwitch</string>
 	<key>alternate-action-url</key>
