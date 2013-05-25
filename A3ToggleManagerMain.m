@@ -2,6 +2,7 @@
 #import "A3ToggleService.h"
 #import "A3Toggle.h"
 #import "A3PreferenceToggle.h"
+#import "A3LazyToggle.h"
 
 #import "LightMessaging/LightMessaging.h"
 
@@ -254,19 +255,14 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 
 		_toggleImplementations = [[NSMutableDictionary alloc] init];
 		NSArray *toggleDirectoryContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:kTogglesPath error:nil];
-		for (NSString *folder in toggleDirectoryContents)
-		{
+		for (NSString *folder in toggleDirectoryContents) {
 			NSBundle *bundle = [NSBundle bundleWithPath:[kTogglesPath stringByAppendingPathComponent:folder]];
-			if (bundle != nil)
-			{
-				Class toggleClass = [bundle principalClass];
-				if ([toggleClass conformsToProtocol:@protocol(A3Toggle)])
-				{
-					id<A3Toggle> toggle = [toggleClass respondsToSelector:@selector(initWithBundle:)] ? [[toggleClass alloc] initWithBundle:bundle] : [[toggleClass alloc] init];
-					if (toggle != nil) [_toggleImplementations setObject:toggle forKey:[bundle bundleIdentifier]];
-					[toggle release];
-				}
-				else NSLog(@"Bundle with Identifier %@ doesn't conform to the defined Toggle Protocol", [bundle bundleIdentifier]);
+			if (bundle) {
+				Class toggleClass = [[bundle objectForInfoDictionaryKey:@"lazy-load"] boolValue] ? [A3LazyToggle class] : [bundle principalClass];
+				id<A3Toggle> toggle = [toggleClass respondsToSelector:@selector(initWithBundle:)] ? [[toggleClass alloc] initWithBundle:bundle] : [[toggleClass alloc] init];
+				if (toggle)
+					[self registerToggle:toggle forIdentifier:bundle.bundleIdentifier];
+				[toggle release];
 			}
 		}
 
