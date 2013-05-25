@@ -166,8 +166,18 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	return nil;
 }
 
-- (id)_cacheKeyForToggleState:(A3ToggleState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier usingTemplate:(NSBundle *)template layers:(NSArray **)outLayers
+- (id)_cacheKeyForToggleState:(A3ToggleState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier usingTemplate:(NSBundle *)template layers:(NSArray **)outLayers prerenderedFileName:(NSString **)outImageFileName
 {
+	NSString *imagePath = [template imagePathForA3ImageName:[toggleIdentifier stringByAppendingFormat:@"-prerendered-%@", NSStringFromA3ToggleState(state)] imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
+	if (!imagePath)
+		imagePath = [template imagePathForA3ImageName:[toggleIdentifier stringByAppendingString:@"-prerendered"] imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
+	if (imagePath) {
+		if (outLayers)
+			*outLayers = nil;
+		if (outImageFileName)
+			*outImageFileName = imagePath;
+		return imagePath;
+	}
 	NSArray *layers;
 	NSString *layersKey = [self _layersKeyForToggleState:state controlState:controlState usingTemplate:template layers:&layers];
 	if (!layersKey)
@@ -194,6 +204,8 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	}
 	if (outLayers)
 		*outLayers = layers;
+	if (outImageFileName)
+		*outImageFileName = nil;
 	NSArray *result = [keys copy];
 	[keys release];
 	return [result autorelease];
@@ -209,12 +221,17 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	if (size.height == 0.0f)
 		return nil;
 	NSArray *layers;
-	id cacheKey = [self _cacheKeyForToggleState:state controlState:controlState scale:scale forToggleIdentifier:toggleIdentifier usingTemplate:template layers:&layers];
+	NSString *prerenderedImageName;
+	id cacheKey = [self _cacheKeyForToggleState:state controlState:controlState scale:scale forToggleIdentifier:toggleIdentifier usingTemplate:template layers:&layers prerenderedFileName:&prerenderedImageName];
 	if (!cacheKey)
 		return nil;
 	UIImage *result = [_cachedToggleImages objectForKey:cacheKey];
 	if (result)
 		return result;
+	if (prerenderedImageName) {
+		result = [UIImage imageWithContentsOfFile:cacheKey];
+		goto cache_and_return_result;
+	}
 	if (&UIGraphicsBeginImageContextWithOptions != NULL) {
 		UIGraphicsBeginImageContextWithOptions(size, NO, scale);
 	} else {
@@ -300,14 +317,17 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 		CGContextRestoreGState(context);
 	}
 	result = UIGraphicsGetImageFromCurrentImageContext();
-	if (!_cachedToggleImages)
-		_cachedToggleImages = [[NSMutableDictionary alloc] init];
-	[_cachedToggleImages setObject:result forKey:cacheKey];
 	UIGraphicsEndImageContext();
 	if (maskData)
 		free(maskData);
 	if (secondMaskData)
 		free(secondMaskData);
+cache_and_return_result:
+	if (result) {
+		if (!_cachedToggleImages)
+			_cachedToggleImages = [[NSMutableDictionary alloc] init];
+		[_cachedToggleImages setObject:result forKey:cacheKey];
+	}
 	return result;
 }
 
