@@ -1,14 +1,14 @@
 include theos/makefiles/common.mk
 
-LIBRARY_NAME = libA3ToggleAPI
-libA3ToggleAPI_FILES = A3ToggleManager.m A3ToggleManagerMain.m NSBundle+A3Images.m A3PreferenceToggle.m A3SBSettingsToggle.m A3Toggle.m A3ToggleButton.m A3LazyToggle.m A3ToggleManager+Prerender.m
-libA3ToggleAPI_FRAMEWORKS = UIKit CoreGraphics QuartzCore
-libA3ToggleAPI_PRIVATE_FRAMEWORKS = GraphicsServices
+LIBRARY_NAME = libflipswitch
+libflipswitch_FILES = FSSwitchPanel.m FSSwitchMainPanel.m NSBundle+Flipswitch.m FSPreferenceSwitch.m FSSBSettingsSwitch.m FSSwitch.m FSSwitchButton.m FSLazySwitch.m FSSwitchPanel+Prerender.m
+libflipswitch_FRAMEWORKS = UIKit CoreGraphics QuartzCore
+libflipswitch_PRIVATE_FRAMEWORKS = GraphicsServices
 
-SUBPROJECTS = Toggles/AirplaneMode Toggles/DoNotDisturb Toggles/Rotation Toggles/Wifi
+SUBPROJECTS = Switches/AirplaneMode Switches/DoNotDisturb Switches/Rotation Switches/Wifi
 
 include $(THEOS_MAKE_PATH)/library.mk
 include $(THEOS_MAKE_PATH)/aggregate.mk
 
 stage::
-	$(ECHO_NOTHING)rsync -a A3Toggle.h A3ToggleManager.h $(THEOS_STAGING_DIR)/usr/lib/A3ToggleAPI/ $(FW_RSYNC_EXCLUDES)$(ECHO_END)
+	$(ECHO_NOTHING)rsync -a FSSwitch.h FSSwitchPanel.h $(THEOS_STAGING_DIR)/usr/lib/flipswitch/ $(FW_RSYNC_EXCLUDES)$(ECHO_END)
