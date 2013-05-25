@@ -272,7 +272,6 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
         		}
 
 				[image drawInRect:(CGRect){position, desiredSize} blendMode:kCGBlendModeNormal alpha:alpha];
-				//[image drawAtPoint:position blendMode:kCGBlendModeNormal alpha:alpha];
 			}
 		} else if ([type isEqualToString:@"glyph"]) {
 			CGContextSetAlpha(context, alpha);
