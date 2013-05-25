@@ -20,10 +20,13 @@
 				if ([[fileName stringByDeletingPathExtension] isEqualToString:imageName])
 					[sizes addIndex:0];
 			} else {
-				if ([[fileName substringToIndex:location] isEqualToString:imageName]) {
-					NSInteger value = (NSUInteger)[[fileName substringFromIndex:location + 1] integerValue];
-					if (value > 0)
-						[sizes addIndex:(NSUInteger)value];
+				NSInteger lastPartInteger = [[fileName substringFromIndex:location + 1] integerValue];
+				if (lastPartInteger == 0) {
+					if ([[fileName stringByDeletingPathExtension] isEqualToString:imageName])
+						[sizes addIndex:0];
+				} else if (lastPartInteger > 9) {
+					if ([[fileName substringToIndex:location] isEqualToString:imageName])
+						[sizes addIndex:(NSUInteger)lastPartInteger];
 				}
 			}
 		}
