@@ -248,9 +248,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	for (NSDictionary *layer in layers) {
 		CGContextSaveGState(context);
 		id temp = [layer objectForKey:@"opacity"];
-		if (temp) {
-			CGContextSetAlpha(context, [temp floatValue]);
-		}
+		CGFloat alpha = temp ? [temp floatValue] : 1.0f;
 		CGPoint position = CGPointMake([[layer objectForKey:@"x"] floatValue], [[layer objectForKey:@"y"] floatValue]);
 		NSString *type = [layer objectForKey:@"type"];
 		if (!type || [type isEqualToString:@"image"]) {
@@ -258,9 +256,10 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 			if (fileName) {
 				NSString *fullPath = [template imagePathForA3ImageName:fileName imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
 				UIImage *image = [UIImage imageWithContentsOfFile:fullPath];
-				[image drawAtPoint:position];
+				[image drawAtPoint:position blendMode:kCGBlendModeNormal alpha:alpha];
 			}
 		} else if ([type isEqualToString:@"glyph"]) {
+			CGContextSetAlpha(context, alpha);
 			CGFloat blur = [[layer objectForKey:@"blur"] floatValue];
 			CGFloat glyphSize = [[layer objectForKey:@"size"] floatValue];
 			id descriptor = [self glyphImageDescriptorOfToggleState:state size:glyphSize scale:scale forToggleIdentifier:toggleIdentifier];
