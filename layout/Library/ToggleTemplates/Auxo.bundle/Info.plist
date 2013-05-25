@@ -21,9 +21,9 @@
 	<key>MinimumOSVersion</key>
 	<string>2.0</string>
 	<key>width</key>
-	<integer>170</integer>
+	<integer>85</integer>
 	<key>height</key>
-	<integer>170</integer>
+	<integer>85</integer>
 	<key>layers</key>
 	<array>
 		<dict>
@@ -40,45 +40,29 @@
 			<key>type</key>
 			<string>glyph</string>
 			<key>size</key>
-			<integer>90</integer>
+			<integer>45</integer>
 			<key>x</key>
-			<integer>40</integer>
+			<integer>20</integer>
 			<key>y</key>
-			<integer>42</integer>
+			<integer>21</integer>
 			<key>opacity</key>
 			<real>0.6</real>
 			<key>color</key>
 			<string>#000000</string>
 			<key>blur</key>
-			<real>1.5</real>
+			<real>0.75</real>
 		</dict>
 		<dict>
 			<key>type</key>
 			<string>glyph</string>
 			<key>size</key>
-			<integer>90</integer>
+			<integer>45</integer>
 			<key>x</key>
-			<integer>40</integer>
+			<integer>20</integer>
 			<key>y</key>
-			<integer>41</integer>
+			<real>20.5</real>
 			<key>opacity</key>
 			<real>0.7</real>
-			<key>color</key>
-			<string>#000000</string>
-			<key>blur</key>
-			<real>1</real>
-		</dict>
-		<dict>
-			<key>type</key>
-			<string>glyph</string>
-			<key>size</key>
-			<integer>90</integer>
-			<key>x</key>
-			<integer>40</integer>
-			<key>y</key>
-			<integer>40</integer>
-			<key>opacity</key>
-			<real>0.8</real>
 			<key>color</key>
 			<string>#000000</string>
 			<key>blur</key>
@@ -88,11 +72,27 @@
 			<key>type</key>
 			<string>glyph</string>
 			<key>size</key>
-			<integer>90</integer>
+			<integer>45</integer>
 			<key>x</key>
-			<integer>40</integer>
+			<integer>20</integer>
 			<key>y</key>
-			<integer>40</integer>
+			<integer>20</integer>
+			<key>opacity</key>
+			<real>0.8</real>
+			<key>color</key>
+			<string>#000000</string>
+			<key>blur</key>
+			<real>0.25</real>
+		</dict>
+		<dict>
+			<key>type</key>
+			<string>glyph</string>
+			<key>size</key>
+			<integer>45</integer>
+			<key>x</key>
+			<integer>20</integer>
+			<key>y</key>
+			<integer>20</integer>
 			<key>opacity</key>
 			<real>1</real>
 			<key>color</key>
@@ -104,11 +104,11 @@
 			<key>type</key>
 			<string>glyph</string>
 			<key>size</key>
-			<integer>90</integer>
+			<integer>45</integer>
 			<key>x</key>
-			<integer>40</integer>
+			<integer>20</integer>
 			<key>y</key>
-			<integer>40</integer>
+			<integer>20</integer>
 			<key>opacity</key>
 			<real>0.94</real>
 			<key>color</key>
@@ -116,19 +116,19 @@
 			<key>cutout</key>
 			<true/>
 			<key>cutoutY</key>
-			<integer>1</integer>
-			<key>cutoutBlur</key>
 			<real>0.5</real>
+			<key>cutoutBlur</key>
+			<real>0.25</real>
 		</dict>
 		<dict>
 			<key>type</key>
 			<string>glyph</string>
 			<key>size</key>
-			<integer>90</integer>
+			<integer>45</integer>
 			<key>x</key>
-			<integer>40</integer>
+			<integer>20</integer>
 			<key>y</key>
-			<integer>40</integer>
+			<integer>20</integer>
 			<key>opacity</key>
 			<real>0.22</real>
 			<key>color</key>
@@ -136,7 +136,7 @@
 			<key>cutout</key>
 			<true/>
 			<key>cutoutY</key>
-			<integer>-1</integer>
+			<real>-0.5</real>
 		</dict>
 	</array>
 </dict>
