@@ -9,6 +9,8 @@
 
 #define kTogglesPath @"/Library/Toggles/"
 
+static NSInteger stateChangeCount;
+
 @implementation A3ToggleManagerMain
 
 - (void)registerToggle:(id<A3Toggle>)toggle forIdentifier:(NSString *)toggleIdentifier
@@ -64,6 +66,7 @@
 
 - (void)stateDidChangeForToggleIdentifier:(NSString *)toggleIdentifier
 {
+	stateChangeCount++;
 	NSDictionary *userInfo = toggleIdentifier ? [NSDictionary dictionaryWithObject:toggleIdentifier forKey:A3ToggleManagerToggleIdentifierKey] : nil;
 	[[NSNotificationCenter defaultCenter] postNotificationName:A3ToggleManagerToggleStateChangedNotification object:self userInfo:userInfo];
 }
@@ -94,13 +97,25 @@
 - (void)setToggleState:(A3ToggleState)state onToggleIdentifier:(NSString *)toggleIdentifier
 {
 	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleIdentifier];
+	// Workaround toggles that don't explicitly send state change notifications :(
+	A3ToggleState oldState = [toggle stateForToggleIdentifier:toggleIdentifier];
+	NSInteger oldStateChangeCount = stateChangeCount;
 	[toggle applyState:state forToggleIdentifier:toggleIdentifier];
+	if (oldStateChangeCount != stateChangeCount && oldState != [toggle stateForToggleIdentifier:toggleIdentifier]) {
+		[self stateDidChangeForToggleIdentifier:toggleIdentifier];
+	}
 }
 
 - (void)applyActionForToggleIdentifier:(NSString *)toggleIdentifier
 {
 	id<A3Toggle> toggle = [_toggleImplementations objectForKey:toggleIdentifier];
+	// Workaround toggles that don't explicitly send state change notifications :(
+	A3ToggleState oldState = [toggle stateForToggleIdentifier:toggleIdentifier];
+	NSInteger oldStateChangeCount = stateChangeCount;
 	[toggle applyActionForToggleIdentifier:toggleIdentifier];
+	if (oldStateChangeCount != stateChangeCount && oldState != [toggle stateForToggleIdentifier:toggleIdentifier]) {
+		[self stateDidChangeForToggleIdentifier:toggleIdentifier];
+	}
 }
 
 - (id)glyphImageDescriptorOfToggleState:(A3ToggleState)toggleState size:(CGFloat)size scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier;
