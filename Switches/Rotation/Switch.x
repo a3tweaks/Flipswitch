@@ -116,9 +116,8 @@ static BOOL rotationEnabled;
 - (UIInterfaceOrientation)activeInterfaceOrientation;
 @end
 
-%config(generator=internal);
-
 // 4.0-4.2
+
 %group iOS4
 
 %hook SBNowPlayingBar
