@@ -13,7 +13,15 @@
 @interface AirplaneModeSwitch : NSObject <FSSwitch>
 @end
 
-static BOOL enabled;
+%hook SBTelephonyManager
+
+- (void)airplaneModeChanged
+{
+	%orig();
+	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[AirplaneModeSwitch class]].bundleIdentifier];
+}
+
+%end
 
 @implementation AirplaneModeSwitch
 
@@ -26,7 +34,6 @@ static BOOL enabled;
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
-	enabled = newState;
 	[[%c(SBTelephonyManager) sharedTelephonyManager] setIsInAirplaneMode:enabled];
 }
 

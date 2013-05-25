@@ -28,5 +28,7 @@
 	<string>AirplaneModeSwitch</string>
 	<key>alternate-action-url</key>
 	<string>prefs:path=AIRPLANE_MODE</string>
+	<key>lazy-load</key>
+	<true/>
 </dict>
 </plist>
