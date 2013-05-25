@@ -3,6 +3,7 @@
 #import "A3ToggleService.h"
 #import "A3Toggle.h"
 #import "NSBundle+A3Images.h"
+#import "A3ToggleButton.h"
 #import "ControlStateVariants.h"
 
 #import <dlfcn.h>
@@ -244,6 +245,11 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 {
 	CGFloat scale = [UIScreen instancesRespondToSelector:@selector(scale)] ? [UIScreen mainScreen].scale : 1.0f;
 	return [self imageOfToggleState:state controlState:controlState scale:scale forToggleIdentifier:toggleIdentifier usingTemplate:template];
+}
+
+- (UIButton *)buttonForToggleIdentifier:(NSString *)toggleIdentifier usingTemplate:(NSBundle *)template
+{
+	return [[[A3ToggleButton alloc] initWithToggleIdentifier:toggleIdentifier template:template] autorelease];
 }
 
 - (A3ToggleState)toggleStateForToggleIdentifier:(NSString *)toggleIdentifier

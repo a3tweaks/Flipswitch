@@ -11,6 +11,7 @@
 - (NSString *)titleForToggleIdentifier:(NSString *)toggleIdentifier;
 - (BOOL)shouldShowToggleForToggleIdentifier:(NSString *)toggleIdentifier;
 
+- (UIButton *)buttonForToggleIdentifier:(NSString *)toggleIdentifier usingTemplate:(NSBundle *)template;
 - (UIImage *)imageOfToggleState:(A3ToggleState)state controlState:(UIControlState)controlState forToggleIdentifier:(NSString *)toggleIdentifier usingTemplate:(NSBundle *)template;
 - (UIImage *)imageOfToggleState:(A3ToggleState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forToggleIdentifier:(NSString *)toggleIdentifier usingTemplate:(NSBundle *)template;
 
