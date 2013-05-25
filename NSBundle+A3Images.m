@@ -10,14 +10,14 @@
 
 - (NSUInteger)imageSizeForA3ImageName:(NSString *)imageName closestToSize:(CGFloat)sourceSize inDirectory:(NSString *)directory
 {
+	NSMutableIndexSet *sizes = [[NSMutableIndexSet alloc] init];
 	for (NSString *fileType in self.A3ImageImageFileTypes) {
 		NSArray *images = [self pathsForResourcesOfType:fileType inDirectory:directory];
-		NSMutableIndexSet *sizes = [[NSMutableIndexSet alloc] init];
 		for (NSString *fullPath in images) {
 			NSString *fileName = [fullPath lastPathComponent];
 			NSInteger location = [fileName rangeOfString:@"-" options:NSLiteralSearch | NSBackwardsSearch].location;
 			if (location == NSNotFound) {
-				if ([fileName isEqualToString:imageName])
+				if ([[fileName stringByDeletingPathExtension] isEqualToString:imageName])
 					[sizes addIndex:0];
 			} else {
 				if ([[fileName substringToIndex:location] isEqualToString:imageName]) {
@@ -30,10 +30,12 @@
 		NSUInteger closestSize = [sizes indexGreaterThanOrEqualToIndex:(NSUInteger)sourceSize];
 		if (closestSize == NSNotFound)
 			closestSize = [sizes indexLessThanIndex:(NSUInteger)sourceSize];
-		[sizes release];
-		if (closestSize != NSNotFound)
+		if (closestSize != NSNotFound) {
+			[sizes release];
 			return closestSize;
+		}
 	}
+	[sizes release];
 	return NSNotFound;
 }
 
