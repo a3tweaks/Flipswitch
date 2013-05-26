@@ -1,13 +1,5 @@
 #import <UIKit/UIKit.h>
-
-typedef enum {
-	FSSwitchStateOff = 0,
-	FSSwitchStateOn = 1,
-	FSSwitchStateIndeterminate = -1
-} FSSwitchState;
-
-extern NSString *NSStringFromFSSwitchState(FSSwitchState state);
-extern FSSwitchState FSSwitchStateFromNSString(NSString *stateString);
+#import "FSSwitchState.h"
 
 @protocol FSSwitchDataSource <NSObject>
 @optional

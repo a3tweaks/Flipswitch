@@ -11,4 +11,4 @@ include $(THEOS_MAKE_PATH)/library.mk
 include $(THEOS_MAKE_PATH)/aggregate.mk
 
 stage::
-	$(ECHO_NOTHING)rsync -a FSSwitchDataSource.h FSSwitchPanel.h $(THEOS_STAGING_DIR)/usr/lib/flipswitch/ $(FW_RSYNC_EXCLUDES)$(ECHO_END)
+	$(ECHO_NOTHING)rsync -a Flipswitch.h FSSwitchDataSource.h FSSwitchPanel.h $(THEOS_STAGING_DIR)/usr/lib/flipswitch/ $(FW_RSYNC_EXCLUDES)$(ECHO_END)

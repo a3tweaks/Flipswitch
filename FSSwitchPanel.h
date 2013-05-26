@@ -1,6 +1,5 @@
 #import <UIKit/UIKit.h>
-
-#import "FSSwitchDataSource.h"
+#import "FSSwitchState.h"
 
 @interface FSSwitchPanel : NSObject
 
@@ -41,6 +40,8 @@
 // Helper method to open a particular URL as if it were launched from an alternate action
 
 @end
+
+@protocol FSSwitchDataSource;
 
 @interface FSSwitchPanel (SpringBoard)
 - (void)registerDataSource:(id<FSSwitchDataSource>)dataSource forSwitchIdentifier:(NSString *)switchIdentifier;
