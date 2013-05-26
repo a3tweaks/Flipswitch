@@ -5,7 +5,7 @@
 #import <GraphicsServices/GraphicsServices.h>
 //#import <SpringBoard/SpringBoard.h>
 
-#import <FSSwitch.h>
+#import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
 
 #include <notify.h>
@@ -201,7 +201,7 @@ static BOOL rotationEnabled;
 
 %end
 
-@interface RotationSwitch : NSObject <FSSwitch>
+@interface RotationSwitch : NSObject <FSSwitchDataSource>
 @end
 
 %hook SBOrientationLockManager

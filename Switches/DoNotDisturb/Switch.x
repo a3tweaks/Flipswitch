@@ -1,4 +1,4 @@
-#import <FSSwitch.h>
+#import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
 
 #import <Foundation/Foundation.h>
@@ -184,7 +184,7 @@ typedef struct {
 - (id)init;
 @end
 
-@interface DoNotDisturbSwitch : NSObject <FSSwitch>
+@interface DoNotDisturbSwitch : NSObject <FSSwitchDataSource>
 @end
 
 static BBSettingsGateway *gateway;

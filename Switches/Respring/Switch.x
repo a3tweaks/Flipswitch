@@ -1,4 +1,4 @@
-#import <FSSwitch.h>
+#import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
 
 @interface SpringBoard : UIApplication
@@ -7,7 +7,7 @@
 - (void)_powerDownNow;
 @end
 
-@interface RespringSwitch : NSObject <FSSwitch>
+@interface RespringSwitch : NSObject <FSSwitchDataSource>
 @end
 
 @implementation RespringSwitch

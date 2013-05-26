@@ -1,4 +1,4 @@
-#import "FSSwitch.h"
+#import "FSSwitchDataSource.h"
 #import "FSSwitchPanel.h"
 #import "NSBundle+Flipswitch.h"
 
@@ -27,7 +27,7 @@ FSSwitchState FSSwitchStateFromNSString(NSString *stateString)
 }
 
 
-@implementation NSObject (FSSwitch)
+@implementation NSObject (FSSwitchDataSource)
 
 - (NSBundle *)bundleForSwitchIdentifier:(NSString *)switchIdentifier
 {
@@ -42,7 +42,7 @@ FSSwitchState FSSwitchStateFromNSString(NSString *stateString)
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
 {
 	if (newState == FSSwitchStateIndeterminate || newState != [self stateForSwitchIdentifier:switchIdentifier]) {
-		[(id<FSSwitch>)self applyActionForSwitchIdentifier:switchIdentifier];
+		[(id<FSSwitchDataSource>)self applyActionForSwitchIdentifier:switchIdentifier];
 	}
 }
 

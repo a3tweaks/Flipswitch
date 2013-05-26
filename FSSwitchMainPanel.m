@@ -1,6 +1,6 @@
 #import "FSSwitchMainPanel.h"
 #import "FSSwitchService.h"
-#import "FSSwitch.h"
+#import "FSSwitchDataSource.h"
 #import "FSPreferenceSwitch.h"
 #import "FSLazySwitch.h"
 
@@ -18,27 +18,27 @@ static NSInteger stateChangeCount;
 
 @implementation FSSwitchMainPanel
 
-- (void)registerSwitch:(id<FSSwitch>)switchImplementation forIdentifier:(NSString *)switchIdentifier
+- (void)registerDataSource:(id<FSSwitchDataSource>)dataSource forSwitchIdentifier:(NSString *)switchIdentifier;
 {
 	if (!switchIdentifier) {
 		[NSException raise:NSInvalidArgumentException format:@"Switch identifier passed to -[FSSwitchPanel registerSwitch:forIdentifier:] must not be nil"];
 	}
-	if (!switchImplementation) {
-		[NSException raise:NSInvalidArgumentException format:@"Switch instance passed to -[FSSwitchPanel] registerSwitch:forIdentifier:] must not be nil"];
+	if (!dataSource) {
+		[NSException raise:NSInvalidArgumentException format:@"Switch data source passed to -[FSSwitchPanel registerSwitch:forIdentifier:] must not be nil"];
 	}
 	// Verify that switchImplementation is either a valid action-like switchImplementation or setting-like switchImplementation
-	if ([(NSObject *)switchImplementation methodForSelector:@selector(applyState:forSwitchIdentifier:)] == [NSObject instanceMethodForSelector:@selector(applyState:forSwitchIdentifier:)]) {
-		if ([(NSObject *)switchImplementation methodForSelector:@selector(applyActionForSwitchIdentifier:)] == [NSObject instanceMethodForSelector:@selector(applyActionForSwitchIdentifier:)]) {
-			[NSException raise:NSInvalidArgumentException format:@"Switch instance passed to -[FSSwitchPanel registerSwitch:forIdentifier] must override either applyState:forSwitchIdentifier: or applyActionForSwitchIdentifier:"];
+	if ([(NSObject *)dataSource methodForSelector:@selector(applyState:forSwitchIdentifier:)] == [NSObject instanceMethodForSelector:@selector(applyState:forSwitchIdentifier:)]) {
+		if ([(NSObject *)dataSource methodForSelector:@selector(applyActionForSwitchIdentifier:)] == [NSObject instanceMethodForSelector:@selector(applyActionForSwitchIdentifier:)]) {
+			[NSException raise:NSInvalidArgumentException format:@"Switch data source passed to -[FSSwitchPanel registerSwitch:forIdentifier] must override either applyState:forSwitchIdentifier: or applyActionForSwitchIdentifier:"];
 		}
 	} else {
-		if ([(NSObject *)switchImplementation methodForSelector:@selector(stateForSwitchIdentifier:)] == [NSObject instanceMethodForSelector:@selector(stateForSwitchIdentifier:)]) {
-			[NSException raise:NSInvalidArgumentException format:@"Switch instance passed to -[FSSwitchPanel registerSwitch:forIdentifier] must override stateForSwitchIdentifier:"];
+		if ([(NSObject *)dataSource methodForSelector:@selector(stateForSwitchIdentifier:)] == [NSObject instanceMethodForSelector:@selector(stateForSwitchIdentifier:)]) {
+			[NSException raise:NSInvalidArgumentException format:@"Switch data source passed to -[FSSwitchPanel registerSwitch:forIdentifier] must override stateForSwitchIdentifier:"];
 		}
 	}
-	id<FSSwitch> oldSwitch = [[_switchImplementations objectForKey:switchIdentifier] retain];
-	[_switchImplementations setObject:switchImplementation forKey:switchIdentifier];
-	[switchImplementation switchWasRegisteredForIdentifier:switchIdentifier];
+	id<FSSwitchDataSource> oldSwitch = [[_switchImplementations objectForKey:switchIdentifier] retain];
+	[_switchImplementations setObject:dataSource forKey:switchIdentifier];
+	[dataSource switchWasRegisteredForIdentifier:switchIdentifier];
 	[oldSwitch switchWasUnregisteredForIdentifier:switchIdentifier];
 	[oldSwitch release];
 	if (!hasUpdatedSwitches) {
@@ -50,9 +50,9 @@ static NSInteger stateChangeCount;
 - (void)unregisterSwitchIdentifier:(NSString *)switchIdentifier
 {
 	if (!switchIdentifier) {
-		[NSException raise:NSInvalidArgumentException format:@"Switch identifier passed to -[FSSwitchPanel unregisterSwitch:forIdentifier:] must not be nil"];
+		[NSException raise:NSInvalidArgumentException format:@"Switch identifier passed to -[FSSwitchPanel unregisterSwitchIdentifier:] must not be nil"];
 	}
-	id<FSSwitch> oldSwitch = [[_switchImplementations objectForKey:switchIdentifier] retain];
+	id<FSSwitchDataSource> oldSwitch = [[_switchImplementations objectForKey:switchIdentifier] retain];
 	[_switchImplementations removeObjectForKey:switchIdentifier];
 	[oldSwitch switchWasUnregisteredForIdentifier:switchIdentifier];
 	[oldSwitch release];
@@ -83,25 +83,25 @@ static NSInteger stateChangeCount;
 
 - (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	id<FSSwitch> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
+	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	return [switchImplementation titleForSwitchIdentifier:switchIdentifier];
 }
 
 - (BOOL)shouldShowSwitchIdentifier:(NSString *)switchIdentifier
 {
-	id<FSSwitch> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
+	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	return [switchImplementation shouldShowSwitchIdentifier:switchIdentifier];
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	id<FSSwitch> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
+	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	return [switchImplementation stateForSwitchIdentifier:switchIdentifier];
 }
 
 - (void)setState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier
 {
-	id<FSSwitch> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
+	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	// Workaround switches that don't explicitly send state change notifications :(
 	FSSwitchState oldState = [switchImplementation stateForSwitchIdentifier:switchIdentifier];
 	NSInteger oldStateChangeCount = stateChangeCount;
@@ -113,7 +113,7 @@ static NSInteger stateChangeCount;
 
 - (void)applyActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	id<FSSwitch> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
+	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	// Workaround switches that don't explicitly send state change notifications :(
 	FSSwitchState oldState = [switchImplementation stateForSwitchIdentifier:switchIdentifier];
 	NSInteger oldStateChangeCount = stateChangeCount;
@@ -125,19 +125,19 @@ static NSInteger stateChangeCount;
 
 - (id)glyphImageDescriptorOfState:(FSSwitchState)switchState size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier;
 {
-	id<FSSwitch> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
+	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	return [switchImplementation glyphImageDescriptorOfState:switchState size:size scale:scale forSwitchIdentifier:switchIdentifier];
 }
 
 - (BOOL)hasAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	id<FSSwitch> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
+	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	return [switchImplementation hasAlternateActionForSwitchIdentifier:switchIdentifier];
 }
 
 - (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	id<FSSwitch> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
+	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	[switchImplementation applyAlternateActionForSwitchIdentifier:switchIdentifier];
 }
 
@@ -268,9 +268,9 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 			NSBundle *bundle = [NSBundle bundleWithPath:[kSwitchesPath stringByAppendingPathComponent:folder]];
 			if (bundle) {
 				Class switchClass = [[bundle objectForInfoDictionaryKey:@"lazy-load"] boolValue] ? [FSLazySwitch class] : [bundle principalClass];
-				id<FSSwitch> switchImplementation = [switchClass instancesRespondToSelector:@selector(initWithBundle:)] ? [[switchClass alloc] initWithBundle:bundle] : [[switchClass alloc] init];
+				id<FSSwitchDataSource> switchImplementation = [switchClass instancesRespondToSelector:@selector(initWithBundle:)] ? [[switchClass alloc] initWithBundle:bundle] : [[switchClass alloc] init];
 				if (switchImplementation)
-					[self registerSwitch:switchImplementation forIdentifier:bundle.bundleIdentifier];
+					[self registerDataSource:switchImplementation forSwitchIdentifier:bundle.bundleIdentifier];
 				[switchImplementation release];
 			}
 		}

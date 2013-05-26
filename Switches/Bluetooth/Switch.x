@@ -1,4 +1,4 @@
-#import <FSSwitch.h>
+#import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
 
 @interface BluetoothManager
@@ -9,7 +9,7 @@
 - (void)setEnabled:(BOOL)seenabled;
 @end
 
-@interface BluetoothSwitch : NSObject <FSSwitch>
+@interface BluetoothSwitch : NSObject <FSSwitchDataSource>
 @end
 
 %hook BluetoothManager

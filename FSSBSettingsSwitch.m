@@ -64,7 +64,7 @@ static FSSBSettingsSwitch *sharedSwitch;
 			NSString *switchPath = [[switchesPath stringByAppendingPathComponent:subpath] stringByAppendingPathComponent:@"Switch.dylib"];
 			void *toggle = dlopen([switchPath UTF8String], RTLD_LAZY);
 			if (toggle && isCapable(toggle)) {
-				[[FSSwitchPanel sharedPanel] registerSwitch:self forIdentifier:SwitchIdentifierFromToggleName(subpath)];
+				[[FSSwitchPanel sharedPanel] registerDataSource:self forSwitchIdentifier:SwitchIdentifierFromToggleName(subpath)];
 				CFDictionaryAddValue(switches, subpath, toggle);
 			} else {
 				dlclose(toggle);

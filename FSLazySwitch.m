@@ -20,10 +20,10 @@
 - (void)lazyLoadWithSwitchIdentifier:(NSString *)switchIdentifier
 {
 	Class switchClass = [bundle principalClass];
-	id<FSSwitch> switchImplementation = [switchClass respondsToSelector:@selector(initWithBundle:)] ? [[switchClass alloc] initWithBundle:bundle] : [[switchClass alloc] init];
+	id<FSSwitchDataSource> switchImplementation = [switchClass respondsToSelector:@selector(initWithBundle:)] ? [[switchClass alloc] initWithBundle:bundle] : [[switchClass alloc] init];
 	if (switchImplementation) {
 		[[self retain] autorelease];
-		[[FSSwitchPanel sharedPanel] registerSwitch:switchImplementation forIdentifier:switchIdentifier];
+		[[FSSwitchPanel sharedPanel] registerDataSource:switchImplementation forSwitchIdentifier:switchIdentifier];
 	} else {
 		[NSException raise:NSInvalidArgumentException format:@"Unable to lazily load switch for %@ (using switch class %@)", switchIdentifier, switchClass];
 	}

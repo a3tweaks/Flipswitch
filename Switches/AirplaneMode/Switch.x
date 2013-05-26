@@ -1,4 +1,4 @@
-#import <FSSwitch.h>
+#import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
 
 #import <Foundation/Foundation.h>
@@ -10,7 +10,7 @@
 - (BOOL)isInAirplaneMode;
 @end
 
-@interface AirplaneModeSwitch : NSObject <FSSwitch>
+@interface AirplaneModeSwitch : NSObject <FSSwitchDataSource>
 @end
 
 %hook SBTelephonyManager

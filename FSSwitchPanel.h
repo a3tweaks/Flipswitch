@@ -1,6 +1,6 @@
 #import <UIKit/UIKit.h>
 
-#import "FSSwitch.h"
+#import "FSSwitchDataSource.h"
 
 @interface FSSwitchPanel : NSObject
 
@@ -43,7 +43,7 @@
 @end
 
 @interface FSSwitchPanel (SpringBoard)
-- (void)registerSwitch:(id<FSSwitch>)switchImplementation forIdentifier:(NSString *)switchIdentifier;
+- (void)registerDataSource:(id<FSSwitchDataSource>)dataSource forSwitchIdentifier:(NSString *)switchIdentifier;
 // Registers a switch implementation for a specific identifier. Bundlee in /Library/Switches will have their principal class automatically loaded
 - (void)unregisterSwitchIdentifier:(NSString *)switchIdentifier;
 // Unregisters a switch

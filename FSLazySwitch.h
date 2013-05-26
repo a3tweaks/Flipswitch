@@ -1,7 +1,7 @@
-#import "FSSwitch.h"
+#import "FSSwitchDataSource.h"
 
 __attribute__((visibility("hidden")))
-@interface FSLazySwitch : NSObject <FSSwitch> {
+@interface FSLazySwitch : NSObject <FSSwitchDataSource> {
 @private
 	NSBundle *bundle;
 }

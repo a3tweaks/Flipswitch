@@ -1,7 +1,7 @@
 #import "FSSwitchPanel.h"
 #import "FSSwitchMainPanel.h"
 #import "FSSwitchService.h"
-#import "FSSwitch.h"
+#import "FSSwitchDataSource.h"
 #import "NSBundle+Flipswitch.h"
 #import "FSSwitchButton.h"
 #import "ControlStateVariants.h"
@@ -399,7 +399,7 @@ cache_and_return_result:
 
 @implementation FSSwitchPanel (SpringBoard)
 
-- (void)registerSwitch:(id<FSSwitch>)switchImplementation forIdentifier:(NSString *)switchIdentifier
+- (void)registerDataSource:(id<FSSwitchDataSource>)dataSource forSwitchIdentifier:(NSString *)switchIdentifier;
 {
 	[NSException raise:NSInternalInconsistencyException format:@"Cannot register switches outside of SpringBoard!"];
 }

@@ -1,4 +1,4 @@
-#import "FSSwitch.h"
+#import "FSSwitchDataSource.h"
 
-@interface FSSBSettingsSwitch : NSObject <FSSwitch>
+@interface FSSBSettingsSwitch : NSObject <FSSwitchDataSource>
 @end
