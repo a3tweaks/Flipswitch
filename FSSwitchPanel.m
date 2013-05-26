@@ -15,7 +15,7 @@ static LMConnection connection = {
 	kFSSwitchServiceName
 };
 
-NSString * const FSSwitchPanelSwitchsChangedNotification = @"FSSwitchPanelSwitchsChangedNotification";
+NSString * const FSSwitchPanelSwitchesChangedNotification = @"FSSwitchPanelSwitchesChangedNotification";
 
 NSString * const FSSwitchPanelSwitchStateChangedNotification = @"FSSwitchPanelSwitchStateChangedNotification";
 NSString * const FSSwitchPanelSwitchIdentifierKey = @"switchIdentifier";
@@ -26,9 +26,9 @@ static NSMutableDictionary *_cachedSwitchImages;
 
 @implementation FSSwitchPanel
 
-static void SwitchsChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+static void SwitchesChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
-	[[NSNotificationCenter defaultCenter] postNotificationName:FSSwitchPanelSwitchsChangedNotification object:_switchManager userInfo:nil];
+	[[NSNotificationCenter defaultCenter] postNotificationName:FSSwitchPanelSwitchesChangedNotification object:_switchManager userInfo:nil];
 }
 
 + (void)initialize
@@ -38,7 +38,7 @@ static void SwitchsChangedCallback(CFNotificationCenterRef center, void *observe
 			_switchManager = [[FSSwitchMainPanel alloc] init];
 		} else {
 			_switchManager = [[self alloc] init];
-			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), self, SwitchsChangedCallback, (CFStringRef)FSSwitchPanelSwitchsChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
+			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), self, SwitchesChangedCallback, (CFStringRef)FSSwitchPanelSwitchesChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
 		}
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_didReceiveMemoryWarning) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
 	}
@@ -401,12 +401,12 @@ cache_and_return_result:
 
 - (void)registerSwitch:(id<FSSwitch>)switchImplementation forIdentifier:(NSString *)switchIdentifier
 {
-	[NSException raise:NSInternalInconsistencyException format:@"Cannot register switchs outside of SpringBoard!"];
+	[NSException raise:NSInternalInconsistencyException format:@"Cannot register switches outside of SpringBoard!"];
 }
 
 - (void)unregisterSwitchIdentifier:(NSString *)switchIdentifier;
 {
-	[NSException raise:NSInternalInconsistencyException format:@"Cannot unregister switchs outside of SpringBoard!"];
+	[NSException raise:NSInternalInconsistencyException format:@"Cannot unregister switches outside of SpringBoard!"];
 }
 
 - (void)stateDidChangeForSwitchIdentifier:(NSString *)switchIdentifier

@@ -35,7 +35,7 @@
 - (void)stateDidChangeForSwitchIdentifier:(NSString *)switchIdentifier;
 @end
 
-extern NSString * const FSSwitchPanelSwitchsChangedNotification;
+extern NSString * const FSSwitchPanelSwitchesChangedNotification;
 
 extern NSString * const FSSwitchPanelSwitchStateChangedNotification;
 extern NSString * const FSSwitchPanelSwitchIdentifierKey;

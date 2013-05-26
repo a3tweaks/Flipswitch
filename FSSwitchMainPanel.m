@@ -8,7 +8,7 @@
 
 #import <notify.h>
 
-#define kSwitchsPath @"/Library/Switches/"
+#define kSwitchesPath @"/Library/Switches/"
 
 @interface UIApplication (Private)
 - (void)applicationOpenURL:(NSURL *)url;
@@ -41,9 +41,9 @@ static NSInteger stateChangeCount;
 	[switchImplementation switchWasRegisteredForIdentifier:switchIdentifier];
 	[oldSwitch switchWasUnregisteredForIdentifier:switchIdentifier];
 	[oldSwitch release];
-	if (!hasUpdatedSwitchs) {
-		hasUpdatedSwitchs = YES;
-		[self performSelector:@selector(_sendSwitchsChanged) withObject:nil afterDelay:0.0];
+	if (!hasUpdatedSwitches) {
+		hasUpdatedSwitches = YES;
+		[self performSelector:@selector(_sendSwitchesChanged) withObject:nil afterDelay:0.0];
 	}
 }
 
@@ -56,17 +56,17 @@ static NSInteger stateChangeCount;
 	[_switchImplementations removeObjectForKey:switchIdentifier];
 	[oldSwitch switchWasUnregisteredForIdentifier:switchIdentifier];
 	[oldSwitch release];
-	if (!hasUpdatedSwitchs) {
-		hasUpdatedSwitchs = YES;
-		[self performSelector:@selector(_sendSwitchsChanged) withObject:nil afterDelay:0.0];
+	if (!hasUpdatedSwitches) {
+		hasUpdatedSwitches = YES;
+		[self performSelector:@selector(_sendSwitchesChanged) withObject:nil afterDelay:0.0];
 	}
 }
 
-- (void)_sendSwitchsChanged
+- (void)_sendSwitchesChanged
 {
-	hasUpdatedSwitchs = NO;
-	notify_post([FSSwitchPanelSwitchsChangedNotification UTF8String]);
-	[[NSNotificationCenter defaultCenter] postNotificationName:FSSwitchPanelSwitchsChangedNotification object:self userInfo:nil];
+	hasUpdatedSwitches = NO;
+	notify_post([FSSwitchPanelSwitchesChangedNotification UTF8String]);
+	[[NSNotificationCenter defaultCenter] postNotificationName:FSSwitchPanelSwitchesChangedNotification object:self userInfo:nil];
 }
 
 - (void)stateDidChangeForSwitchIdentifier:(NSString *)switchIdentifier
@@ -102,7 +102,7 @@ static NSInteger stateChangeCount;
 - (void)setState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier
 {
 	id<FSSwitch> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
-	// Workaround switchs that don't explicitly send state change notifications :(
+	// Workaround switches that don't explicitly send state change notifications :(
 	FSSwitchState oldState = [switchImplementation stateForSwitchIdentifier:switchIdentifier];
 	NSInteger oldStateChangeCount = stateChangeCount;
 	[switchImplementation applyState:state forSwitchIdentifier:switchIdentifier];
@@ -114,7 +114,7 @@ static NSInteger stateChangeCount;
 - (void)applyActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	id<FSSwitch> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
-	// Workaround switchs that don't explicitly send state change notifications :(
+	// Workaround switches that don't explicitly send state change notifications :(
 	FSSwitchState oldState = [switchImplementation stateForSwitchIdentifier:switchIdentifier];
 	NSInteger oldStateChangeCount = stateChangeCount;
 	[switchImplementation applyActionForSwitchIdentifier:switchIdentifier];
@@ -263,9 +263,9 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 		if (err) NSLog(@"FS Switch API: Connection Creation failed with Error: %x", err);
 
 		_switchImplementations = [[NSMutableDictionary alloc] init];
-		NSArray *switchDirectoryContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:kSwitchsPath error:nil];
+		NSArray *switchDirectoryContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:kSwitchesPath error:nil];
 		for (NSString *folder in switchDirectoryContents) {
-			NSBundle *bundle = [NSBundle bundleWithPath:[kSwitchsPath stringByAppendingPathComponent:folder]];
+			NSBundle *bundle = [NSBundle bundleWithPath:[kSwitchesPath stringByAppendingPathComponent:folder]];
 			if (bundle) {
 				Class switchClass = [[bundle objectForInfoDictionaryKey:@"lazy-load"] boolValue] ? [FSLazySwitch class] : [bundle principalClass];
 				id<FSSwitch> switchImplementation = [switchClass instancesRespondToSelector:@selector(initWithBundle:)] ? [[switchClass alloc] initWithBundle:bundle] : [[switchClass alloc] init];

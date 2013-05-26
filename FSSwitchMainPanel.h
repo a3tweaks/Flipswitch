@@ -4,7 +4,7 @@ __attribute__((visibility("hidden")))
 @interface FSSwitchMainPanel : FSSwitchPanel {
 @private
 	NSMutableDictionary *_switchImplementations;
-	BOOL hasUpdatedSwitchs;
+	BOOL hasUpdatedSwitches;
 }
 @end
 

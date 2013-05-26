@@ -23,7 +23,7 @@ static inline NSString *ToggleNameFromSwitchIdentifer(NSString *switchIdentifier
 }
 #define SwitchIdentifierFromToggleName(toggleName) ([@"sbsettings." stringByAppendingString:toggleName])
 
-static CFMutableDictionaryRef switchs;
+static CFMutableDictionaryRef switches;
 
 @implementation FSSBSettingsSwitch
 
@@ -41,18 +41,18 @@ static FSSBSettingsSwitch *sharedSwitch;
 	return sharedSwitch;
 }
 
-+ (NSString *)switchsPath
++ (NSString *)switchesPath
 {
-	return @"/var/mobile/Library/SBSettings/Switchs/";
+	return @"/var/mobile/Library/SBSettings/Switches/";
 }
 
 - (id)init
 {
 	if ((self = [super init])) {
-		switchs = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, NULL);
+		switches = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, NULL);
 		NSFileManager *fileManager = [NSFileManager defaultManager];
-		NSString *switchsPath = [FSSBSettingsSwitch switchsPath];
-		for (NSString *subpath in [fileManager contentsOfDirectoryAtPath:switchsPath error:NULL]) {
+		NSString *switchesPath = [FSSBSettingsSwitch switchesPath];
+		for (NSString *subpath in [fileManager contentsOfDirectoryAtPath:switchesPath error:NULL]) {
 			if ([subpath hasPrefix:@"."])
 				continue;
 			if ([subpath isEqualToString:@"Fast Notes"])
@@ -61,11 +61,11 @@ static FSSBSettingsSwitch *sharedSwitch;
 				continue;
 			if ([subpath isEqualToString:@"Processes"])
 				continue;
-			NSString *switchPath = [[switchsPath stringByAppendingPathComponent:subpath] stringByAppendingPathComponent:@"Switch.dylib"];
+			NSString *switchPath = [[switchesPath stringByAppendingPathComponent:subpath] stringByAppendingPathComponent:@"Switch.dylib"];
 			void *toggle = dlopen([switchPath UTF8String], RTLD_LAZY);
 			if (toggle && isCapable(toggle)) {
 				[[FSSwitchPanel sharedPanel] registerSwitch:self forIdentifier:SwitchIdentifierFromToggleName(subpath)];
-				CFDictionaryAddValue(switchs, subpath, toggle);
+				CFDictionaryAddValue(switches, subpath, toggle);
 			} else {
 				dlclose(toggle);
 			}
@@ -83,7 +83,7 @@ static FSSBSettingsSwitch *sharedSwitch;
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	NSString *toggleName = ToggleNameFromSwitchIdentifer(switchIdentifier);
-	void *toggle = (void *)CFDictionaryGetValue(switchs, toggleName);
+	void *toggle = (void *)CFDictionaryGetValue(switches, toggleName);
 	return isEnabled(toggle);
 }
 
@@ -92,25 +92,25 @@ static FSSBSettingsSwitch *sharedSwitch;
 	if (newState == FSSwitchStateIndeterminate)
 		return;
 	NSString *toggleName = ToggleNameFromSwitchIdentifer(switchIdentifier);
-	void *toggle = (void *)CFDictionaryGetValue(switchs, toggleName);
+	void *toggle = (void *)CFDictionaryGetValue(switches, toggleName);
 	BOOL currentState = isEnabled(toggle);
 	if (currentState != newState) {
 		setState(toggle, newState);
-		notify_post("com.sbsettings.refreshallswitchs");
+		notify_post("com.sbsettings.refreshallswitches");
 	}
 }
 
 - (BOOL)hasAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	NSString *toggleName = ToggleNameFromSwitchIdentifer(switchIdentifier);
-	void *toggle = (void *)CFDictionaryGetValue(switchs, toggleName);
+	void *toggle = (void *)CFDictionaryGetValue(switches, toggleName);
 	return dlsym(toggle, "invokeHoldAction") != NULL;
 }
 
 - (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	NSString *toggleName = ToggleNameFromSwitchIdentifer(switchIdentifier);
-	void *toggle = (void *)CFDictionaryGetValue(switchs, toggleName);
+	void *toggle = (void *)CFDictionaryGetValue(switches, toggleName);
 	invokeHoldAction(toggle);
 }
 
