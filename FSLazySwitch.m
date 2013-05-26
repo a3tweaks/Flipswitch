@@ -30,6 +30,11 @@
 	[switchImplementation release];
 }
 
+- (NSBundle *)bundleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	return bundle;
+}
+
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	[self lazyLoadWithSwitchIdentifier:switchIdentifier];
