@@ -10,5 +10,10 @@ SUBPROJECTS = Switches/AirplaneMode Switches/Bluetooth Switches/DoNotDisturb Swi
 include $(THEOS_MAKE_PATH)/library.mk
 include $(THEOS_MAKE_PATH)/aggregate.mk
 
+ARCHS = armv6 armv7
+
+SDKVERSION := 5.1
+TARGET_IPHONEOS_DEPLOYMENT_VERSION := 3.0
+
 stage::
 	$(ECHO_NOTHING)rsync -a Flipswitch.h FSSwitchDataSource.h FSSwitchPanel.h $(THEOS_STAGING_DIR)/usr/lib/flipswitch/ $(FW_RSYNC_EXCLUDES)$(ECHO_END)
