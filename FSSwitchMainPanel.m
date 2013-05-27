@@ -1,12 +1,17 @@
 #import "FSSwitchMainPanel.h"
 #import "FSSwitchService.h"
 #import "FSSwitchDataSource.h"
+<<<<<<< HEAD
 #import "FSPreferenceSwitchDataSource.h"
+=======
+>>>>>>> 13b9ebef356113f348e4b8435d8124d371ed05ec
 #import "FSLazySwitch.h"
 
 #import "LightMessaging/LightMessaging.h"
 
 #import <notify.h>
+
+extern BOOL GSSystemHasCapability(NSString *capability);
 
 #define kSwitchesPath @"/Library/Switches/"
 
@@ -85,12 +90,6 @@ static NSInteger stateChangeCount;
 {
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	return [switchImplementation titleForSwitchIdentifier:switchIdentifier];
-}
-
-- (BOOL)shouldShowSwitchIdentifier:(NSString *)switchIdentifier
-{
-	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
-	return [switchImplementation shouldShowSwitchIdentifier:switchIdentifier];
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
@@ -218,13 +217,6 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			}
 			break;
 		}
-		case FSSwitchServiceMessageShouldSwitchBeShown: {
-			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
-			if ([identifier isKindOfClass:[NSString class]]) {
-				LMSendIntegerReply(replyPort, [self shouldShowSwitchIdentifier:identifier]);
-			}
-			break;
-		}
 	}
 	LMSendReply(replyPort, NULL, 0);
 }
@@ -248,6 +240,21 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 	LMResponseBufferFree(bytes);
 }
 
+- (void)_loadSwitchForBundle:(NSBundle *)bundle
+{
+	NSArray *capabilities = [bundle objectForInfoDictionaryKey:@"required-capabilities"];
+	if ([capabilities isKindOfClass:[NSArray class]])
+		for (NSString *capability in capabilities)
+			if ([capability isKindOfClass:[NSString class]])
+				if (!GSSystemHasCapability(capability))
+					return;
+	Class switchClass = [[bundle objectForInfoDictionaryKey:@"lazy-load"] boolValue] ? [FSLazySwitch class] : [bundle principalClass] ?: NSClassFromString([bundle objectForInfoDictionaryKey:@"NSPrincipalClass"]);
+	id<FSSwitchDataSource> switchImplementation = [switchClass instancesRespondToSelector:@selector(initWithBundle:)] ? [[switchClass alloc] initWithBundle:bundle] : [[switchClass alloc] init];
+	if (switchImplementation)
+		[self registerDataSource:switchImplementation forSwitchIdentifier:bundle.bundleIdentifier];
+	[switchImplementation release];
+}
+
 - (id)init
 {
 	if ((self = [super init]))
@@ -261,18 +268,12 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 		mach_port_t port = CFMachPortGetPort(machPort);
 		kern_return_t err = bootstrap_register(bootstrap, kFSSwitchServiceName, port);
 		if (err) NSLog(@"FS Switch API: Connection Creation failed with Error: %x", err);
-
 		_switchImplementations = [[NSMutableDictionary alloc] init];
 		NSArray *switchDirectoryContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:kSwitchesPath error:nil];
 		for (NSString *folder in switchDirectoryContents) {
 			NSBundle *bundle = [NSBundle bundleWithPath:[kSwitchesPath stringByAppendingPathComponent:folder]];
-			if (bundle) {
-				Class switchClass = [[bundle objectForInfoDictionaryKey:@"lazy-load"] boolValue] ? [FSLazySwitch class] : [bundle principalClass] ?: NSClassFromString([bundle objectForInfoDictionaryKey:@"NSPrincipalClass"]);
-				id<FSSwitchDataSource> switchImplementation = [switchClass instancesRespondToSelector:@selector(initWithBundle:)] ? [[switchClass alloc] initWithBundle:bundle] : [[switchClass alloc] init];
-				if (switchImplementation)
-					[self registerDataSource:switchImplementation forSwitchIdentifier:bundle.bundleIdentifier];
-				[switchImplementation release];
-			}
+			if (bundle)
+				[self _loadSwitchForBundle:bundle];
 		}
 
 	}
