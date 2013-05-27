@@ -13,6 +13,18 @@ extern void GSSendAppPreferencesChanged(CFStringRef bundleID, CFStringRef key);
 
 @implementation VibrationSwitch
 
+static void VibrationSettingsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+{
+    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[VibrationSwitch class]].bundleIdentifier];
+}
+
++ (void)load
+{
+    CFNotificationCenterRef center = CFNotificationCenterGetDarwinNotifyCenter();
+    CFNotificationCenterAddObserver(center, NULL, VibrationSettingsChanged, CFSTR("com.apple.springboard.ring-vibrate.changed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+    CFNotificationCenterAddObserver(center, NULL, VibrationSettingsChanged, CFSTR("com.apple.springboard.ring-silent.changed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+}
+
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:kSpringBoardPlist];
