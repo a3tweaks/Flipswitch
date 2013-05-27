@@ -1,7 +1,7 @@
 include theos/makefiles/common.mk
 
 LIBRARY_NAME = libflipswitch
-libflipswitch_FILES = FSSwitchPanel.m FSSwitchMainPanel.m NSBundle+Flipswitch.m FSPreferenceSwitch.m FSSBSettingsSwitch.m FSSwitchDataSource.m FSSwitchButton.m FSLazySwitch.m FSSwitchPanel+Prerender.m
+libflipswitch_FILES = FSSwitchPanel.m FSSwitchMainPanel.m NSBundle+Flipswitch.m FSPreferenceSwitchDataSource.m FSSBSettingsSwitch.m FSSwitchDataSource.m FSSwitchButton.m FSLazySwitch.m FSSwitchPanel+Prerender.m
 libflipswitch_FRAMEWORKS = UIKit CoreGraphics QuartzCore
 libflipswitch_PRIVATE_FRAMEWORKS = GraphicsServices
 

@@ -1,7 +1,7 @@
 #import "FSSwitchDataSource.h"
 
 __attribute__((visibility("hidden")))
-@interface FSPreferenceSwitch : NSObject <FSSwitchDataSource> {
+@interface FSPreferenceSwitchDataSource : NSObject <FSSwitchDataSource> {
 @private
 	NSBundle *bundle;
 	NSString *switchIdentifier_;
