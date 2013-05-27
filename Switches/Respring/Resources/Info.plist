@@ -26,5 +26,7 @@
 	<string>3.0</string>
 	<key>NSPrincipalClass</key>
 	<string>RespringSwitch</string>
+	<key>lazy-load</key>
+	<true/>
 </dict>
 </plist>
