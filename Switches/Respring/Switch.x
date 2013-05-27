@@ -12,12 +12,7 @@
 
 @implementation RespringSwitch
 
-- (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
-{
-	return FSSwitchStateIndeterminate;
-}
-
-- (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
+- (void)applyActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	[(SpringBoard *)[objc_getClass("SpringBoard") sharedApplication] _relaunchSpringBoardNow];
 }
