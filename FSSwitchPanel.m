@@ -35,7 +35,8 @@ static void SwitchesChangedCallback(CFNotificationCenterRef center, void *observ
 {
 	if (self == [FSSwitchPanel class]) {
 		if (objc_getClass("SpringBoard")) {
-			_switchManager = [[FSSwitchMainPanel alloc] init];
+			dlopen("/Library/Flipswitch/FlipswitchSpringBoard.dylib", RTLD_LAZY);
+			_switchManager = [[objc_getClass("FSSwitchMainPanel") alloc] init];
 		} else {
 			_switchManager = [[self alloc] init];
 			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), self, SwitchesChangedCallback, (CFStringRef)FSSwitchPanelSwitchesChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
