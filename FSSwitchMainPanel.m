@@ -1,7 +1,7 @@
 #import "FSSwitchMainPanel.h"
 #import "FSSwitchService.h"
 #import "FSSwitchDataSource.h"
-#import "FSPreferenceSwitch.h"
+#import "FSPreferenceSwitchDataSource.h"
 #import "FSLazySwitch.h"
 
 #import "LightMessaging/LightMessaging.h"
