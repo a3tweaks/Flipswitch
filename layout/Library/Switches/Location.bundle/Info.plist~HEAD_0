@@ -5,11 +5,11 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>Respring</string>
+	<string>Location</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.a3tweaks.switch.respring</string>
+	<string>com.a3tweaks.switch.location</string>
 	<key>CFBundleDisplayName</key>
-	<string>Respring</string>
+	<string>Location Services</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -25,8 +25,18 @@
 	<key>MinimumOSVersion</key>
 	<string>3.0</string>
 	<key>NSPrincipalClass</key>
-	<string>RespringSwitch</string>
-	<key>lazy-load</key>
-	<true/>
+<<<<<<< HEAD:Switches/Location/Resources/Info.plist
+	<string>FSPreferenceSwitch</string>
+=======
+	<string>FSPreferenceSwitchDataSource</string>
+>>>>>>> 7c01943f622f37ce47f3e4426f4865db7b74ca67:layout/Library/Switches/Location.bundle/Info.plist
+	<key>alternate-action-url</key>
+	<string>prefs:root=LOCATION_SERVICES</string>
+	<key>defaults</key>
+	<string>com.apple.locationd</string>
+	<key>key</key>
+	<string>LocationServicesEnabled</string>
+	<key>PostNotification</key>
+	<string>com.apple.locationd/Prefs</string>
 </dict>
 </plist>

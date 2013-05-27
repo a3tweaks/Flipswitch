@@ -4,12 +4,10 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
-	<key>CFBundleExecutable</key>
-	<string>Respring</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.a3tweaks.switch.respring</string>
+	<string>com.a3tweaks.switch.location</string>
 	<key>CFBundleDisplayName</key>
-	<string>Respring</string>
+	<string>Location Services</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -25,8 +23,16 @@
 	<key>MinimumOSVersion</key>
 	<string>3.0</string>
 	<key>NSPrincipalClass</key>
-	<string>RespringSwitch</string>
+	<string>FSPreferenceSwitch</string>
+	<key>alternate-action-url</key>
+	<string>prefs:root=LOCATION_SERVICES</string>
 	<key>lazy-load</key>
 	<true/>
+	<key>key</key>
+	<string>LocationServicesEnabled</string>
+	<key>defaults</key>
+	<string>com.apple.locationd</string>
+	<key>PostNotification</key>
+	<string>com.apple.locationd/Prefs</string>
 </dict>
 </plist>

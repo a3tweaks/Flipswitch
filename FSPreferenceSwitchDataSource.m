@@ -1,10 +1,10 @@
-#import "FSPreferenceSwitch.h"
+#import "FSPreferenceSwitchDataSource.h"
 
 #import "FSSwitchPanel.h"
 
 #import <notify.h>
 
-@implementation FSPreferenceSwitch
+@implementation FSPreferenceSwitchDataSource
 
 - (id)initWithBundle:(NSBundle *)_bundle
 {
@@ -64,9 +64,9 @@
 	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier: switchIdentifier_];
 }
 
-static void FSPreferenceSwitchChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+static void FSPreferenceSwitchDataSourceChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
-	FSPreferenceSwitch *self = observer;
+	FSPreferenceSwitchDataSource *self = observer;
 	[self _preferenceChanged];
 }
 
@@ -76,7 +76,7 @@ static void FSPreferenceSwitchChangedCallback(CFNotificationCenterRef center, vo
 	switchIdentifier_ = [switchIdentifier copy];
 	NSString *notification = [bundle objectForInfoDictionaryKey:@"PostNotification"];
 	if ([notification isKindOfClass:[NSString class]]) {
-		CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), self, FSPreferenceSwitchChangedCallback, (CFStringRef)notification, NULL, CFNotificationSuspensionBehaviorCoalesce);
+		CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), self, FSPreferenceSwitchDataSourceChangedCallback, (CFStringRef)notification, NULL, CFNotificationSuspensionBehaviorCoalesce);
 	}
 }
 
