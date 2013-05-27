@@ -19,7 +19,8 @@
 
 - (void)lazyLoadWithSwitchIdentifier:(NSString *)switchIdentifier
 {
-	Class switchClass = [bundle principalClass];
+	Class switchClass = [bundle principalClass] ?: NSClassFromString([bundle objectForInfoDictionaryKey:@"NSPrincipalClass"]);
+
 	id<FSSwitchDataSource> switchImplementation = [switchClass respondsToSelector:@selector(initWithBundle:)] ? [[switchClass alloc] initWithBundle:bundle] : [[switchClass alloc] init];
 	if (switchImplementation) {
 		[[self retain] autorelease];
