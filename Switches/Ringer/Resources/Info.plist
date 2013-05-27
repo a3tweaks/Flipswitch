@@ -5,11 +5,11 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>Mute</string>
+	<string>Ringer</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.a3tweaks.switch.mute</string>
+	<string>com.a3tweaks.switch.ringer</string>
 	<key>CFBundleDisplayName</key>
-	<string>Mute Switch</string>
+	<string>Ringer</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -25,7 +25,7 @@
 	<key>MinimumOSVersion</key>
 	<string>3.0</string>
 	<key>NSPrincipalClass</key>
-	<string>MuteSwitch</string>
+	<string>RingerSwitch</string>
 	<key>alternate-action-url</key>
 	<string>prefs:root=Sounds</string>
 	<key>lazy-load</key>

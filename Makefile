@@ -5,7 +5,7 @@ libflipswitch_FILES = FSSwitchPanel.m FSSwitchMainPanel.m NSBundle+Flipswitch.m 
 libflipswitch_FRAMEWORKS = UIKit CoreGraphics QuartzCore
 libflipswitch_PRIVATE_FRAMEWORKS = GraphicsServices
 
-SUBPROJECTS = Switches/AirplaneMode Switches/Bluetooth Switches/DoNotDisturb Switches/Hotspot Switches/Mute Switches/Respring Switches/Rotation Switches/Vibration Switches/Wifi
+SUBPROJECTS = Switches/AirplaneMode Switches/Bluetooth Switches/DoNotDisturb Switches/Hotspot Switches/Respring Switches/Ringer Switches/Rotation Switches/Vibration Switches/Wifi
 
 include $(THEOS_MAKE_PATH)/library.mk
 include $(THEOS_MAKE_PATH)/aggregate.mk

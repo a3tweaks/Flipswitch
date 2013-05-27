@@ -7,20 +7,20 @@
 - (void)setRingerMuted:(BOOL)muted;
 @end
 
-@interface MuteSwitch : NSObject <FSSwitchDataSource>
+@interface RingerSwitch : NSObject <FSSwitchDataSource>
 @end
 
-@implementation MuteSwitch
+@implementation RingerSwitch
 
-static void MuteSettingsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+static void RingerSettingsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
-    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[MuteSwitch class]].bundleIdentifier];
+    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[RingerSwitch class]].bundleIdentifier];
 }
 
 + (void)load
 {
     CFNotificationCenterRef center = CFNotificationCenterGetDarwinNotifyCenter();
-    CFNotificationCenterAddObserver(center, NULL, MuteSettingsChanged, CFSTR("com.apple.springboard.ringerstate"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+    CFNotificationCenterAddObserver(center, NULL, RingerSettingsChanged, CFSTR("com.apple.springboard.ringerstate"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
