@@ -73,15 +73,6 @@ static void SwitchesChangedCallback(CFNotificationCenterRef center, void *observ
 	return LMResponseConsumePropertyList(&responseBuffer);
 }
 
-- (BOOL)shouldShowSwitchIdentifier:(NSString *)switchIdentifier
-{
-	LMResponseBuffer responseBuffer;
-	if (LMConnectionSendTwoWayPropertyList(&connection, FSSwitchServiceMessageShouldSwitchBeShown, switchIdentifier, &responseBuffer)) {
-		return NO;
-	}
-	return LMResponseConsumeInteger(&responseBuffer);
-}
-
 - (id)glyphImageDescriptorOfState:(FSSwitchState)switchState size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier
 {
  	NSDictionary *args = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:switchIdentifier, [NSNumber numberWithFloat:size], [NSNumber numberWithFloat:scale], [NSNumber numberWithInteger:switchState], nil] forKeys:[NSArray arrayWithObjects:@"switchIdentifier", @"size", @"scale", @"switchState", nil]];

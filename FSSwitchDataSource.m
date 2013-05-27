@@ -2,8 +2,6 @@
 #import "FSSwitchPanel.h"
 #import "NSBundle+Flipswitch.h"
 
-extern BOOL GSSystemHasCapability(NSString *capability);
-
 NSString *NSStringFromFSSwitchState(FSSwitchState state)
 {
 	switch (state) {
@@ -63,17 +61,6 @@ FSSwitchState FSSwitchStateFromNSString(NSString *stateString)
 - (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	return [[self bundleForSwitchIdentifier:switchIdentifier] objectForInfoDictionaryKey:@"CFBundleDisplayName"] ?: switchIdentifier;
-}
-
-- (BOOL)shouldShowSwitchIdentifier:(NSString *)switchIdentifier
-{
-	id key = [[self bundleForSwitchIdentifier:switchIdentifier] objectForInfoDictionaryKey:@"required-capability-key"];
-	if ([key isKindOfClass:[NSString class]])
-	{
-		return GSSystemHasCapability((NSString *)key);
-	}
-
-	return YES;
 }
 
 - (id)glyphImageDescriptorOfState:(FSSwitchState)switchState size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier

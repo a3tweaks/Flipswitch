@@ -10,8 +10,6 @@
 
 - (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier;
 // Returns the localized title for a specific switch
-- (BOOL)shouldShowSwitchIdentifier:(NSString *)switchIdentifier;
-// Returns YES if a specific switch should be visible
 
 - (UIButton *)buttonForSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)templateBundle;
 // Returns a UIButton for a specific switch
