@@ -45,6 +45,16 @@ static NSInteger insideSwitch;
 @interface HotspotSwitch : NSObject <FSSwitchDataSource>
 @end
 
+%hook SBTelephonyManager
+
+- (void)noteWirelessModemChanged
+{
+	%orig();
+	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[HotspotSwitch class]].bundleIdentifier];
+}
+
+%end
+
 @implementation HotspotSwitch
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
