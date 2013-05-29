@@ -1,16 +1,17 @@
 #import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
 
-extern BOOL GSSystemHasCapability(NSString *capability);
+extern BOOL GSSystemHasCapability(CFStringRef capability);
+extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
 
-extern NSArray  *CTRegistrationCopySupportedDataRates();
-extern NSString *CTRegistrationGetCurrentMaxAllowedDataRate();
-extern void CTRegistrationSetMaxAllowedDataRate(NSString *dataRate);
+extern CFArrayRef CTRegistrationCopySupportedDataRates(void);
+extern CFStringRef CTRegistrationGetCurrentMaxAllowedDataRate(void);
+extern void CTRegistrationSetMaxAllowedDataRate(CFStringRef dataRate);
 
-extern NSString *const kCTRegistrationDataRateUnknown;
-extern NSString *const kCTRegistrationDataRate2G;
-extern NSString *const kCTRegistrationDataRate3G;
-extern NSString *const kCTRegistrationDataRate4G;
+extern CFStringRef const kCTRegistrationDataRateUnknown;
+extern CFStringRef const kCTRegistrationDataRate2G;
+extern CFStringRef const kCTRegistrationDataRate3G;
+extern CFStringRef const kCTRegistrationDataRate4G;
 
 @interface LTESwitch : NSObject <FSSwitchDataSource>
 @end
@@ -27,9 +28,34 @@ extern NSString *const kCTRegistrationDataRate4G;
 
 @implementation LTESwitch
 
+- (id)init
+{
+    if ((self = [super init])) {
+        CFPropertyListRef telephonyGeneration = GSSystemCopyCapability(CFSTR("telephony-maximum-generation"));
+        if (!telephonyGeneration) {
+            [self release];
+            return nil;
+        }
+        float value = [(id)telephonyGeneration floatValue];
+        CFRelease(telephonyGeneration);
+        if (value < 3.5f) {
+            [self release];
+            return nil;
+        }
+        CFArrayRef supportedDataRates = CTRegistrationCopySupportedDataRates();
+        BOOL supportsLTE = [(NSArray *)supportedDataRates containsObject:(id)kCTRegistrationDataRate4G];
+        CFRelease(supportedDataRates);
+        if (!supportsLTE) {
+            [self release];
+            return nil;
+        }
+    }
+    return self;
+}
+
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
-    return [CTRegistrationGetCurrentMaxAllowedDataRate() isEqualToString:kCTRegistrationDataRate4G];
+    return CFEqual(CTRegistrationGetCurrentMaxAllowedDataRate(), kCTRegistrationDataRate4G);
 }
 
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
@@ -43,22 +69,21 @@ extern NSString *const kCTRegistrationDataRate4G;
     }
     else
     {
-    	// CTRegistrationCopySupportedDataRates() returns an ascending array (in regards to data speeds) of data rates.
-    	NSArray *supportedDataRates = CTRegistrationCopySupportedDataRates();
+        // CTRegistrationCopySupportedDataRates() returns an ascending array (in regards to data speeds) of data rates.
+        CFArrayRef supportedDataRates = CTRegistrationCopySupportedDataRates();
     
-    	int lteOffDataRateIndex = [supportedDataRates indexOfObject:kCTRegistrationDataRate4G] - 1;
-    	lteOffDataRateIndex = lteOffDataRateIndex<0?0:lteOffDataRateIndex;
-    
-    	CTRegistrationSetMaxAllowedDataRate([supportedDataRates objectAtIndex:lteOffDataRateIndex]);
+        NSUInteger lteOffDataRateIndex = [(NSArray *)supportedDataRates indexOfObject:(id)kCTRegistrationDataRate4G];
+        switch (lteOffDataRateIndex) {
+            case NSNotFound:
+            case 0:
+                lteOffDataRateIndex = 0;
+                break;
+            default:
+                lteOffDataRateIndex--;
+                break;
+        }
+        CTRegistrationSetMaxAllowedDataRate((CFStringRef)[(NSArray *)supportedDataRates objectAtIndex:lteOffDataRateIndex]);
     }
-}
-
-- (BOOL)shouldShowSwitchIdentifier:(NSString *)switchIdentifier
-{
-	BOOL supportsLTE = [CTRegistrationCopySupportedDataRates() containsObject:kCTRegistrationDataRate4G];
-    BOOL somethingToToggle = [CTRegistrationCopySupportedDataRates() count]>1;
-    
-    return (GSSystemHasCapability(@"cellular-data") && supportsLTE && somethingToToggle);
 }
 
 - (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
