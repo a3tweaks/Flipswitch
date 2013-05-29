@@ -5,6 +5,7 @@
 #import "FSLazySwitch.h"
 
 #import "LightMessaging/LightMessaging.h"
+#import "Internal.h"
 
 #import <notify.h>
 
@@ -22,6 +23,7 @@ static NSInteger stateChangeCount;
 
 - (void)registerDataSource:(id<FSSwitchDataSource>)dataSource forSwitchIdentifier:(NSString *)switchIdentifier;
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	if (!switchIdentifier) {
 		[NSException raise:NSInvalidArgumentException format:@"Switch identifier passed to -[FSSwitchPanel registerSwitch:forIdentifier:] must not be nil"];
 	}
@@ -51,6 +53,7 @@ static NSInteger stateChangeCount;
 
 - (void)unregisterSwitchIdentifier:(NSString *)switchIdentifier
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	if (!switchIdentifier) {
 		[NSException raise:NSInvalidArgumentException format:@"Switch identifier passed to -[FSSwitchPanel unregisterSwitchIdentifier:] must not be nil"];
 	}
@@ -73,6 +76,7 @@ static NSInteger stateChangeCount;
 
 - (void)stateDidChangeForSwitchIdentifier:(NSString *)switchIdentifier
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	stateChangeCount++;
 	NSDictionary *userInfo = switchIdentifier ? [NSDictionary dictionaryWithObject:switchIdentifier forKey:FSSwitchPanelSwitchIdentifierKey] : nil;
 	[[NSNotificationCenter defaultCenter] postNotificationName:FSSwitchPanelSwitchStateChangedNotification object:self userInfo:userInfo];
@@ -80,23 +84,27 @@ static NSInteger stateChangeCount;
 
 - (NSArray *)switchIdentifiers
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	return [_switchImplementations allKeys];
 }
 
 - (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	return [switchImplementation titleForSwitchIdentifier:switchIdentifier];
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	return [switchImplementation stateForSwitchIdentifier:switchIdentifier];
 }
 
 - (void)setState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	// Workaround switches that don't explicitly send state change notifications :(
 	FSSwitchState oldState = [switchImplementation stateForSwitchIdentifier:switchIdentifier];
@@ -109,6 +117,7 @@ static NSInteger stateChangeCount;
 
 - (void)applyActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	// Workaround switches that don't explicitly send state change notifications :(
 	FSSwitchState oldState = [switchImplementation stateForSwitchIdentifier:switchIdentifier];
@@ -121,24 +130,28 @@ static NSInteger stateChangeCount;
 
 - (id)glyphImageDescriptorOfState:(FSSwitchState)switchState size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier;
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	return [switchImplementation glyphImageDescriptorOfState:switchState size:size scale:scale forSwitchIdentifier:switchIdentifier];
 }
 
 - (BOOL)hasAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	return [switchImplementation hasAlternateActionForSwitchIdentifier:switchIdentifier];
 }
 
 - (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	[switchImplementation applyAlternateActionForSwitchIdentifier:switchIdentifier];
 }
 
 - (void)openURLAsAlternateAction:(NSURL *)url
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	[[UIApplication sharedApplication] applicationOpenURL:url];
 }
 
