@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>AirplaneMode</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.a3tweaks.switch.airplanemode</string>
+	<string>com.a3tweaks.switch.airplane-mode</string>
 	<key>CFBundleDisplayName</key>
 	<string>Airplane Mode</string>
 	<key>CFBundleInfoDictionaryVersion</key>
