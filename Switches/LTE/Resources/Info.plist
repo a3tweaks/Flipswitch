@@ -27,9 +27,7 @@
 	<key>NSPrincipalClass</key>
 	<string>LTESwitch</string>
 	<key>alternate-action-url</key>
-	<string>prefs:root=General&path=MOBILE_DATA_SETTINGS_ID</string>
-	<key>lazy-load</key>
-	<true/>
+	<string>prefs:root=General&amp;path=MOBILE_DATA_SETTINGS_ID</string>
 	<key>required-capabilities</key>
 	<array>
 		<string>cellular-data</string>
