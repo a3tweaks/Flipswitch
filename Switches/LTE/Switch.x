@@ -15,6 +15,16 @@ extern NSString *const kCTRegistrationDataRate4G;
 @interface LTESwitch : NSObject <FSSwitchDataSource>
 @end
 
+%hook SBTelephonyManager
+
+- (void)_postDataConnectionTypeChanged
+{
+    %orig();
+    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[LTESwitch class]].bundleIdentifier];
+}
+
+%end
+
 @implementation LTESwitch
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
