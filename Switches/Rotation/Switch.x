@@ -9,13 +9,11 @@
 #import <FSSwitchPanel.h>
 
 #include <notify.h>
-
-#define kSettingsChangeNotification "com.booleanmagic.rotationinhibitor.settingschange"
-#define kSettingsFilePath "/User/Library/Preferences/com.booleanmagic.rotationinhibitor.plist"
+#include <dlfcn.h>
 
 #define IsOS4 (kCFCoreFoundationVersionNumber >= 478.61)
-
-static BOOL rotationEnabled;
+static BOOL (*isEnabled)(void);
+static void (*setEnabled)(BOOL newState);
 
 //Header Dependencies
 @interface SBIconLabel : UILabel
@@ -116,91 +114,6 @@ static BOOL rotationEnabled;
 - (UIInterfaceOrientation)activeInterfaceOrientation;
 @end
 
-// 4.0-4.2
-
-%group iOS4
-
-%hook SBNowPlayingBar
-
-- (void)_orientationLockHit:(id)sender
-{
-	SBOrientationLockManager *lockManager = [%c(SBOrientationLockManager) sharedInstance];
-	NSString *labelText;
-	BOOL isLocked = [lockManager isLocked];
-	if (isLocked) {
-		[lockManager unlock];
-		if ([lockManager respondsToSelector:@selector(lockOverrideEnabled)] ? [lockManager lockOverrideEnabled] : [lockManager lockOverride]) {
-			if ([lockManager respondsToSelector:@selector(setLockOverrideEnabled:forReason:)]) {
-				for (id reason in [[CHIvar(lockManager, _lockOverrideReasons, NSMutableSet *) copy] autorelease])
-					[lockManager setLockOverrideEnabled:NO forReason:reason];
-			} else {
-				[lockManager setLockOverride:0 orientation:UIDeviceOrientationPortrait];
-			}
-		}
-		labelText = @"Orientation Unlocked";
-	} else {
-		[lockManager lock:[(SpringBoard *)[UIApplication sharedApplication] activeInterfaceOrientation]];
-		if ([lockManager respondsToSelector:@selector(lockOverrideEnabled)] ? [lockManager lockOverrideEnabled] : [lockManager lockOverride])
-			[lockManager updateLockOverrideForCurrentDeviceOrientation];
-		switch ([lockManager respondsToSelector:@selector(userLockOrientation)] ? [lockManager userLockOrientation] : [lockManager lockOrientation]) {
-			case UIDeviceOrientationPortrait:
-				labelText = @"Portrait Orientation Locked";
-				break;
-			case UIDeviceOrientationLandscapeLeft:
-				labelText = @"Landscape Left Orientation Locked";
-				break;
-			case UIDeviceOrientationLandscapeRight:
-				labelText = @"Landscape Right Orientation Locked";
-				break;
-			default:
-				labelText = @"Upside Down Orientation Locked";
-				break;
-		}
-	}
-	SBNowPlayingBarView **nowPlayingBarView = CHIvarRef(self, _barView, SBNowPlayingBarView *);
-	UIButton *orientationLockButton;
-	if (nowPlayingBarView) {
-		orientationLockButton = (*nowPlayingBarView).orientationLockButton;
-	} else {
-		orientationLockButton = CHIvar(self, _orientationLockButton, UIButton *);
-		[self _displayOrientationStatus:isLocked];
-		[CHIvar(self, _orientationLabel, UILabel *) setText:labelText];
-	}
-	orientationLockButton.selected = !isLocked;
-}
-
-// 4.3
-
-- (void)_switchButtonHit:(id)sender
-{
-	SBNowPlayingBarView **nowPlayingBarView = CHIvarRef(self, _barView, SBNowPlayingBarView *);
-	if (!nowPlayingBarView || [*nowPlayingBarView switchType] != 0) {
-		%orig();
-		return;
-	}
-	SBOrientationLockManager *lockManager = [%c(SBOrientationLockManager) sharedInstance];
-	BOOL isLocked = [lockManager isLocked];
-	if (isLocked) {
-		[lockManager unlock];
-		if ([lockManager respondsToSelector:@selector(lockOverrideEnabled)] ? [lockManager lockOverrideEnabled] : [lockManager lockOverride]) {
-			if ([lockManager respondsToSelector:@selector(setLockOverrideEnabled:forReason:)]) {
-				for (id reason in [[CHIvar(lockManager, _lockOverrideReasons, NSMutableSet *) copy] autorelease])
-					[lockManager setLockOverrideEnabled:NO forReason:reason];
-			} else {
-				[lockManager setLockOverride:0 orientation:UIDeviceOrientationPortrait];
-			}
-		}
-	} else {
-		[lockManager lock:[(SpringBoard *)[UIApplication sharedApplication] activeInterfaceOrientation]];
-		if ([lockManager respondsToSelector:@selector(lockOverrideEnabled)] ? [lockManager lockOverrideEnabled] : [lockManager lockOverride])
-			[lockManager updateLockOverrideForCurrentDeviceOrientation];
-	}
-	UIButton *orientationLockButton = (*nowPlayingBarView).switchButton;
-	orientationLockButton.selected = !isLocked;
-}
-
-%end
-
 @interface RotationSwitch : NSObject <FSSwitchDataSource>
 @end
 
@@ -220,27 +133,24 @@ static BOOL rotationEnabled;
 
 %end
 
-%end
-
-#pragma mark Preferences
-
-static void ReloadPreferences()
-{
-	NSDictionary *dict = [[NSDictionary alloc] initWithContentsOfFile:@kSettingsFilePath];
-	rotationEnabled = [[dict objectForKey:@"RotationEnabled"] boolValue];
-	[dict release];
-}
-
 #pragma mark Switch
 
 @implementation RotationSwitch
+
+- (id)init
+{
+	if (IsOS4 || (isEnabled && setEnabled))
+		return [super init];
+	[self release];
+	return nil;
+}
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	if (IsOS4)
 		return ![[%c(SBOrientationLockManager) sharedInstance] isLocked];
 	else
-		return rotationEnabled;
+		return isEnabled ? isEnabled() : YES;
 }
 
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
@@ -268,15 +178,10 @@ static void ReloadPreferences()
 		if (nowPlayingBar)
 			[CHIvar(*nowPlayingBar, _orientationLockButton, UIButton *) setSelected:[lockManager isLocked]];
 	} else {
-		NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithContentsOfFile:@kSettingsFilePath];
-		if (!dict)
-			dict = [[NSMutableDictionary alloc] init];
-		[dict setObject:[NSNumber numberWithBool:newState] forKey:@"RotationEnabled"];
-		NSData *data = [NSPropertyListSerialization dataFromPropertyList:dict format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL];
-		[dict release];
-		[data writeToFile:@kSettingsFilePath options:NSAtomicWrite error:NULL];
-		notify_post(kSettingsChangeNotification);
-		[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[RotationSwitch class]].bundleIdentifier];
+		if (setEnabled) {
+			setEnabled(newState);
+			[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[RotationSwitch class]].bundleIdentifier];
+		}
 	}
 }
 
@@ -305,41 +210,13 @@ static void ReloadPreferences()
 
 @end
 
-// OS 3.x
-
-%group iOS3
-
-%hook UIApplication
-
-- (void)handleEvent:(GSEventRef)gsEvent withNewEvent:(UIEvent *)newEvent
-{
-	if (gsEvent)
-		if (GSEventGetType(gsEvent) == 50)
-			if (!rotationEnabled)
-				return;
-	%orig();
-}
-
-%end
-
-%end
-
 CHConstructor
 {
 	%init();
-	if (IsOS4) {
-		%init(iOS4);
-	} else {
-		%init(iOS3);
-		ReloadPreferences();
-		CFNotificationCenterAddObserver(
-			CFNotificationCenterGetDarwinNotifyCenter(),
-			NULL,
-			(void (*)(CFNotificationCenterRef, void *, CFStringRef, const void *, CFDictionaryRef))ReloadPreferences,
-			CFSTR(kSettingsChangeNotification),
-			NULL,
-			CFNotificationSuspensionBehaviorHold
-		);
+	if (!IsOS4) {
+		void *rotationinhibitor = dlopen("/Library/MobileSubstrate/DynamicLibraries/RotationInhibitor.dylib", RTLD_LAZY);
+		isEnabled = dlsym(rotationinhibitor, "isEnabled");
+		setEnabled = dlsym(rotationinhibitor, "setEnabled");
 	}
 }
 
