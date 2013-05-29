@@ -1,8 +1,9 @@
-BUNDLE_NAME = AirplaneMode
-AirplaneMode_FILES = Switch.x
-AirplaneMode_FRAMEWORKS = UIKit
-AirplaneMode_LIBRARIES = flipswitch
-AirplaneMode_INSTALL_PATH = /Library/Switches
+BUNDLE_NAME = VPN
+VPN_FILES = Switch.x
+VPN_FRAMEWORKS = UIKit
+VPN_PRIVATE_FRAMEWORKS = Preferences
+VPN_LIBRARIES = flipswitch
+VPN_INSTALL_PATH = /Library/Switches
 
 ADDITIONAL_CFLAGS = -I../../
 ADDITIONAL_LDFLAGS = -L../../$(THEOS_OBJ_DIR_NAME)

@@ -5,11 +5,11 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>Wifi</string>
+	<string>VPN</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.a3tweaks.switch.wifi</string>
+	<string>com.a3tweaks.switch.vpn</string>
 	<key>CFBundleDisplayName</key>
-	<string>Wi-Fi</string>
+	<string>VPN</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -25,9 +25,9 @@
 	<key>MinimumOSVersion</key>
 	<string>3.0</string>
 	<key>NSPrincipalClass</key>
-	<string>WifiSwitch</string>
+	<string>VPNSwitch</string>
 	<key>alternate-action-url</key>
-	<string>prefs:root=WIFI</string>
+	<string>prefs:root=VPN</string>
 	<key>lazy-load</key>
 	<true/>
 </dict>

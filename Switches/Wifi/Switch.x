@@ -11,6 +11,7 @@
 @end
 
 @interface WifiSwitch : NSObject <FSSwitchDataSource>
++ (void)_powerStateDidChange;
 @end
 
 %hook SBWiFiManager
@@ -18,12 +19,20 @@
 - (void)_powerStateDidChange
 {
 	%orig();
-	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[WifiSwitch class]].bundleIdentifier];
+	if ([NSThread isMainThread])
+		[WifiSwitch _powerStateDidChange];
+	else
+		[WifiSwitch performSelectorOnMainThread:@selector(_powerStateDidChange) withObject:nil waitUntilDone:NO];
 }
 
 %end
 
 @implementation WifiSwitch
+
++ (void)_powerStateDidChange
+{
+	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:self].bundleIdentifier];
+}
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {

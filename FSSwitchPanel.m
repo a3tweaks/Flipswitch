@@ -5,6 +5,7 @@
 #import "NSBundle+Flipswitch.h"
 #import "FSSwitchButton.h"
 #import "ControlStateVariants.h"
+#import "Internal.h"
 
 #import <dlfcn.h>
 #import <UIKit/UIKit2.h>
@@ -35,7 +36,8 @@ static void SwitchesChangedCallback(CFNotificationCenterRef center, void *observ
 {
 	if (self == [FSSwitchPanel class]) {
 		if (objc_getClass("SpringBoard")) {
-			_switchManager = [[FSSwitchMainPanel alloc] init];
+			dlopen("/Library/Flipswitch/FlipswitchSpringBoard.dylib", RTLD_LAZY);
+			_switchManager = [[objc_getClass("FSSwitchMainPanel") alloc] init];
 		} else {
 			_switchManager = [[self alloc] init];
 			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), self, SwitchesChangedCallback, (CFStringRef)FSSwitchPanelSwitchesChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
@@ -57,6 +59,7 @@ static void SwitchesChangedCallback(CFNotificationCenterRef center, void *observ
 
 - (NSArray *)switchIdentifiers
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	LMResponseBuffer responseBuffer;
 	if (LMConnectionSendTwoWay(&connection, FSSwitchServiceMessageGetIdentifiers, NULL, 0, &responseBuffer)) {
 		return nil;
@@ -66,6 +69,7 @@ static void SwitchesChangedCallback(CFNotificationCenterRef center, void *observ
 
 - (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	LMResponseBuffer responseBuffer;
 	if (LMConnectionSendTwoWayPropertyList(&connection, FSSwitchServiceMessageGetTitleForIdentifier, switchIdentifier, &responseBuffer)) {
 		return nil;
@@ -75,6 +79,7 @@ static void SwitchesChangedCallback(CFNotificationCenterRef center, void *observ
 
 - (id)glyphImageDescriptorOfState:(FSSwitchState)switchState size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
  	NSDictionary *args = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:switchIdentifier, [NSNumber numberWithFloat:size], [NSNumber numberWithFloat:scale], [NSNumber numberWithInteger:switchState], nil] forKeys:[NSArray arrayWithObjects:@"switchIdentifier", @"size", @"scale", @"switchState", nil]];
 
 	LMResponseBuffer responseBuffer;
@@ -219,6 +224,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 
 - (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	CGSize size;
 	size.width = [[template objectForInfoDictionaryKey:@"width"] floatValue];
 	if (size.width == 0.0f)
@@ -337,17 +343,20 @@ cache_and_return_result:
 
 - (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	CGFloat scale = [UIScreen instancesRespondToSelector:@selector(scale)] ? [UIScreen mainScreen].scale : 1.0f;
 	return [self imageOfSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
 }
 
 - (UIButton *)buttonForSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	return [[[FSSwitchButton alloc] initWithSwitchIdentifier:switchIdentifier template:template] autorelease];
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	LMResponseBuffer responseBuffer;
 	if (LMConnectionSendTwoWayPropertyList(&connection, FSSwitchServiceMessageGetStateForIdentifier, switchIdentifier, &responseBuffer)) {
 		return NO;
@@ -357,11 +366,13 @@ cache_and_return_result:
 
 - (void)applyActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	LMConnectionSendOneWayData(&connection, FSSwitchServiceMessageApplyActionForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:switchIdentifier format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
 
 - (void)setState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	NSArray *propertyList = [NSArray arrayWithObjects:[NSNumber numberWithBool:state], switchIdentifier, nil];
 	LMConnectionSendOneWayData(&connection, FSSwitchServiceMessageSetStateForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:propertyList format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
@@ -369,6 +380,7 @@ cache_and_return_result:
 
 - (BOOL)hasAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	LMResponseBuffer responseBuffer;
 	if (LMConnectionSendTwoWayPropertyList(&connection, FSSwitchServiceMessageHasAlternateActionForIdentifier, switchIdentifier, &responseBuffer)) {
 		return NO;
@@ -378,11 +390,13 @@ cache_and_return_result:
 
 - (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	LMConnectionSendOneWayData(&connection, FSSwitchServiceMessageApplyAlternateActionForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:switchIdentifier format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
 
 - (void)openURLAsAlternateAction:(NSURL *)url
 {
+	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	[[UIApplication sharedApplication] openURL:url];
 }
 

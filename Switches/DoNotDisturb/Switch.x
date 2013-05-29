@@ -26,11 +26,27 @@
 - (void)setBehaviorOverrideStatusChangeHandler:(void (^)(int value))handler;
 - (void)getPrivilegedSenderAddressBookGroupRecordIDAndNameWithCompletion:(id)completion;
 - (void)getPrivilegedSenderTypesWithCompletion:(id)completion;
-- (void)getBehaviorOverridesWithCompletion:(void (^)(int value))completion;
+- (void)getBehaviorOverridesWithCompletion:(void (^)(NSArray *value))completion;
 - (void)getSectionOrderRuleWithCompletion:(void (^)(unsigned value))completion;
 - (void)getSectionInfoWithCompletion:(void (^)(int value))completion;
 - (void)dealloc;
 - (id)init;
+@end
+
+@interface BBBehaviorOverride : NSObject <NSCopying, NSCoding> {
+@private
+	unsigned _overrideType;
+	unsigned _mode;
+	NSArray *_effectiveIntervals;
+}
+@property (copy, nonatomic) NSArray *effectiveIntervals;
+@property (assign, nonatomic) unsigned mode;
+@property (assign, nonatomic) unsigned overrideType;
+- (NSDate *)nextOverrideTransitionDateAfterDate:(NSDate *)date;
+- (BOOL)isActiveForDate:(NSDate *)date;
+- (NSString *)description;
+- (id)initWithOverrideType:(unsigned)overrideType mode:(unsigned)mode effectiveIntervals:(NSArray *)effectiveIntervals;
+- (id)initWithEffectiveIntervals:(NSArray *)effectiveIntervals overrideType:(unsigned)type;
 @end
 
 @class BBSystemStateProvider;
@@ -188,7 +204,7 @@ typedef struct {
 @end
 
 static BBSettingsGateway *gateway;
-static BOOL enabled;
+static FSSwitchState state;
 
 %hook SpringBoard
 
@@ -196,12 +212,10 @@ static BOOL enabled;
 {
 	%orig();
 	gateway = [[BBSettingsGateway alloc] init];
-	void (^handler)(int value) = ^(int value){
-		enabled = value & 1;
+	[gateway setActiveBehaviorOverrideTypesChangeHandler:^(int value){
+		state = value & 1;
 		[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[DoNotDisturbSwitch class]].bundleIdentifier];
-	};
-	[gateway getBehaviorOverridesWithCompletion:handler];
-	[gateway setActiveBehaviorOverrideTypesChangeHandler:handler];
+	}];
 }
 
 %end
@@ -210,27 +224,44 @@ static BOOL enabled;
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	return (FSSwitchState)enabled;
+	return state;
 }
 
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
-	enabled = newState;
-	[gateway setBehaviorOverrideStatus:newState];
-	// Now tell everyone about it. Bugs in SpringBoard if we don't :()
-	if ([%c(SBBulletinSystemStateAdapter) respondsToSelector:@selector(sharedInstanceIfExists)] && [%c(SBBulletinSystemStateAdapter) instancesRespondToSelector:@selector(_activeBehaviorOverrideTypesChanged:)]) {
-		[[%c(SBBulletinSystemStateAdapter) sharedInstanceIfExists] _activeBehaviorOverrideTypesChanged:enabled];
-	}
-	[[NSNotificationCenter defaultCenter] postNotificationName:@"SBQuietModeStatusChangedNotification" object:nil];
-	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_current_queue(), ^{
-		SBStatusBarDataManager *dm = [%c(SBStatusBarDataManager) sharedDataManager];
-		[dm setStatusBarItem:1 enabled:NO];
-		if (enabled) {
-			[dm setStatusBarItem:1 enabled:enabled];
+	state = newState;
+	[gateway getBehaviorOverridesWithCompletion:^(NSArray *overrides) {
+		unsigned mode;
+		if (newState) {
+			mode = 1;
+		} else if ([overrides count]) {
+			BBBehaviorOverride *override = [overrides objectAtIndex:0];
+			mode = override.mode ? 2 : 0;
+		} else {
+			mode = 0;
 		}
-	});
+		[gateway setBehaviorOverrideStatus:mode];
+		// Now tell everyone about it. Bugs in SpringBoard if we don't :()
+		if ([%c(SBBulletinSystemStateAdapter) respondsToSelector:@selector(sharedInstanceIfExists)] && [%c(SBBulletinSystemStateAdapter) instancesRespondToSelector:@selector(_activeBehaviorOverrideTypesChanged:)]) {
+			[[%c(SBBulletinSystemStateAdapter) sharedInstanceIfExists] _activeBehaviorOverrideTypesChanged:newState];
+		}
+		[[NSNotificationCenter defaultCenter] postNotificationName:@"SBQuietModeStatusChangedNotification" object:nil];
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_current_queue(), ^{
+			SBStatusBarDataManager *dm = [%c(SBStatusBarDataManager) sharedDataManager];
+			[dm setStatusBarItem:1 enabled:NO];
+			if (state) {
+				[dm setStatusBarItem:1 enabled:YES];
+			}
+		});
+	}];
 }
 
 @end
+
+%ctor
+{
+	state = FSSwitchStateIndeterminate;
+	%init();
+}
