@@ -2,6 +2,8 @@
 #import "FSSwitchPanel.h"
 #import "NSBundle+Flipswitch.h"
 
+extern BOOL GSSystemHasCapability(NSString *capability);
+
 @implementation NSObject (FSSwitchDataSource)
 
 - (NSBundle *)bundleForSwitchIdentifier:(NSString *)switchIdentifier
@@ -62,6 +64,19 @@
 
 - (void)switchWasUnregisteredForIdentifier:(NSString *)switchIdentifier
 {
+}
+
+- (BOOL)shouldShowSwitchIdentifier:(NSString *)switchIdentifier
+{
+	NSBundle *bundle = [self  bundleForSwitchIdentifier:switchIdentifier];
+	NSArray *capabilities = [bundle objectForInfoDictionaryKey:@"required-capabilities"];
+	if ([capabilities isKindOfClass:[NSArray class]])
+		for (NSString *capability in capabilities)
+			if ([capability isKindOfClass:[NSString class]])
+				if (!GSSystemHasCapability(capability))
+					return NO;
+
+	return YES;
 }
 
 - (BOOL)hasAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier

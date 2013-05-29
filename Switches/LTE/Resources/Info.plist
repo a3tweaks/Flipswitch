@@ -23,7 +23,7 @@
 	<key>DTPlatformName</key>
 	<string>iphoneos</string>
 	<key>MinimumOSVersion</key>
-	<string>3.0</string>
+	<string>6.0</string>
 	<key>NSPrincipalClass</key>
 	<string>LTESwitch</string>
 	<key>alternate-action-url</key>
