@@ -19,10 +19,7 @@
 - (void)_powerStateDidChange
 {
 	%orig();
-	if ([NSThread isMainThread])
-		[WifiSwitch _powerStateDidChange];
-	else
-		[WifiSwitch performSelectorOnMainThread:@selector(_powerStateDidChange) withObject:nil waitUntilDone:NO];
+	[WifiSwitch performSelectorOnMainThread:@selector(_powerStateDidChange) withObject:nil waitUntilDone:NO];
 }
 
 %end
