@@ -32,5 +32,9 @@
 	<array>
 		<string>cellular-data</string>
 	</array>
+	<key>CoreFoundationVersion</key>
+	<array>
+		<real>700</real>
+	</array>
 </dict>
 </plist>
