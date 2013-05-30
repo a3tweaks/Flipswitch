@@ -252,12 +252,24 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 
 - (void)_loadSwitchForBundle:(NSBundle *)bundle
 {
+	Class arrayClass = [NSArray class];
 	NSArray *capabilities = [bundle objectForInfoDictionaryKey:@"required-capabilities"];
-	if ([capabilities isKindOfClass:[NSArray class]])
+	if ([capabilities isKindOfClass:arrayClass])
 		for (NSString *capability in capabilities)
 			if ([capability isKindOfClass:[NSString class]])
 				if (!GSSystemHasCapability(capability))
 					return;
+	NSArray *coreFoundationVersion = [bundle objectForInfoDictionaryKey:@"CoreFoundationVersion"];
+	if ([coreFoundationVersion isKindOfClass:arrayClass] && coreFoundationVersion.count > 0) {
+		NSNumber *lowerBound = [coreFoundationVersion objectAtIndex:0];
+		if (kCFCoreFoundationVersionNumber < lowerBound.doubleValue)
+			return;
+		if (coreFoundationVersion.count > 1) {
+			NSNumber *upperBound = [coreFoundationVersion objectAtIndex:1];
+			if (kCFCoreFoundationVersionNumber >= upperBound.doubleValue)
+				return;
+		}
+	}
 	Class switchClass = [[bundle objectForInfoDictionaryKey:@"lazy-load"] boolValue] ? [FSLazySwitch class] : [bundle principalClass] ?: NSClassFromString([bundle objectForInfoDictionaryKey:@"NSPrincipalClass"]);
 	id<FSSwitchDataSource> switchImplementation = [switchClass instancesRespondToSelector:@selector(initWithBundle:)] ? [[switchClass alloc] initWithBundle:bundle] : [[switchClass alloc] init];
 	if (switchImplementation && [switchImplementation shouldShowSwitchIdentifier:bundle.bundleIdentifier])
