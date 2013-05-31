@@ -110,7 +110,7 @@ static NSInteger stateChangeCount;
 	FSSwitchState oldState = [switchImplementation stateForSwitchIdentifier:switchIdentifier];
 	NSInteger oldStateChangeCount = stateChangeCount;
 	[switchImplementation applyState:state forSwitchIdentifier:switchIdentifier];
-	if (oldStateChangeCount != stateChangeCount && oldState != [switchImplementation stateForSwitchIdentifier:switchIdentifier]) {
+	if (oldStateChangeCount == stateChangeCount && oldState != [switchImplementation stateForSwitchIdentifier:switchIdentifier]) {
 		[self stateDidChangeForSwitchIdentifier:switchIdentifier];
 	}
 }
@@ -123,7 +123,7 @@ static NSInteger stateChangeCount;
 	FSSwitchState oldState = [switchImplementation stateForSwitchIdentifier:switchIdentifier];
 	NSInteger oldStateChangeCount = stateChangeCount;
 	[switchImplementation applyActionForSwitchIdentifier:switchIdentifier];
-	if (oldStateChangeCount != stateChangeCount && oldState != [switchImplementation stateForSwitchIdentifier:switchIdentifier]) {
+	if (oldStateChangeCount == stateChangeCount && oldState != [switchImplementation stateForSwitchIdentifier:switchIdentifier]) {
 		[self stateDidChangeForSwitchIdentifier:switchIdentifier];
 	}
 }
