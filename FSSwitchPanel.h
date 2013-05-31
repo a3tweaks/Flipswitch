@@ -53,5 +53,6 @@
 extern NSString * const FSSwitchPanelSwitchesChangedNotification;
 
 extern NSString * const FSSwitchPanelSwitchStateChangedNotification;
-extern NSString * const FSSwitchPanelSwitchWillOpenURLNotification;
 extern NSString * const FSSwitchPanelSwitchIdentifierKey;
+
+extern NSString * const FSSwitchPanelSwitchWillOpenURLNotification;

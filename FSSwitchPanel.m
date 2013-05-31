@@ -19,8 +19,9 @@ static LMConnection connection = {
 NSString * const FSSwitchPanelSwitchesChangedNotification = @"FSSwitchPanelSwitchesChangedNotification";
 
 NSString * const FSSwitchPanelSwitchStateChangedNotification = @"FSSwitchPanelSwitchStateChangedNotification";
-NSString * const FSSwitchPanelSwitchWillOpenURLNotification = @"FSSwitchPanelSwitchWillOpenURLNotification";
 NSString * const FSSwitchPanelSwitchIdentifierKey = @"switchIdentifier";
+
+NSString * const FSSwitchPanelSwitchWillOpenURLNotification = @"FSSwitchPanelSwitchWillOpenURLNotification";
 
 
 static FSSwitchPanel *_switchManager;
