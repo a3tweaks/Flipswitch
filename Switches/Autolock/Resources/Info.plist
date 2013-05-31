@@ -9,7 +9,7 @@
 	<key>CFBundleIdentifier</key>
 	<string>com.a3tweaks.switch.autolock</string>
 	<key>CFBundleDisplayName</key>
-	<string>Autolock</string>
+	<string>Auto Lock</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
