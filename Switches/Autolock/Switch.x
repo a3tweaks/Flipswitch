@@ -1,33 +1,41 @@
 #import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
 #import <Foundation/Foundation.h>
+#import <limits.h>
 
 #define PLIST_PATH @"/var/mobile/Library/Preferences/com.flipswitch.autolock.plist"
 
-@interface MCProfileConnection
-+ (id)sharedConnection;
-- (void)setValue:(id)arg1 forSetting:(id)arg2;
-- (id)effectiveParametersForValueSetting:(id)arg1;
+@interface MCProfileConnection : NSObject
++ (MCProfileConnection *)sharedConnection;
+- (void)setValue:(id)value forSetting:(id)setting;
+- (id)effectiveParametersForValueSetting:(id)setting;
 @end
 
 @interface AutolockSwitch : NSObject <FSSwitchDataSource>
++ (void)_effectiveSettingsDidChange:(NSNotification *)notification;
 @end
 
 %hook MCProfileConnection
-- (void)_effectiveSettingsDidChange:(id)arg1
+
+- (void)_effectiveSettingsDidChange:(id)notification
 {
+    [AutolockSwitch performSelectorOnMainThread:@selector(_effectiveSettingsDidChange:) withObject:notification waitUntilDone:NO];
 	%orig();
-	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[AutolockSwitch class]].bundleIdentifier];
 }
+
 %end
 
 @implementation AutolockSwitch
 
++ (void)_effectiveSettingsDidChange:(NSNotification *)notification
+{
+    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:self].bundleIdentifier];
+}
+
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	int currentAutoLockValue = [[[(MCProfileConnection *)[objc_getClass("MCProfileConnection") sharedConnection] effectiveParametersForValueSetting:@"maxInactivity"] objectForKey:@"value"] intValue];
-    BOOL enabled = (currentAutoLockValue == 2147483647 ? NO : YES);
-    return enabled;
+	int currentAutoLockValue = [[[[MCProfileConnection sharedConnection] effectiveParametersForValueSetting:@"maxInactivity"] objectForKey:@"value"] intValue];
+    return (currentAutoLockValue == INT_MAX) ? FSSwitchStateOff : FSSwitchStateOn;
 }
 
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
@@ -35,23 +43,19 @@
 	if (newState == FSSwitchStateIndeterminate)
 		return;
 	
-	NSMutableDictionary *prefsDict = [[NSMutableDictionary alloc] initWithContentsOfFile:PLIST_PATH];
-	NSNumber *toggledValue = nil;
-    if (newState == FSSwitchStateOff)
-    {
-        int currentAutoLockValue = [[[(MCProfileConnection *)[objc_getClass("MCProfileConnection") sharedConnection] effectiveParametersForValueSetting:@"maxInactivity"] objectForKey:@"value"] intValue];
-            
-        [prefsDict setObject:[NSNumber numberWithInt:currentAutoLockValue] forKey:@"autoLockValue"];
-        [prefsDict writeToFile:PLIST_PATH atomically:YES];
-
-        toggledValue = [NSNumber numberWithInt:2147483647];
+	NSMutableDictionary *prefsDict = [NSMutableDictionary dictionaryWithContentsOfFile:PLIST_PATH] ?: [NSMutableDictionary dictionary];
+	NSNumber *toggledValue;
+    if (newState) {
+        toggledValue = [prefsDict objectForKey:@"autoLockValue"] ?: [NSNumber numberWithInt:60];
+    } else {
+        int currentAutoLockValue = [[[[MCProfileConnection sharedConnection] effectiveParametersForValueSetting:@"maxInactivity"] objectForKey:@"value"] intValue];
+        if (currentAutoLockValue != INT_MAX) {
+            [prefsDict setObject:[NSNumber numberWithInt:currentAutoLockValue] forKey:@"autoLockValue"];
+            [prefsDict writeToFile:PLIST_PATH atomically:YES];
+        }
+        toggledValue = [NSNumber numberWithInt:INT_MAX];
     }
-    else if (newState == FSSwitchStateOn)
-    {
-        id savedAutoLockValue = [prefsDict objectForKey:@"autoLockValue"];
-        toggledValue = [NSNumber numberWithInt:(savedAutoLockValue!=nil) ? [savedAutoLockValue intValue] : 60];
-    }
-    [(MCProfileConnection *)[objc_getClass("MCProfileConnection") sharedConnection] setValue:toggledValue forSetting:@"maxInactivity"];
+    [[MCProfileConnection sharedConnection] setValue:toggledValue forSetting:@"maxInactivity"];
 }
 
 @end

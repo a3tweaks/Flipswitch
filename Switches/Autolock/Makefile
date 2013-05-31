@@ -1,6 +1,6 @@
 BUNDLE_NAME = Autolock
 Autolock_FILES = Switch.x
-Autolock_FRAMEWORKS = UIKit
+Autolock_PRIVATE_FRAMEWORKS = ManagedConfiguration
 Autolock_LIBRARIES = flipswitch
 Autolock_INSTALL_PATH = /Library/Switches
 
