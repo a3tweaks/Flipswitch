@@ -8,14 +8,6 @@ extern CFArrayRef CTRegistrationCopySupportedDataRates(void);
 extern CFStringRef CTRegistrationGetCurrentMaxAllowedDataRate(void);
 extern void CTRegistrationSetMaxAllowedDataRate(CFStringRef dataRate);
 
-static void _CTRegistrationSetMaxAllowedDataRate(CFStringRef dataRate)
-{
-	NSLog(@"Flipswitch: CTRegistrationSetMaxAllowedDataRate(%@)", dataRate);
-	CTRegistrationSetMaxAllowedDataRate(dataRate);
-}
-
-#define CTRegistrationSetMaxAllowedDataRate _CTRegistrationSetMaxAllowedDataRate
-
 extern CFStringRef const kCTRegistrationDataRateUnknown;
 extern CFStringRef const kCTRegistrationDataRate2G;
 extern CFStringRef const kCTRegistrationDataRate3G;
