@@ -71,7 +71,7 @@ static NSInteger stateChangeCount;
 {
 	hasUpdatedSwitches = NO;
 	notify_post([FSSwitchPanelSwitchesChangedNotification UTF8String]);
-	[[NSNotificationCenter defaultCenter] postNotificationName:FSSwitchPanelSwitchesChangedNotification object:self userInfo:nil];
+	[self postNotificationName:FSSwitchPanelSwitchesChangedNotification userInfo:nil];
 }
 
 - (void)stateDidChangeForSwitchIdentifier:(NSString *)switchIdentifier
@@ -79,7 +79,7 @@ static NSInteger stateChangeCount;
 	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	stateChangeCount++;
 	NSDictionary *userInfo = switchIdentifier ? [NSDictionary dictionaryWithObject:switchIdentifier forKey:FSSwitchPanelSwitchIdentifierKey] : nil;
-	[[NSNotificationCenter defaultCenter] postNotificationName:FSSwitchPanelSwitchStateChangedNotification object:self userInfo:userInfo];
+	[self postNotificationName:FSSwitchPanelSwitchStateChangedNotification userInfo:userInfo];
 }
 
 - (NSArray *)switchIdentifiers
@@ -149,13 +149,21 @@ static NSInteger stateChangeCount;
 	[switchImplementation applyAlternateActionForSwitchIdentifier:switchIdentifier];
 }
 
+- (void)postNotificationName:(NSString *)notificationName userInfo:(NSDictionary *)userInfo
+{
+	[userInfo retain];
+	[pendingNotificationUserInfo release];
+	pendingNotificationUserInfo = userInfo;
+	[[NSNotificationCenter defaultCenter] postNotificationName:notificationName object:self userInfo:userInfo];
+	notify_post([notificationName UTF8String]);
+}
+
 - (void)openURLAsAlternateAction:(NSURL *)url
 {
 	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 
-	NSDictionary *userInfo = url ? [NSDictionary dictionaryWithObject:url forKey:@"url"] : nil;
-	[[NSNotificationCenter defaultCenter] postNotificationName:FSSwitchPanelSwitchWillOpenURLNotification object:self userInfo:userInfo];
-
+	NSDictionary *userInfo = url ? [NSDictionary dictionaryWithObject:[url absoluteString] forKey:@"url"] : nil;
+	[self postNotificationName:FSSwitchPanelSwitchWillOpenURLNotification userInfo:userInfo];
 	[[UIApplication sharedApplication] applicationOpenURL:url];
 }
 
@@ -230,6 +238,10 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 				[self applyAlternateActionForSwitchIdentifier:identifier];
 			}
 			break;
+		}
+		case FSSwitchServiceMessageGetPendingNotificationUserInfo: {
+			LMSendPropertyListReply(replyPort, self->pendingNotificationUserInfo);
+			return;
 		}
 	}
 	LMSendReply(replyPort, NULL, 0);

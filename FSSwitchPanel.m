@@ -34,6 +34,28 @@ static void SwitchesChangedCallback(CFNotificationCenterRef center, void *observ
 	[[NSNotificationCenter defaultCenter] postNotificationName:FSSwitchPanelSwitchesChangedNotification object:_switchManager userInfo:nil];
 }
 
+static void SwitchStateChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+{
+	NSDictionary *newUserInfo;
+	LMResponseBuffer responseBuffer;
+	if (LMConnectionSendTwoWay(&connection, FSSwitchServiceMessageGetPendingNotificationUserInfo, NULL, 0, &responseBuffer))
+		newUserInfo = nil;
+	else
+		newUserInfo = LMResponseConsumePropertyList(&responseBuffer);
+	[[NSNotificationCenter defaultCenter] postNotificationName:FSSwitchPanelSwitchStateChangedNotification object:_switchManager userInfo:newUserInfo];
+}
+
+static void WillOpenURLCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+{
+	NSDictionary *newUserInfo;
+	LMResponseBuffer responseBuffer;
+	if (LMConnectionSendTwoWay(&connection, FSSwitchServiceMessageGetPendingNotificationUserInfo, NULL, 0, &responseBuffer))
+		newUserInfo = nil;
+	else
+		newUserInfo = LMResponseConsumePropertyList(&responseBuffer);
+	[[NSNotificationCenter defaultCenter] postNotificationName:FSSwitchPanelSwitchWillOpenURLNotification object:_switchManager userInfo:newUserInfo];
+}
+
 + (void)initialize
 {
 	if (self == [FSSwitchPanel class]) {
@@ -42,7 +64,10 @@ static void SwitchesChangedCallback(CFNotificationCenterRef center, void *observ
 			_switchManager = [[objc_getClass("FSSwitchMainPanel") alloc] init];
 		} else {
 			_switchManager = [[self alloc] init];
-			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), self, SwitchesChangedCallback, (CFStringRef)FSSwitchPanelSwitchesChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
+			CFNotificationCenterRef darwin = CFNotificationCenterGetDarwinNotifyCenter();
+			CFNotificationCenterAddObserver(darwin, self, SwitchesChangedCallback, (CFStringRef)FSSwitchPanelSwitchesChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
+			CFNotificationCenterAddObserver(darwin, self, SwitchStateChangedCallback, (CFStringRef)FSSwitchPanelSwitchStateChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
+			CFNotificationCenterAddObserver(darwin, self, WillOpenURLCallback, (CFStringRef)FSSwitchPanelSwitchWillOpenURLNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
 		}
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_didReceiveMemoryWarning) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
 	}

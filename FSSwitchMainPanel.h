@@ -5,6 +5,8 @@ __attribute__((visibility("hidden")))
 @private
 	NSMutableDictionary *_switchImplementations;
 	BOOL hasUpdatedSwitches;
+	NSDictionary *pendingNotificationUserInfo;
 }
+- (void)postNotificationName:(NSString *)notificationName userInfo:(NSDictionary *)userInfo;
 @end
 
