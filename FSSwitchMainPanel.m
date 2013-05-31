@@ -154,7 +154,7 @@ static NSInteger stateChangeCount;
 	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 
 	NSDictionary *userInfo = url ? [NSDictionary dictionaryWithObject:url forKey:@"url"] : nil;
-	[[NSNotificationCenter defaultCenter] postNotificationName:FSSwitchPanelSwitchStateChangedNotification object:self userInfo:userInfo];
+	[[NSNotificationCenter defaultCenter] postNotificationName:FSSwitchPanelSwitchWillOpenURLNotification object:self userInfo:userInfo];
 
 	[[UIApplication sharedApplication] applicationOpenURL:url];
 }
