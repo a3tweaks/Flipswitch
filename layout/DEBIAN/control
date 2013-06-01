@@ -3,10 +3,10 @@ Name: Flipswitch
 Depends: mobilesubstrate
 Version: 0.0.1
 Architecture: iphoneos-arm
-Description: An awesome library of some sort!!
+Description: Centralized toggle system for iOS
+Homepage: http://rpetri.ch/cydia/flipswitch/
+Depiction: http://rpetri.ch/cydia/flipswitch/
 Maintainer: A3Tweaks
 Author: A3Tweaks & Ryan Petrich
 Section: System
-Conflicts: com.a3tweaks.a3toggleapi
-Replaces: com.a3tweaks.a3toggleapi
 Tag: role::developer
