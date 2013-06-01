@@ -1,0 +1,3 @@
+name "iphone/flipswitch_switch"
+constrain file "control" to package
+constrain "theos" to link_theos
