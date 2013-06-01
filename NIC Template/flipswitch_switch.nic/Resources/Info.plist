@@ -5,11 +5,11 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>Bluetooth</string>
+	<string>@@PROJECTNAME@@</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.a3tweaks.switch.bluetooth</string>
+	<string>@PACKAGENAME@@</string>
 	<key>CFBundleDisplayName</key>
-	<string>Bluetooth</string>
+	<string>@@PROJECTNAME@@</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -25,7 +25,7 @@
 	<key>MinimumOSVersion</key>
 	<string>3.0</string>
 	<key>NSPrincipalClass</key>
-	<string>BluetoothSwitch</string>
+	<string>@@PROJECTNAME@@Switch</string>
 	<key>alternate-action-url</key>
 	<string>prefs:</string>
 </dict>
