@@ -27,6 +27,12 @@
 	<key>NSPrincipalClass</key>
 	<string>BluetoothSwitch</string>
 	<key>alternate-action-url</key>
-	<string>prefs:</string>
+	<string>prefs:root=General&amp;path=Bluetooth</string>
+	<key>lazy-load</key>
+	<true/>
+	<key>required-capabilities</key>
+	<array>
+		<string>bluetooth</string>
+	</array>
 </dict>
 </plist>
