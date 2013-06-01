@@ -25,6 +25,7 @@ static AVCaptureDevice *currentDevice;
 		for (AVCaptureDevice *device in [AVCaptureDevice devices]) {
 			if (device.hasTorch && [device lockForConfiguration:NULL]) {
 				[device setTorchMode:AVCaptureTorchModeOn];
+				[device unlockForConfiguration];
 				currentDevice = [device retain];
 				return;
 			}
@@ -34,8 +35,10 @@ static AVCaptureDevice *currentDevice;
 		if (!device)
 			return;
 		currentDevice = nil;
-		[device setTorchMode:AVCaptureTorchModeOff];
-		[device unlockForConfiguration];
+		if ([device lockForConfiguration:NULL]) {
+			[device setTorchMode:AVCaptureTorchModeOff];
+			[device unlockForConfiguration];
+		}
 		[device release];
 		device = nil;
 	}
