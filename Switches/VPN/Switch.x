@@ -53,6 +53,8 @@ static VPNBundleController *controller;
 	PSRootController *rootController = [[PSRootController alloc] initWithTitle:@"Preferences" identifier:@"com.apple.Preferences"];
 	// Create controller
 	controller = [[%c(VPNBundleController) alloc] initWithParentListController:nil];
-	[controller setRootController:rootController];
-	[controller setParentController:rootController];
+	if ([controller respondsToSelector:@selector(setRootController:)])
+		[controller setRootController:rootController];
+	if ([controller respondsToSelector:@selector(setParentController:)])
+		[controller setParentController:rootController];
 }
