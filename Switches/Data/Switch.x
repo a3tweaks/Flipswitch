@@ -2,23 +2,37 @@
 #import <FSSwitchPanel.h>
 #import "CoreTelephony/CoreTelephony.h"
 
+#ifndef GSCAPABILITY_H
 extern BOOL GSSystemHasCapability(CFStringRef capability);
 extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
+#endif
+
+static void FSDataSwitchStatusDidChange(void);
 
 @interface DataSwitch : NSObject <FSSwitchDataSource>
 @end
 
-%hook SBTelephonyManager
+@implementation DataSwitch
 
-- (void)_postDataConnectionTypeChanged
+- (id)init
 {
-    %orig();
-    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[DataSwitch class]].bundleIdentifier];
+    self = [super init];
+
+    if (self) {
+        CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataSwitchStatusDidChange, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
+    }
+
+    return self;
 }
 
-%end
+- (void)dealloc
+{
+    CTTelephonyCenterRemoveObserver(CTTelephonyCenterGetDefault(), (CFNotificationCallback)FSDataSwitchStatusDidChange, NULL, NULL);
 
-@implementation DataSwitch
+    [super dealloc];
+}
+
+#pragma mark - FSSwitchDataSource
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
@@ -39,3 +53,8 @@ extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
 }
 
 @end
+
+static void FSDataSwitchStatusDidChange(void)
+{
+    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[DataSwitch class]].bundleIdentifier];
+}
