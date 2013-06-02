@@ -4,3 +4,6 @@
 [submodule "ios-reversed-headers"]
 	path = ios-reversed-headers
 	url = git@github.com:Cykey/ios-reversed-headers.git
+[submodule "LightMessaging"]
+	path = LightMessaging
+	url = git://github.com/rpetrich/LightMessaging.git
