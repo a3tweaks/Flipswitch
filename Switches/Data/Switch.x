@@ -1,11 +1,9 @@
 #import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
+#import "CoreTelephony/CoreTelephony.h"
 
 extern BOOL GSSystemHasCapability(CFStringRef capability);
 extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
-
-extern void CTCellularDataPlanSetIsEnabled(bool isEnabled);
-extern bool CTCellularDataPlanGetIsEnabled(void);
 
 @interface DataSwitch : NSObject <FSSwitchDataSource>
 @end

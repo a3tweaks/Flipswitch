@@ -5,7 +5,7 @@ Data_PRIVATE_FRAMEWORKS = GraphicsServices
 Data_LIBRARIES = flipswitch
 Data_INSTALL_PATH = /Library/Switches
 
-ADDITIONAL_CFLAGS = -I../../
+ADDITIONAL_CFLAGS = -I../../ -I../../ios-reversed-headers/
 ADDITIONAL_LDFLAGS = -L../../$(THEOS_OBJ_DIR_NAME)
 
 SDKVERSION := 5.1

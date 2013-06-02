@@ -1,17 +1,9 @@
 #import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
+#import "CoreTelephony/CoreTelephony.h"
 
 extern BOOL GSSystemHasCapability(CFStringRef capability);
 extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
-
-extern CFArrayRef CTRegistrationCopySupportedDataRates(void);
-extern CFStringRef CTRegistrationGetCurrentMaxAllowedDataRate(void);
-extern void CTRegistrationSetMaxAllowedDataRate(CFStringRef dataRate);
-
-extern CFStringRef const kCTRegistrationDataRateUnknown;
-extern CFStringRef const kCTRegistrationDataRate2G;
-extern CFStringRef const kCTRegistrationDataRate3G;
-extern CFStringRef const kCTRegistrationDataRate4G;
 
 @interface Data3GSwitch : NSObject <FSSwitchDataSource>
 @end

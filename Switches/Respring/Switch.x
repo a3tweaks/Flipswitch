@@ -3,8 +3,6 @@
 
 @interface SpringBoard : UIApplication
 - (void)_relaunchSpringBoardNow;
-- (void)_rebootNow;
-- (void)_powerDownNow;
 @end
 
 @interface RespringSwitch : NSObject <FSSwitchDataSource>
