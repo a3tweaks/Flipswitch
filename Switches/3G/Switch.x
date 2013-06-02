@@ -8,15 +8,7 @@ extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
 @interface Data3GSwitch : NSObject <FSSwitchDataSource>
 @end
 
-%hook SBTelephonyManager
-
-- (void)_postDataConnectionTypeChanged
-{
-	%orig();
-	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[Data3GSwitch class]].bundleIdentifier];
-}
-
-%end
+static void FSData3GSwitchStatusDidChange(void);
 
 @implementation Data3GSwitch
 
@@ -42,8 +34,18 @@ extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
 			[self release];
 			return nil;
 		}
+
+		CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSData3GSwitchStatusDidChange, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
 	}
+
 	return self;
+}
+
+- (void)dealloc
+{
+	CTTelephonyCenterRemoveObserver(CTTelephonyCenterGetDefault(), (CFNotificationCallback)FSData3GSwitchStatusDidChange, NULL, NULL);
+
+	[super dealloc];
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
@@ -80,8 +82,13 @@ extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
 
 - (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	NSURL *url = [NSURL URLWithString:(kCFCoreFoundationVersionNumber > 700 ? @"prefs:root=General&path=MOBILE_DATA_SETTINGS_ID" : @"prefs:root=General&path=Network")];
+	NSURL *url = [NSURL URLWithString:(kCFCoreFoundationVersionNumber > 700.0f ? @"prefs:root=General&path=MOBILE_DATA_SETTINGS_ID" : @"prefs:root=General&path=Network")];
 	[[FSSwitchPanel sharedPanel] openURLAsAlternateAction:url];
 }
 
 @end
+
+static void FSData3GSwitchStatusDidChange(void)
+{
+    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[Data3GSwitch class]].bundleIdentifier];
+}

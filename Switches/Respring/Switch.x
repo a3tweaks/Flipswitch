@@ -12,7 +12,7 @@
 
 - (void)applyActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	[(SpringBoard *)[objc_getClass("SpringBoard") sharedApplication] _relaunchSpringBoardNow];
+	[(SpringBoard *)[%c(SpringBoard) sharedApplication] _relaunchSpringBoardNow];
 }
 
 @end

@@ -18,7 +18,7 @@ static void FSDataSwitchStatusDidChange(void);
 {
     self = [super init];
 
-    if (self) {
+    if ((self = [super init])) {
         CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataSwitchStatusDidChange, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
     }
 

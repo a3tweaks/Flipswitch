@@ -5,20 +5,12 @@
 extern BOOL GSSystemHasCapability(CFStringRef capability);
 extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
 
-@interface LTESwitch : NSObject <FSSwitchDataSource>
+@interface DataLTESwitch : NSObject <FSSwitchDataSource>
 @end
 
-%hook SBTelephonyManager
+static void FSDataLTESwitchStatusDidChange(void);
 
-- (void)_postDataConnectionTypeChanged
-{
-    %orig();
-    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[LTESwitch class]].bundleIdentifier];
-}
-
-%end
-
-@implementation LTESwitch
+@implementation DataLTESwitch
 
 - (id)init
 {
@@ -41,8 +33,18 @@ extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
             [self release];
             return nil;
         }
+
+        CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataLTESwitchStatusDidChange, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
     }
+
     return self;
+}
+
+- (void)dealloc
+{
+    CTTelephonyCenterRemoveObserver(CTTelephonyCenterGetDefault(), (CFNotificationCallback)FSDataLTESwitchStatusDidChange, NULL, NULL);
+
+    [super dealloc];
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
@@ -52,15 +54,11 @@ extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
 
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
 {
-	if (newState == FSSwitchStateIndeterminate)
+	if (newState == FSSwitchStateIndeterminate) {
 		return;
-	else if (newState == FSSwitchStateOn)
-	{
+	} else if (newState == FSSwitchStateOn) {
         CTRegistrationSetMaxAllowedDataRate(kCTRegistrationDataRate4G);
-        return;
-    }
-    else
-    {
+    } else {
         // CTRegistrationCopySupportedDataRates() returns an ascending array (in regards to data speeds) of data rates.
         CFArrayRef supportedDataRates = CTRegistrationCopySupportedDataRates();
 
@@ -74,6 +72,7 @@ extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
                 lteOffDataRateIndex--;
                 break;
         }
+
         CTRegistrationSetMaxAllowedDataRate((CFStringRef)[(NSArray *)supportedDataRates objectAtIndex:lteOffDataRateIndex]);
     }
 }
@@ -85,3 +84,8 @@ extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
 }
 
 @end
+
+static void FSDataLTESwitchStatusDidChange(void)
+{
+    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[DataLTESwitch class]].bundleIdentifier];
+}
