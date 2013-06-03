@@ -2,7 +2,7 @@
 #import <FSSwitchPanel.h>
 #import <notify.h>
 
-#define kSpringBoardPlist @"/var/mobile/Library/Preferences/com.apple.springboard.plist"
+#define kSpringBoardPlist [NSHomeDirectory() stringByAppendingString:@"/Library/Preferences/com.apple.springboard.plist"]
 
 #ifndef GSEVENT_H
 extern void GSSendAppPreferencesChanged(CFStringRef bundleID, CFStringRef key);
@@ -43,7 +43,7 @@ static void VibrationSettingsChanged(CFNotificationCenterRef center, void *obser
     [dict setValue:value forKey:@"silent-vibrate"];
     [dict writeToFile:kSpringBoardPlist atomically:YES];
     [dict release];
-    
+
     notify_post("com.apple.springboard.ring-vibrate.changed");
     GSSendAppPreferencesChanged(CFSTR("com.apple.springboard"), CFSTR("ring-vibrate"));
     notify_post("com.apple.springboard.silent-vibrate.changed");

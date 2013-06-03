@@ -2,8 +2,10 @@
 #import <FSSwitchPanel.h>
 #import "CoreTelephony/CoreTelephony.h"
 
+#ifndef GSCAPABILITY_H
 extern BOOL GSSystemHasCapability(CFStringRef capability);
 extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
+#endif
 
 @interface DataLTESwitch : NSObject <FSSwitchDataSource>
 @end
