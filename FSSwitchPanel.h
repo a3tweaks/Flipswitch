@@ -19,9 +19,6 @@
 - (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)templateBundle;
 // Returns an image representing how a specific switch would look in a particular state when styled with the provided template
 
-- (id)glyphImageDescriptorOfState:(FSSwitchState)switchState size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier;
-// Returns the raw glyph identifier as retrieved from the backing FSSwitch instance
-
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier;
 // Returns the current state of a particualr switch
 - (void)setState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier;

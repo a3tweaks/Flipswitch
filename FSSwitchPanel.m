@@ -1,4 +1,4 @@
-#import "FSSwitchPanel.h"
+#import "FSSwitchPanel+Internal.h"
 #import "FSSwitchMainPanel.h"
 #import "FSSwitchService.h"
 #import "FSSwitchDataSource.h"
