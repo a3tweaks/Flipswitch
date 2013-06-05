@@ -1,10 +1,24 @@
 #import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
-#import "CoreTelephony/CoreTelephony.h"
 
 #ifndef GSCAPABILITY_H
 extern BOOL GSSystemHasCapability(CFStringRef capability);
 extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
+#endif
+
+#ifndef CTREGISTRATION_H_
+extern CFStringRef const kCTRegistrationDataStatusChangedNotification;
+#endif
+
+#ifndef CTTELEPHONYCENTER_H_
+CFNotificationCenterRef CTTelephonyCenterGetDefault();
+void CTTelephonyCenterAddObserver(CFNotificationCenterRef center, const void *observer, CFNotificationCallback callBack, CFStringRef name, const void *object, CFNotificationSuspensionBehavior suspensionBehavior);
+void CTTelephonyCenterRemoveObserver(CFNotificationCenterRef center, const void *observer, CFStringRef name, const void *object);
+#endif
+
+#ifndef CTCELLULARDATAPLAN_H_
+Boolean CTCellularDataPlanGetIsEnabled();
+void CTCellularDataPlanSetIsEnabled(Boolean enabled);
 #endif
 
 static void FSDataSwitchStatusDidChange(void);

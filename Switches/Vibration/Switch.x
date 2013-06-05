@@ -2,7 +2,7 @@
 #import <FSSwitchPanel.h>
 #import <notify.h>
 
-#define kSpringBoardPlist [NSHomeDirectory() stringByAppendingString:@"/Library/Preferences/com.apple.springboard.plist"]
+#define kSpringBoardPlist @"/var/mobile/Library/Preferences/com.apple.springboard.plist"
 
 #ifndef GSEVENT_H
 extern void GSSendAppPreferencesChanged(CFStringRef bundleID, CFStringRef key);

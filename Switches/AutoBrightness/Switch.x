@@ -9,7 +9,7 @@ extern BOOL GSSystemHasCapability(CFStringRef capability);
 extern void GSSendAppPreferencesChanged(CFStringRef bundleID, CFStringRef key);
 #endif
 
-#define kABSBackboardPlist [NSHomeDirectory() stringByAppendingString:@"/Library/Preferences/com.apple.backboardd.plist"]
+#define kABSBackboardPlist @"/var/mobile/Library/Preferences/com.apple.backboardd.plist"
 #define kABSAutoBrightnessKey @"BKEnableALS"
 
 @interface AutoBrightnessSwitch : NSObject <FSSwitchDataSource>
