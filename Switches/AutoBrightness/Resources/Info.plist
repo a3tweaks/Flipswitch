@@ -23,12 +23,16 @@
 	<key>DTPlatformName</key>
 	<string>iphoneos</string>
 	<key>MinimumOSVersion</key>
-	<string>3.0</string>
+	<string>6.0</string>
 	<key>NSPrincipalClass</key>
 	<string>AutoBrightnessSwitch</string>
 	<key>alternate-action-url</key>
 	<string>prefs:</string>
 	<key>lazy-load</key>
 	<true/>
+	<key>required-capabilities</key>
+	<array>
+		<string>ambient-light-sensor</string>
+	</array>
 </dict>
 </plist>

@@ -1,10 +1,6 @@
 #import "FSSwitchDataSource.h"
 #import "FSSwitchPanel.h"
 
-#ifndef GSCAPABILITY_H
-extern BOOL GSSystemHasCapability(CFStringRef capability);
-#endif
-
 #ifndef GSEVENT_H
 extern void GSSendAppPreferencesChanged(CFStringRef bundleID, CFStringRef key);
 #endif
@@ -16,19 +12,6 @@ extern void GSSendAppPreferencesChanged(CFStringRef bundleID, CFStringRef key);
 @end
 
 @implementation AutoBrightnessSwitch
-
-- (id)init
-{
-    if ((self = [super init])) {
-        BOOL hasSensor = GSSystemHasCapability(CFSTR("ambient-light-sensor"));
-        if (!hasSensor) {
-            [self release];
-            return nil;
-        }
-    }
-
-    return self;
-}
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
