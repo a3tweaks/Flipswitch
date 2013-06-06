@@ -4,9 +4,9 @@ Depends: mobilesubstrate
 Version: 0.1
 Architecture: iphoneos-arm
 Description: Centralized toggle system for iOS
-Homepage: http://rpetri.ch/cydia/flipswitch/
-Depiction: http://rpetri.ch/cydia/flipswitch/
-Maintainer: A3Tweaks
-Author: A3Tweaks & Ryan Petrich
+Homepage: http://moreinfo.thebigboss.org/moreinfo/depiction.php?file=flipswitchDp
+Depiction: http://moreinfo.thebigboss.org/moreinfo/depiction.php?file=flipswitchDp
+Author: A3Tweaks & Ryan Petrich <rpetrich+flipswitch@gmail.com>
 Section: System
-Tag: role::developer
+Tag: purpose::extension, role::developer
+dev: flipswitch
