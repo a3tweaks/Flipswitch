@@ -3,8 +3,6 @@
 
 @interface SpringBoard : UIApplication
 - (void)_relaunchSpringBoardNow;
-- (void)_rebootNow;
-- (void)_powerDownNow;
 @end
 
 @interface RespringSwitch : NSObject <FSSwitchDataSource>
@@ -14,7 +12,7 @@
 
 - (void)applyActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	[(SpringBoard *)[objc_getClass("SpringBoard") sharedApplication] _relaunchSpringBoardNow];
+	[(SpringBoard *)[%c(SpringBoard) sharedApplication] _relaunchSpringBoardNow];
 }
 
 @end

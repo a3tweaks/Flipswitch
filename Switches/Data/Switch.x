@@ -1,26 +1,52 @@
 #import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
 
+#ifndef GSCAPABILITY_H
 extern BOOL GSSystemHasCapability(CFStringRef capability);
 extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
+#endif
 
-extern void CTCellularDataPlanSetIsEnabled(bool isEnabled);
-extern bool CTCellularDataPlanGetIsEnabled(void);
+#ifndef CTREGISTRATION_H_
+extern CFStringRef const kCTRegistrationDataStatusChangedNotification;
+#endif
+
+#ifndef CTTELEPHONYCENTER_H_
+CFNotificationCenterRef CTTelephonyCenterGetDefault();
+void CTTelephonyCenterAddObserver(CFNotificationCenterRef center, const void *observer, CFNotificationCallback callBack, CFStringRef name, const void *object, CFNotificationSuspensionBehavior suspensionBehavior);
+void CTTelephonyCenterRemoveObserver(CFNotificationCenterRef center, const void *observer, CFStringRef name, const void *object);
+#endif
+
+#ifndef CTCELLULARDATAPLAN_H_
+Boolean CTCellularDataPlanGetIsEnabled();
+void CTCellularDataPlanSetIsEnabled(Boolean enabled);
+#endif
+
+static void FSDataSwitchStatusDidChange(void);
 
 @interface DataSwitch : NSObject <FSSwitchDataSource>
 @end
 
-%hook SBTelephonyManager
+@implementation DataSwitch
 
-- (void)_postDataConnectionTypeChanged
+- (id)init
 {
-    %orig();
-    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[DataSwitch class]].bundleIdentifier];
+    self = [super init];
+
+    if ((self = [super init])) {
+        CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataSwitchStatusDidChange, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
+    }
+
+    return self;
 }
 
-%end
+- (void)dealloc
+{
+    CTTelephonyCenterRemoveObserver(CTTelephonyCenterGetDefault(), (CFNotificationCallback)FSDataSwitchStatusDidChange, NULL, NULL);
 
-@implementation DataSwitch
+    [super dealloc];
+}
+
+#pragma mark - FSSwitchDataSource
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
@@ -41,3 +67,8 @@ extern bool CTCellularDataPlanGetIsEnabled(void);
 }
 
 @end
+
+static void FSDataSwitchStatusDidChange(void)
+{
+    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[DataSwitch class]].bundleIdentifier];
+}

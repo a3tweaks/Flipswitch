@@ -2,27 +2,40 @@
 #import <FSSwitchPanel.h>
 
 @interface BluetoothManager
-+ (id)sharedInstance;
-- (void)_powerChanged;
++ (BluetoothManager *)sharedInstance;
 - (BOOL)powered;
 - (BOOL)setPowered:(BOOL)powered;
-- (void)setEnabled:(BOOL)seenabled;
+- (void)setEnabled:(BOOL)enabled;
 @end
 
 @interface BluetoothSwitch : NSObject <FSSwitchDataSource>
+- (void)_bluetoothStateDidChange:(NSNotification *)notification;
 @end
 
-%hook BluetoothManager
+@implementation BluetoothSwitch
 
-- (void)_powerChanged
+- (id)init
 {
-	%orig();
-	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[BluetoothSwitch class]].bundleIdentifier];
+    if ((self == [super init])) {
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_bluetoothStateDidChange:) name:@"BluetoothPowerChangedNotification" object:nil];
+    }
+
+    return self;
 }
 
-%end
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 
-@implementation BluetoothSwitch
+    [super dealloc];
+}
+
+- (void)_bluetoothStateDidChange:(NSNotification *)notification
+{
+    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[self class]].bundleIdentifier];
+}
+
+#pragma mark - FSSwitchDataSource
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
@@ -33,6 +46,7 @@
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
+
 	[[%c(BluetoothManager) sharedInstance] setPowered:newState];
 	[[%c(BluetoothManager) sharedInstance] setEnabled:newState];
 }

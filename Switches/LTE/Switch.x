@@ -1,32 +1,34 @@
 #import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
 
+#ifndef GSCAPABILITY_H
 extern BOOL GSSystemHasCapability(CFStringRef capability);
 extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
+#endif
 
-extern CFArrayRef CTRegistrationCopySupportedDataRates(void);
-extern CFStringRef CTRegistrationGetCurrentMaxAllowedDataRate(void);
-extern void CTRegistrationSetMaxAllowedDataRate(CFStringRef dataRate);
-
+#ifndef CTREGISTRATION_H_
+extern CFStringRef const kCTRegistrationDataStatusChangedNotification;
 extern CFStringRef const kCTRegistrationDataRateUnknown;
 extern CFStringRef const kCTRegistrationDataRate2G;
 extern CFStringRef const kCTRegistrationDataRate3G;
 extern CFStringRef const kCTRegistrationDataRate4G;
+CFArrayRef CTRegistrationCopySupportedDataRates();
+CFStringRef CTRegistrationGetCurrentMaxAllowedDataRate();
+void CTRegistrationSetMaxAllowedDataRate(CFStringRef dataRate);
+#endif
 
-@interface LTESwitch : NSObject <FSSwitchDataSource>
+#ifndef CTTELEPHONYCENTER_H_
+CFNotificationCenterRef CTTelephonyCenterGetDefault();
+void CTTelephonyCenterAddObserver(CFNotificationCenterRef center, const void *observer, CFNotificationCallback callBack, CFStringRef name, const void *object, CFNotificationSuspensionBehavior suspensionBehavior);
+void CTTelephonyCenterRemoveObserver(CFNotificationCenterRef center, const void *observer, CFStringRef name, const void *object);
+#endif
+
+@interface DataLTESwitch : NSObject <FSSwitchDataSource>
 @end
 
-%hook SBTelephonyManager
+static void FSDataLTESwitchStatusDidChange(void);
 
-- (void)_postDataConnectionTypeChanged
-{
-    %orig();
-    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[LTESwitch class]].bundleIdentifier];
-}
-
-%end
-
-@implementation LTESwitch
+@implementation DataLTESwitch
 
 - (id)init
 {
@@ -49,8 +51,18 @@ extern CFStringRef const kCTRegistrationDataRate4G;
             [self release];
             return nil;
         }
+
+        CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataLTESwitchStatusDidChange, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
     }
+
     return self;
+}
+
+- (void)dealloc
+{
+    CTTelephonyCenterRemoveObserver(CTTelephonyCenterGetDefault(), (CFNotificationCallback)FSDataLTESwitchStatusDidChange, NULL, NULL);
+
+    [super dealloc];
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
@@ -60,18 +72,14 @@ extern CFStringRef const kCTRegistrationDataRate4G;
 
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
 {
-	if (newState == FSSwitchStateIndeterminate)
+	if (newState == FSSwitchStateIndeterminate) {
 		return;
-	else if (newState == FSSwitchStateOn)
-	{
+	} else if (newState == FSSwitchStateOn) {
         CTRegistrationSetMaxAllowedDataRate(kCTRegistrationDataRate4G);
-        return;
-    }
-    else
-    {
+    } else {
         // CTRegistrationCopySupportedDataRates() returns an ascending array (in regards to data speeds) of data rates.
         CFArrayRef supportedDataRates = CTRegistrationCopySupportedDataRates();
-    
+
         NSUInteger lteOffDataRateIndex = [(NSArray *)supportedDataRates indexOfObject:(id)kCTRegistrationDataRate4G];
         switch (lteOffDataRateIndex) {
             case NSNotFound:
@@ -82,6 +90,7 @@ extern CFStringRef const kCTRegistrationDataRate4G;
                 lteOffDataRateIndex--;
                 break;
         }
+
         CTRegistrationSetMaxAllowedDataRate((CFStringRef)[(NSArray *)supportedDataRates objectAtIndex:lteOffDataRateIndex]);
     }
 }
@@ -93,3 +102,8 @@ extern CFStringRef const kCTRegistrationDataRate4G;
 }
 
 @end
+
+static void FSDataLTESwitchStatusDidChange(void)
+{
+    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[DataLTESwitch class]].bundleIdentifier];
+}

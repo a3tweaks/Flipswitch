@@ -43,7 +43,7 @@ static void VibrationSettingsChanged(CFNotificationCenterRef center, void *obser
     [dict setValue:value forKey:@"silent-vibrate"];
     [dict writeToFile:kSpringBoardPlist atomically:YES];
     [dict release];
-    
+
     notify_post("com.apple.springboard.ring-vibrate.changed");
     GSSendAppPreferencesChanged(CFSTR("com.apple.springboard"), CFSTR("ring-vibrate"));
     notify_post("com.apple.springboard.silent-vibrate.changed");
