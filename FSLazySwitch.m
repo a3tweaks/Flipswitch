@@ -22,13 +22,12 @@
 	Class switchClass = [bundle principalClass] ?: NSClassFromString([bundle objectForInfoDictionaryKey:@"NSPrincipalClass"]);
 
 	id<FSSwitchDataSource> switchImplementation = [switchClass respondsToSelector:@selector(initWithBundle:)] ? [[switchClass alloc] initWithBundle:bundle] : [[switchClass alloc] init];
-	if (switchImplementation && [switchImplementation shouldShowSwitchIdentifier:switchIdentifier]) {
+	if (switchImplementation) {
 		[[self retain] autorelease];
 		[[FSSwitchPanel sharedPanel] registerDataSource:switchImplementation forSwitchIdentifier:switchIdentifier];
-	} else if (switchImplementation == nil) {
-		[NSException raise:NSInvalidArgumentException format:@"Unable to lazily load switch for %@ (using switch class %@)", switchIdentifier, switchClass];
 	} else {
 		[[FSSwitchPanel sharedPanel] unregisterSwitchIdentifier:switchIdentifier];
+		NSLog(@"Flipswitch: Lazy switch with identifier '%@' was unregistered because it failed to load!");
 	}
 
 	[switchImplementation release];

@@ -24,11 +24,6 @@
 // Returns the localized title for the switch.
 // By default reads the CFBundleDisplayName out of the switch's bundle.
 
-- (BOOL)shouldShowSwitchIdentifier:(NSString *)switchIdentifier;
-// Returns wether the switch should be shown.
-// By default returns YES or the value from GraphicsServices for the capability specified in the "required-capability-key" of the switch's bundle
-// E.g. You would detect if the device has the required capability (3G, flash etc)
-
 - (id)glyphImageDescriptorOfState:(FSSwitchState)switchState size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier;
 // Provide an image descriptor that best displays at the requested size and scale
 // By default looks through the bundle to find a glyph image
