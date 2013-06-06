@@ -95,4 +95,21 @@
 	[[FSSwitchPanel sharedPanel] applyAlternateActionForSwitchIdentifier:switchIdentifier];
 }
 
+- (NSString *)accessibilityLabel
+{
+	return [[FSSwitchPanel sharedPanel] titleForSwitchIdentifier:switchIdentifier];
+}
+
+- (NSString *)accessibilityValue
+{
+	switch ([[FSSwitchPanel sharedPanel] stateForSwitchIdentifier:switchIdentifier]) {
+		case FSSwitchStateOff:
+			return @"Off";
+		case FSSwitchStateOn:
+			return @"On";
+		default:
+			return nil;
+	}
+}
+
 @end
