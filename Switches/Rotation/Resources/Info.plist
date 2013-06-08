@@ -9,7 +9,7 @@
 	<key>CFBundleIdentifier</key>
 	<string>com.a3tweaks.switch.rotation</string>
 	<key>CFBundleDisplayName</key>
-	<string>Rotation</string>
+	<string>Rotation Lock</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>

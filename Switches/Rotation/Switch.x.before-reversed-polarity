@@ -122,14 +122,14 @@ NSString *_title;
 
 - (void)unlock
 {
-    %orig();
-    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[RotationSwitch class]].bundleIdentifier];
+	%orig();
+	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[RotationSwitch class]].bundleIdentifier];
 }
 
 - (void)lock:(UIUserInterfaceIdiom)lock
 {
-    %orig();
-    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[RotationSwitch class]].bundleIdentifier];
+	%orig();
+	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[RotationSwitch class]].bundleIdentifier];
 }
 
 %end
@@ -160,7 +160,7 @@ NSString *_title;
 	if (IsOS4)
 		return [[%c(SBOrientationLockManager) sharedInstance] isLocked];
 	else
-		return isEnabled ? !isEnabled() : NO;
+		return isEnabled ? isEnabled() : YES;
 }
 
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
@@ -169,27 +169,27 @@ NSString *_title;
 		return;
 	if (IsOS4) {
 		SBOrientationLockManager *lockManager = [%c(SBOrientationLockManager) sharedInstance];
-		if (!newState) {
+		if (newState) {
 			[lockManager unlock];
-            if ([lockManager respondsToSelector:@selector(lockOverrideEnabled)] ? [lockManager lockOverrideEnabled] : [lockManager lockOverride])
-                [lockManager updateLockOverrideForCurrentDeviceOrientation];
+			if ([lockManager respondsToSelector:@selector(lockOverrideEnabled)] ? [lockManager lockOverrideEnabled] : [lockManager lockOverride])
+				[lockManager updateLockOverrideForCurrentDeviceOrientation];
 		} else {
 			[lockManager lock:[(SpringBoard *)[UIApplication sharedApplication] activeInterfaceOrientation]];
-            if ([lockManager respondsToSelector:@selector(lockOverrideEnabled)] ? [lockManager lockOverrideEnabled] : [lockManager lockOverride]) {
-                if ([lockManager respondsToSelector:@selector(setLockOverrideEnabled:forReason:)]) {
-                    for (id reason in [[CHIvar(lockManager, _lockOverrideReasons, NSMutableSet *) copy] autorelease])
-                        [lockManager setLockOverrideEnabled:NO forReason:reason];
-                } else {
-                    [lockManager setLockOverride:0 orientation:UIDeviceOrientationPortrait];
-                }
-            }
+			if ([lockManager respondsToSelector:@selector(lockOverrideEnabled)] ? [lockManager lockOverrideEnabled] : [lockManager lockOverride]) {
+				if ([lockManager respondsToSelector:@selector(setLockOverrideEnabled:forReason:)]) {
+					for (id reason in [[CHIvar(lockManager, _lockOverrideReasons, NSMutableSet *) copy] autorelease])
+						[lockManager setLockOverrideEnabled:NO forReason:reason];
+				} else {
+					[lockManager setLockOverride:0 orientation:UIDeviceOrientationPortrait];
+				}
+			}
 		}
 		SBNowPlayingBar **nowPlayingBar = CHIvarRef([%c(SBAppSwitcherController) sharedInstanceIfAvailable], _nowPlaying, SBNowPlayingBar *);
 		if (nowPlayingBar)
 			[CHIvar(*nowPlayingBar, _orientationLockButton, UIButton *) setSelected:[lockManager isLocked]];
 	} else {
 		if (setEnabled) {
-			setEnabled(!newState);
+			setEnabled(newState);
 			[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[RotationSwitch class]].bundleIdentifier];
 		}
 	}
