@@ -115,6 +115,7 @@ static void (*setEnabled)(BOOL newState);
 @end
 
 @interface RotationSwitch : NSObject <FSSwitchDataSource>
+NSString *_title;
 @end
 
 %hook SBOrientationLockManager
@@ -139,16 +140,25 @@ static void (*setEnabled)(BOOL newState);
 
 - (id)init
 {
-	if (IsOS4 || (isEnabled && setEnabled))
-		return [super init];
+	if (IsOS4 || (isEnabled && setEnabled)) {
+		_title = [[[NSBundle bundleWithPath:@"/System/Library/AccessibilityBundles/SpringBoard.axbundle"] localizedStringForKey:@"rotation.lock.button" value:@"Rotation Lock" table:@"Accessibility"] retain];
+        return [super init];
+    }
 	[self release];
 	return nil;
+}
+
+- (void)dealloc
+{
+    [_title release];
+    
+    [super dealloc];
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	if (IsOS4)
-		return ![[%c(SBOrientationLockManager) sharedInstance] isLocked];
+		return [[%c(SBOrientationLockManager) sharedInstance] isLocked];
 	else
 		return isEnabled ? isEnabled() : YES;
 }
@@ -206,6 +216,11 @@ static void (*setEnabled)(BOOL newState);
 	} else {
 		[lockManager lock:UIInterfaceOrientationPortrait];
 	}
+}
+
+- (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+    return _title;
 }
 
 @end

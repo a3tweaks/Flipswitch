@@ -9,6 +9,7 @@ extern void GSSendAppPreferencesChanged(CFStringRef bundleID, CFStringRef key);
 #endif
 
 @interface VibrationSwitch : NSObject <FSSwitchDataSource>
+NSString *_title;
 @end
 
 @implementation VibrationSwitch
@@ -23,6 +24,21 @@ static void VibrationSettingsChanged(CFNotificationCenterRef center, void *obser
     CFNotificationCenterRef center = CFNotificationCenterGetDarwinNotifyCenter();
     CFNotificationCenterAddObserver(center, NULL, VibrationSettingsChanged, CFSTR("com.apple.springboard.ring-vibrate.changed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
     CFNotificationCenterAddObserver(center, NULL, VibrationSettingsChanged, CFSTR("com.apple.springboard.ring-silent.changed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+}
+
+- (id)init
+{
+    if ((self = [super init])) {
+        _title = [[[NSBundle bundleWithPath:@"/Applications/Preferences.app"] localizedStringForKey:@"Vibrate" value:@"Vibrate" table:@"Sounds"] retain];
+    }
+    return self;
+}
+
+- (void)dealloc
+{
+    [_title release];
+    
+    [super dealloc];
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
@@ -48,6 +64,11 @@ static void VibrationSettingsChanged(CFNotificationCenterRef center, void *obser
     GSSendAppPreferencesChanged(CFSTR("com.apple.springboard"), CFSTR("ring-vibrate"));
     notify_post("com.apple.springboard.silent-vibrate.changed");
     GSSendAppPreferencesChanged(CFSTR("com.apple.springboard"), CFSTR("silent-vibrate"));
+}
+
+- (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+    return _title;
 }
 
 @end

@@ -101,6 +101,11 @@ static void FSDataLTESwitchStatusDidChange(void);
 	[[FSSwitchPanel sharedPanel] openURLAsAlternateAction:url];
 }
 
+- (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+    return @"LTE";
+}
+
 @end
 
 static void FSDataLTESwitchStatusDidChange(void)

@@ -15,4 +15,9 @@
 	[(SpringBoard *)[%c(SpringBoard) sharedApplication] _relaunchSpringBoardNow];
 }
 
+- (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+    return @"Respring";
+}
+
 @end

@@ -17,6 +17,7 @@
 @end
 
 @interface AirplaneModeSwitch : NSObject <FSSwitchDataSource>
+NSString *_title;
 @end
 
 %hook SBTelephonyManager
@@ -41,6 +42,21 @@
 
 @implementation AirplaneModeSwitch
 
+- (id)init
+{
+    if ((self = [super init])) {
+        _title = [[[NSBundle bundleWithPath:@"/Applications/Preferences.app"] localizedStringForKey:@"AIRPLANE_MODE_PHONE" value:@"Airplane Mode" table:@"Localizable"] retain];
+    }
+    return self;
+}
+
+- (void)dealloc
+{
+    [_title release];
+    
+    [super dealloc];
+}
+
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	if ([%c(SBTelephonyManager) instancesRespondToSelector:@selector(isInAirplaneMode)])
@@ -60,6 +76,11 @@
 			enable(newState);
 		}
 	}
+}
+
+- (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+    return _title;
 }
 
 @end

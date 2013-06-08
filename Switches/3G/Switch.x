@@ -104,6 +104,11 @@ static void FSData3GSwitchStatusDidChange(void);
 	[[FSSwitchPanel sharedPanel] openURLAsAlternateAction:url];
 }
 
+- (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+    return @"3G";
+}
+
 @end
 
 static void FSData3GSwitchStatusDidChange(void)

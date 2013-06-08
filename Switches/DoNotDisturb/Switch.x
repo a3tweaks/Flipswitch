@@ -201,6 +201,7 @@ typedef struct {
 @end
 
 @interface DoNotDisturbSwitch : NSObject <FSSwitchDataSource>
+NSString *_title;
 @end
 
 static BBSettingsGateway *gateway;
@@ -221,6 +222,21 @@ static FSSwitchState state;
 %end
 
 @implementation DoNotDisturbSwitch
+
+- (id)init
+{
+    if ((self = [super init])) {
+        _title = [[[NSBundle bundleWithPath:@"/Applications/Preferences.app"] localizedStringForKey:@"DO_NOT_DISTURB" value:@"Do Not Disturb" table:@"WYWAAppDetail"] retain];
+    }
+    return self;
+}
+
+- (void)dealloc
+{
+    [_title release];
+    
+    [super dealloc];
+}
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
@@ -256,6 +272,11 @@ static FSSwitchState state;
 			}
 		});
 	}];
+}
+
+- (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+    return _title;
 }
 
 @end

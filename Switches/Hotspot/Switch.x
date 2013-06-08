@@ -43,6 +43,7 @@ static NSInteger insideSwitch;
 %end
 
 @interface HotspotSwitch : NSObject <FSSwitchDataSource>
+NSString *_title;
 @end
 
 %hook SBTelephonyManager
@@ -57,6 +58,21 @@ static NSInteger insideSwitch;
 
 @implementation HotspotSwitch
 
+- (id)init
+{
+    if ((self = [super init])) {
+        _title = [[[NSBundle bundleWithPath:@"/System/Library/PreferenceBundles/WirelessModemSettings.bundle"] localizedStringForKey:@"TETHERING_TITLE" value:@"Personal Hotspot" table:@"WirelessModemSettings"] retain];
+    }
+    return self;
+}
+
+- (void)dealloc
+{
+    [_title release];
+    
+    [super dealloc];
+}
+
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	return [[controller internetTethering:specifier] boolValue];
@@ -69,6 +85,11 @@ static NSInteger insideSwitch;
 	insideSwitch++;
 	[controller setInternetTethering:[NSNumber numberWithBool:newState] specifier:specifier];
 	insideSwitch--;
+}
+
+- (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+    return _title;
 }
 
 @end

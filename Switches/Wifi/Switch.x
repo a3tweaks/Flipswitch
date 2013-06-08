@@ -43,4 +43,9 @@
 	[[%c(SBWiFiManager) sharedInstance] setWiFiEnabled:newState];
 }
 
+- (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+    return @"Wi-Fi";
+}
+
 @end

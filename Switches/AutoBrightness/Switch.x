@@ -9,9 +9,25 @@ extern void GSSendAppPreferencesChanged(CFStringRef bundleID, CFStringRef key);
 #define kABSAutoBrightnessKey @"BKEnableALS"
 
 @interface AutoBrightnessSwitch : NSObject <FSSwitchDataSource>
+NSString *_title;
 @end
 
 @implementation AutoBrightnessSwitch
+
+- (id)init
+{
+    if ((self = [super init])) {
+        _title = [[[NSBundle bundleWithPath:@"/System/Library/PreferenceBundles/Wallpaper.bundle"] localizedStringForKey:@"AUTOBRIGHTNESS" value:@"Auto-Brightness" table:@"BrightnessAndWallpaper"] retain];
+    }
+    return self;
+}
+
+- (void)dealloc
+{
+    [_title release];
+    
+    [super dealloc];
+}
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
@@ -34,6 +50,11 @@ extern void GSSendAppPreferencesChanged(CFStringRef bundleID, CFStringRef key);
 
     GSSendAppPreferencesChanged(CFSTR("com.apple.backboardd"), (CFStringRef)kABSAutoBrightnessKey);
 
+}
+
+- (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+    return _title;
 }
 
 @end

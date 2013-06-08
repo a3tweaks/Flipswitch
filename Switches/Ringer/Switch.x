@@ -8,6 +8,7 @@
 @end
 
 @interface RingerSwitch : NSObject <FSSwitchDataSource>
+NSString *_title;
 @end
 
 @implementation RingerSwitch
@@ -23,6 +24,21 @@ static void RingerSettingsChanged(CFNotificationCenterRef center, void *observer
     CFNotificationCenterAddObserver(center, NULL, RingerSettingsChanged, CFSTR("com.apple.springboard.ringerstate"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 }
 
+- (id)init
+{
+    if ((self = [super init])) {
+        _title = [[[NSBundle bundleWithPath:@"/Applications/Preferences.app"] localizedStringForKey:@"Sounds" value:@"Sounds" table:@"Sounds"] retain];
+    }
+    return self;
+}
+
+- (void)dealloc
+{
+    [_title release];
+    
+    [super dealloc];
+}
+
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	return ![[%c(SBMediaController) sharedInstance] isRingerMuted];
@@ -33,6 +49,11 @@ static void RingerSettingsChanged(CFNotificationCenterRef center, void *observer
 	if (newState == FSSwitchStateIndeterminate)
 		return;
 	[[%c(SBMediaController) sharedInstance] setRingerMuted:!newState];
+}
+
+- (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+    return _title;
 }
 
 @end

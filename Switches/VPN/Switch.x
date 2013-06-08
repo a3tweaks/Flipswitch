@@ -43,6 +43,11 @@ static VPNBundleController *controller;
 	[controller _setVPNActive:newState];
 }
 
+- (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+    return @"VPN";
+}
+
 @end
 
 %ctor {

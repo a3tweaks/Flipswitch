@@ -16,7 +16,7 @@
 
 - (id)init
 {
-    if ((self == [super init])) {
+    if ((self = [super init])) {
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_bluetoothStateDidChange:) name:@"BluetoothPowerChangedNotification" object:nil];
     }
 
@@ -49,6 +49,11 @@
 
 	[[%c(BluetoothManager) sharedInstance] setPowered:newState];
 	[[%c(BluetoothManager) sharedInstance] setEnabled:newState];
+}
+
+- (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+    return @"Bluetooth";
 }
 
 @end

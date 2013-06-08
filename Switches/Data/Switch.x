@@ -24,25 +24,27 @@ void CTCellularDataPlanSetIsEnabled(Boolean enabled);
 static void FSDataSwitchStatusDidChange(void);
 
 @interface DataSwitch : NSObject <FSSwitchDataSource>
+NSString *_title;
 @end
 
 @implementation DataSwitch
 
 - (id)init
 {
-    self = [super init];
-
     if ((self = [super init])) {
         CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataSwitchStatusDidChange, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
+        
+        _title = [[[NSBundle bundleWithPath:@"/Applications/Preferences.app"] localizedStringForKey:@"MOBILE_DATA_SETTINGS" value:@"Cellular Data" table:@"Network"] retain];
     }
-
     return self;
 }
 
 - (void)dealloc
-{
+{    
     CTTelephonyCenterRemoveObserver(CTTelephonyCenterGetDefault(), (CFNotificationCallback)FSDataSwitchStatusDidChange, NULL, NULL);
-
+    
+    [_title release];
+    
     [super dealloc];
 }
 
@@ -64,6 +66,11 @@ static void FSDataSwitchStatusDidChange(void);
 {
 	NSURL *url = [NSURL URLWithString:(kCFCoreFoundationVersionNumber > 700 ? @"prefs:root=General&path=MOBILE_DATA_SETTINGS_ID" : @"prefs:root=General&path=Network")];
 	[[FSSwitchPanel sharedPanel] openURLAsAlternateAction:url];
+}
+
+- (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+    return _title;
 }
 
 @end

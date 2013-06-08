@@ -12,6 +12,7 @@
 @end
 
 @interface AutolockSwitch : NSObject <FSSwitchDataSource>
+NSString *_title;
 + (void)_effectiveSettingsDidChange:(NSNotification *)notification;
 @end
 
@@ -30,6 +31,21 @@
 + (void)_effectiveSettingsDidChange:(NSNotification *)notification
 {
     [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:self].bundleIdentifier];
+}
+
+- (id)init
+{
+    if ((self = [super init])) {
+        _title = [[[NSBundle bundleWithPath:@"/Applications/Preferences.app"] localizedStringForKey:@"AUTOLOCK" value:@"Auto-Lock " table:@"General"] retain];
+    }
+    return self;
+}
+
+- (void)dealloc
+{
+    [_title release];
+    
+    [super dealloc];
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
@@ -56,6 +72,11 @@
         toggledValue = [NSNumber numberWithInt:INT_MAX];
     }
     [[MCProfileConnection sharedConnection] setValue:toggledValue forSetting:@"maxInactivity"];
+}
+
+- (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+    return _title;
 }
 
 @end
