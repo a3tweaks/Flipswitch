@@ -1,3 +1,0 @@
-#!/bin/sh
-/bin/launchctl unload -w /Library/LaunchDaemons/com.openssh.sshd.plist
-exit 0

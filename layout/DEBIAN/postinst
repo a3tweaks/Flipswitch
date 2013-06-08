@@ -1,4 +1,0 @@
-#!/bin/bash
-chown root:wheel /Library/Switches/SSH.bundle/feedMe
-chmod 6755 /Library/Switches/SSH.bundle/feedMe
-exit 0
