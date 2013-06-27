@@ -19,6 +19,10 @@
 - (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)templateBundle;
 // Returns an image representing how a specific switch would look in a particular state when styled with the provided template
 
+- (BOOL)hasCachedImageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)templateBundle;
+- (BOOL)hasCachedImageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)templateBundle;
+// Returns YES if an image representing the state is loaded
+
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier;
 // Returns the current state of a particualr switch
 - (void)setState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier;

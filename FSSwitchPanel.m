@@ -9,6 +9,7 @@
 
 #import <dlfcn.h>
 #import <UIKit/UIKit2.h>
+#import <libkern/OSAtomic.h>
 #import "LightMessaging/LightMessaging.h"
 
 static LMConnection connection = {
@@ -26,6 +27,7 @@ NSString * const FSSwitchPanelSwitchWillOpenURLNotification = @"FSSwitchPanelSwi
 
 static FSSwitchPanel *_switchManager;
 static NSMutableDictionary *_cachedSwitchImages;
+static volatile OSSpinLock _lock;
 
 @implementation FSSwitchPanel
 
@@ -75,8 +77,10 @@ static void WillOpenURLCallback(CFNotificationCenterRef center, void *observer, 
 
 + (void)_didReceiveMemoryWarning
 {
+	OSSpinLockLock(&_lock);
 	[_cachedSwitchImages release];
 	_cachedSwitchImages = nil;
+	OSSpinLockUnlock(&_lock);
 }
 
 + (FSSwitchPanel *)sharedPanel
@@ -251,7 +255,6 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 
 - (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	CGSize size;
 	size.width = [[template objectForInfoDictionaryKey:@"width"] floatValue];
 	if (size.width == 0.0f)
@@ -264,11 +267,13 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	id cacheKey = [self _cacheKeyForSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template layers:&layers prerenderedFileName:&prerenderedImageName];
 	if (!cacheKey)
 		return nil;
-	UIImage *result = [_cachedSwitchImages objectForKey:cacheKey];
+	OSSpinLockLock(&_lock);
+	UIImage *result = [[_cachedSwitchImages objectForKey:cacheKey] retain];
+	OSSpinLockUnlock(&_lock);
 	if (result)
-		return result;
+		return [result autorelease];
 	if (prerenderedImageName) {
-		result = [UIImage imageWithContentsOfFile:cacheKey];
+		result = [UIImage imageWithContentsOfFile:prerenderedImageName];
 		goto cache_and_return_result;
 	}
 	if (&UIGraphicsBeginImageContextWithOptions != NULL) {
@@ -361,18 +366,44 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 		free(secondMaskData);
 cache_and_return_result:
 	if (result) {
+		OSSpinLockLock(&_lock);
 		if (!_cachedSwitchImages)
 			_cachedSwitchImages = [[NSMutableDictionary alloc] init];
+		else {
+			UIImage *existingResult = [_cachedSwitchImages objectForKey:cacheKey];
+			if (existingResult) {
+				existingResult = [existingResult retain];
+				OSSpinLockUnlock(&_lock);
+				return [existingResult autorelease];
+			}
+		}
 		[_cachedSwitchImages setObject:result forKey:cacheKey];
+		OSSpinLockUnlock(&_lock);
 	}
 	return result;
 }
 
 - (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	CGFloat scale = [UIScreen instancesRespondToSelector:@selector(scale)] ? [UIScreen mainScreen].scale : 1.0f;
 	return [self imageOfSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
+}
+
+- (BOOL)hasCachedImageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)templateBundle
+{
+	id cacheKey = [self _cacheKeyForSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:templateBundle layers:NULL prerenderedFileName:NULL];
+	if (!cacheKey)
+		return NO;
+	OSSpinLockLock(&_lock);
+	UIImage *result = [_cachedSwitchImages objectForKey:cacheKey];
+	OSSpinLockUnlock(&_lock);
+	return result != nil;
+}
+
+- (BOOL)hasCachedImageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)templateBundle
+{
+	CGFloat scale = [UIScreen instancesRespondToSelector:@selector(scale)] ? [UIScreen mainScreen].scale : 1.0f;
+	return [self hasCachedImageOfSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:templateBundle];
 }
 
 - (UIButton *)buttonForSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
