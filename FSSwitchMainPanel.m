@@ -85,27 +85,35 @@ static NSInteger stateChangeCount;
 
 - (NSArray *)switchIdentifiers
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
+	if (![NSThread isMainThread]) {
+		return [super switchIdentifiers];
+	}
 	return [_switchImplementations allKeys];
 }
 
 - (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
+	if (![NSThread isMainThread]) {
+		return [super titleForSwitchIdentifier:switchIdentifier];
+	}
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	return [switchImplementation titleForSwitchIdentifier:switchIdentifier];
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
+	if (![NSThread isMainThread]) {
+		return [super stateForSwitchIdentifier:switchIdentifier];
+	}
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	return [switchImplementation stateForSwitchIdentifier:switchIdentifier];
 }
 
 - (void)setState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
+	if (![NSThread isMainThread]) {
+		return [super setState:state forSwitchIdentifier:switchIdentifier];
+	}
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	// Workaround switches that don't explicitly send state change notifications :(
 	FSSwitchState oldState = [switchImplementation stateForSwitchIdentifier:switchIdentifier];
@@ -118,7 +126,9 @@ static NSInteger stateChangeCount;
 
 - (void)applyActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
+	if (![NSThread isMainThread]) {
+		return [super applyActionForSwitchIdentifier:switchIdentifier];
+	}
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	// Workaround switches that don't explicitly send state change notifications :(
 	FSSwitchState oldState = [switchImplementation stateForSwitchIdentifier:switchIdentifier];
@@ -131,21 +141,27 @@ static NSInteger stateChangeCount;
 
 - (id)glyphImageDescriptorOfState:(FSSwitchState)switchState size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier;
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
+	if (![NSThread isMainThread]) {
+		return [super glyphImageDescriptorOfState:switchState size:size scale:scale forSwitchIdentifier:switchIdentifier];
+	}
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	return [switchImplementation glyphImageDescriptorOfState:switchState size:size scale:scale forSwitchIdentifier:switchIdentifier];
 }
 
 - (BOOL)hasAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
+	if (![NSThread isMainThread]) {
+		return [super hasAlternateActionForSwitchIdentifier:switchIdentifier];
+	}
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	return [switchImplementation hasAlternateActionForSwitchIdentifier:switchIdentifier];
 }
 
 - (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
+	if (![NSThread isMainThread]) {
+		return [super applyAlternateActionForSwitchIdentifier:switchIdentifier];
+	}
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	[switchImplementation applyAlternateActionForSwitchIdentifier:switchIdentifier];
 }

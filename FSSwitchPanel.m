@@ -90,7 +90,6 @@ static void WillOpenURLCallback(CFNotificationCenterRef center, void *observer, 
 
 - (NSArray *)switchIdentifiers
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	LMResponseBuffer responseBuffer;
 	if (LMConnectionSendTwoWay(&connection, FSSwitchServiceMessageGetIdentifiers, NULL, 0, &responseBuffer)) {
 		return nil;
@@ -100,7 +99,6 @@ static void WillOpenURLCallback(CFNotificationCenterRef center, void *observer, 
 
 - (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	LMResponseBuffer responseBuffer;
 	if (LMConnectionSendTwoWayPropertyList(&connection, FSSwitchServiceMessageGetTitleForIdentifier, switchIdentifier, &responseBuffer)) {
 		return nil;
@@ -110,7 +108,6 @@ static void WillOpenURLCallback(CFNotificationCenterRef center, void *observer, 
 
 - (id)glyphImageDescriptorOfState:(FSSwitchState)switchState size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
  	NSDictionary *args = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:switchIdentifier, [NSNumber numberWithFloat:size], [NSNumber numberWithFloat:scale], [NSNumber numberWithInteger:switchState], nil] forKeys:[NSArray arrayWithObjects:@"switchIdentifier", @"size", @"scale", @"switchState", nil]];
 
 	LMResponseBuffer responseBuffer;
@@ -414,7 +411,6 @@ cache_and_return_result:
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	LMResponseBuffer responseBuffer;
 	if (LMConnectionSendTwoWayPropertyList(&connection, FSSwitchServiceMessageGetStateForIdentifier, switchIdentifier, &responseBuffer)) {
 		return NO;
@@ -424,13 +420,11 @@ cache_and_return_result:
 
 - (void)applyActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	LMConnectionSendOneWayData(&connection, FSSwitchServiceMessageApplyActionForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:switchIdentifier format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
 
 - (void)setState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	NSArray *propertyList = [NSArray arrayWithObjects:[NSNumber numberWithBool:state], switchIdentifier, nil];
 	LMConnectionSendOneWayData(&connection, FSSwitchServiceMessageSetStateForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:propertyList format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
@@ -438,7 +432,6 @@ cache_and_return_result:
 
 - (BOOL)hasAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	LMResponseBuffer responseBuffer;
 	if (LMConnectionSendTwoWayPropertyList(&connection, FSSwitchServiceMessageHasAlternateActionForIdentifier, switchIdentifier, &responseBuffer)) {
 		return NO;
@@ -448,7 +441,6 @@ cache_and_return_result:
 
 - (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	LMConnectionSendOneWayData(&connection, FSSwitchServiceMessageApplyAlternateActionForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:switchIdentifier format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
 
