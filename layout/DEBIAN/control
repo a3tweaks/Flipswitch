@@ -1,7 +1,7 @@
 Package: com.a3tweaks.flipswitch
 Name: Flipswitch
 Depends: mobilesubstrate
-Version: 0.1
+Version: 1.0
 Architecture: iphoneos-arm
 Description: Centralized toggle system for iOS
 Homepage: http://moreinfo.thebigboss.org/moreinfo/depiction.php?file=flipswitchDp
