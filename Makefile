@@ -17,7 +17,7 @@ SDKVERSION := 5.1
 TARGET_IPHONEOS_DEPLOYMENT_VERSION := 3.0
 ARCHS = armv6 armv7
 
-include theos/makefiles/common.mk
+include $(THEOS_MAKE_PATH)/common.mk
 include $(THEOS_MAKE_PATH)/library.mk
 include $(THEOS_MAKE_PATH)/tweak.mk
 include $(THEOS_MAKE_PATH)/aggregate.mk
