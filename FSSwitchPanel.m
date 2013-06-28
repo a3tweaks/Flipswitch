@@ -252,6 +252,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 
 - (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
 {
+	template = [template flipswitchThemedBundle];
 	CGSize size;
 	size.width = [[template objectForInfoDictionaryKey:@"width"] floatValue];
 	if (size.width == 0.0f)
@@ -388,6 +389,7 @@ cache_and_return_result:
 
 - (BOOL)hasCachedImageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)templateBundle
 {
+	templateBundle = [templateBundle flipswitchThemedBundle];
 	id cacheKey = [self _cacheKeyForSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:templateBundle layers:NULL prerenderedFileName:NULL];
 	if (!cacheKey)
 		return NO;

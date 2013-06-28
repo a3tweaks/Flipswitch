@@ -3,6 +3,12 @@
 
 @implementation NSBundle (Flipswitch)
 
+- (NSBundle *)flipswitchThemedBundle
+{
+	NSString *path = [[self pathForResource:@"Info" ofType:@"plist"] stringByDeletingLastPathComponent];
+	return [path isEqualToString:[self bundlePath]] ? self : [NSBundle bundleWithPath:path];
+}
+
 - (NSArray *)FSImageImageFileTypes
 {
 	return [NSArray arrayWithObjects:@"pdf", @"png", nil];
@@ -10,10 +16,6 @@
 
 - (NSUInteger)imageSizeForFlipswitchImageName:(NSString *)imageName closestToSize:(CGFloat)sourceSize inDirectory:(NSString *)directory
 {
-	NSString *alternateBundlePath = [self objectForInfoDictionaryKey:@"alternate-bundle"];
-	if (alternateBundlePath) {
-		return [[NSBundle bundleWithPath:alternateBundlePath] imageSizeForFlipswitchImageName:imageName closestToSize:sourceSize inDirectory:directory];
-	}
 	NSMutableIndexSet *sizes = [[NSMutableIndexSet alloc] init];
 	for (NSString *fileType in self.FSImageImageFileTypes) {
 		NSArray *images = [self pathsForResourcesOfType:fileType inDirectory:directory];
@@ -48,10 +50,6 @@
 
 - (NSString *)imagePathForFlipswitchImageName:(NSString *)imageName imageSize:(NSUInteger)imageSize preferredScale:(CGFloat)preferredScale controlState:(UIControlState)controlState inDirectory:(NSString *)directory loadedControlState:(UIControlState *)outImageControlState
 {
-	NSString *alternateBundlePath = [self objectForInfoDictionaryKey:@"alternate-bundle"];
-	if (alternateBundlePath) {
-		return [[NSBundle bundleWithPath:alternateBundlePath] imagePathForFlipswitchImageName:imageName imageSize:imageSize preferredScale:preferredScale controlState:controlState inDirectory:directory loadedControlState:outImageControlState];
-	}
 	if (!imageName)
 		return nil;
 	if (imageSize == NSNotFound)
