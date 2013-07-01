@@ -24,22 +24,34 @@
 
 %end
 
+static BOOL wiFiEnabled;
+
 @implementation WifiSwitch
 
 + (void)_powerStateDidChange
 {
+	wiFiEnabled = [[%c(SBWiFiManager) sharedInstance] wiFiEnabled];
 	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:self].bundleIdentifier];
+}
+
+- (id)init
+{
+	if ((self = [super init])) {
+		wiFiEnabled = [[%c(SBWiFiManager) sharedInstance] wiFiEnabled];
+	}
+	return self;
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	return [[%c(SBWiFiManager) sharedInstance] wiFiEnabled];
+	return wiFiEnabled;
 }
 
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
+	wiFiEnabled = newState;
 	[[%c(SBWiFiManager) sharedInstance] setWiFiEnabled:newState];
 }
 
