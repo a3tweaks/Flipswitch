@@ -40,10 +40,11 @@ static void FSData3GSwitchStatusDidChange(void);
 		}
 		float value = [(id)telephonyGeneration floatValue];
 		CFRelease(telephonyGeneration);
-		if (value < 3.0f) {
+		if (value < 3.0f || value >= 3.5f) {
 			[self release];
 			return nil;
 		}
+#if 0	
 		CFArrayRef supportedDataRates = CTRegistrationCopySupportedDataRates();
 		BOOL supports3G = [(NSArray *)supportedDataRates containsObject:(id)kCTRegistrationDataRate3G];
 		BOOL supports4G = [(NSArray *)supportedDataRates containsObject:(id)kCTRegistrationDataRate4G];
@@ -52,6 +53,7 @@ static void FSData3GSwitchStatusDidChange(void);
 			[self release];
 			return nil;
 		}
+#endif
 
 		CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSData3GSwitchStatusDidChange, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
 	}

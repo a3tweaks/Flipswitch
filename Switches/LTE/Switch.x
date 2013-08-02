@@ -44,6 +44,7 @@ static void FSDataLTESwitchStatusDidChange(void);
             [self release];
             return nil;
         }
+#if 0
         CFArrayRef supportedDataRates = CTRegistrationCopySupportedDataRates();
         BOOL supportsLTE = [(NSArray *)supportedDataRates containsObject:(id)kCTRegistrationDataRate4G];
         CFRelease(supportedDataRates);
@@ -51,6 +52,7 @@ static void FSDataLTESwitchStatusDidChange(void);
             [self release];
             return nil;
         }
+#endif
 
         CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataLTESwitchStatusDidChange, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
     }
