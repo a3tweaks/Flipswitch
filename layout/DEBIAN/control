@@ -4,9 +4,9 @@ Depends: mobilesubstrate
 Version: 1.0
 Architecture: iphoneos-arm
 Description: Centralized toggle system for iOS
-Homepage: http://moreinfo.thebigboss.org/moreinfo/depiction.php?file=flipswitchDp
-Depiction: http://moreinfo.thebigboss.org/moreinfo/depiction.php?file=flipswitchDp
-Author: A3Tweaks & Ryan Petrich <rpetrich+flipswitch@gmail.com>
+Homepage: http://rpetri.ch/cydia/flipswitch/
+Depiction: http://rpetri.ch/cydia/flipswitch/
+Author: Ryan Petrich & A3Tweaks <rpetrich+flipswitch@gmail.com>
 Section: System
 Tag: purpose::extension, role::developer
 dev: flipswitch
