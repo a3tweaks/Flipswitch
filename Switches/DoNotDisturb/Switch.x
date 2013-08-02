@@ -3,6 +3,7 @@
 
 #import <Foundation/Foundation.h>
 #include <dispatch/dispatch.h>
+#include <dlfcn.h>
 
 @interface BBSettingsGateway : NSObject {
 	id _serverProxy;
@@ -200,6 +201,8 @@ typedef struct {
 - (id)init;
 @end
 
+static void (*BKSTerminateApplicationForReasonAndReportWithDescription)(NSString *app, int a, int b, NSString *description);
+
 @interface DoNotDisturbSwitch : NSObject <FSSwitchDataSource>
 @end
 
@@ -216,6 +219,7 @@ static FSSwitchState state;
 		state = value & 1;
 		[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[DoNotDisturbSwitch class]].bundleIdentifier];
 	}];
+	BKSTerminateApplicationForReasonAndReportWithDescription = dlsym(RTLD_DEFAULT, "BKSTerminateApplicationForReasonAndReportWithDescription");
 }
 
 %end
@@ -227,35 +231,47 @@ static FSSwitchState state;
 	return state;
 }
 
+- (void)applyMode:(unsigned)mode
+{
+	[gateway setBehaviorOverrideStatus:mode];
+	// Now tell everyone about it. Bugs in SpringBoard if we don't :()
+	if ([%c(SBBulletinSystemStateAdapter) respondsToSelector:@selector(sharedInstanceIfExists)] && [%c(SBBulletinSystemStateAdapter) instancesRespondToSelector:@selector(_activeBehaviorOverrideTypesChanged:)]) {
+		[[%c(SBBulletinSystemStateAdapter) sharedInstanceIfExists] _activeBehaviorOverrideTypesChanged:state];
+	}
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"SBQuietModeStatusChangedNotification" object:nil];
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_current_queue(), ^{
+		SBStatusBarDataManager *dm = [%c(SBStatusBarDataManager) sharedDataManager];
+		[dm setStatusBarItem:1 enabled:NO];
+		if (state) {
+			[dm setStatusBarItem:1 enabled:YES];
+		}
+	});
+	if (BKSTerminateApplicationForReasonAndReportWithDescription) {
+		BKSTerminateApplicationForReasonAndReportWithDescription(@"com.apple.Preferences", 5, 0, nil);
+	}
+}
+
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
 {
-	if (newState == FSSwitchStateIndeterminate)
-		return;
-	state = newState;
-	[gateway getBehaviorOverridesWithCompletion:^(NSArray *overrides) {
-		unsigned mode;
-		if (newState) {
-			mode = 1;
-		} else if ([overrides count]) {
-			BBBehaviorOverride *override = [overrides objectAtIndex:0];
-			mode = override.mode ? 2 : 0;
-		} else {
-			mode = 0;
-		}
-		[gateway setBehaviorOverrideStatus:mode];
-		// Now tell everyone about it. Bugs in SpringBoard if we don't :()
-		if ([%c(SBBulletinSystemStateAdapter) respondsToSelector:@selector(sharedInstanceIfExists)] && [%c(SBBulletinSystemStateAdapter) instancesRespondToSelector:@selector(_activeBehaviorOverrideTypesChanged:)]) {
-			[[%c(SBBulletinSystemStateAdapter) sharedInstanceIfExists] _activeBehaviorOverrideTypesChanged:newState];
-		}
-		[[NSNotificationCenter defaultCenter] postNotificationName:@"SBQuietModeStatusChangedNotification" object:nil];
-		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_current_queue(), ^{
-			SBStatusBarDataManager *dm = [%c(SBStatusBarDataManager) sharedDataManager];
-			[dm setStatusBarItem:1 enabled:NO];
-			if (state) {
-				[dm setStatusBarItem:1 enabled:YES];
-			}
-		});
-	}];
+	switch (newState) {
+		case FSSwitchStateIndeterminate:
+			break;
+		case FSSwitchStateOn:
+			state = FSSwitchStateOn;
+			[self applyMode:1];
+			break;
+		case FSSwitchStateOff:
+			state = FSSwitchStateOff;
+			[gateway getBehaviorOverridesWithCompletion:^(NSArray *overrides) {
+				if ([overrides count]) {
+					BBBehaviorOverride *override = [overrides objectAtIndex:0];
+					[self applyMode:override.mode ? 2 : 0];
+				} else {
+					[self applyMode:0];
+				}
+			}];
+			break;
+	}
 }
 
 @end
