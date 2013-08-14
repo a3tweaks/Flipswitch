@@ -215,6 +215,8 @@ static FSSwitchState state;
 {
 	%orig();
 	gateway = [[BBSettingsGateway alloc] init];
+	[gateway getBehaviorOverridesWithCompletion:^(NSArray *overrides) {
+	}];
 	[gateway setActiveBehaviorOverrideTypesChangeHandler:^(int value){
 		state = value & 1;
 		[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[DoNotDisturbSwitch class]].bundleIdentifier];
