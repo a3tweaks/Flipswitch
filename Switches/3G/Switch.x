@@ -23,39 +23,29 @@ void CTTelephonyCenterAddObserver(CFNotificationCenterRef center, const void *ob
 void CTTelephonyCenterRemoveObserver(CFNotificationCenterRef center, const void *observer, CFStringRef name, const void *object);
 #endif
 
-@interface Data3GSwitch : NSObject <FSSwitchDataSource>
+@interface DataSpeedSwitch : NSObject <FSSwitchDataSource> {
+@private
+	NSBundle *_bundle;
+	NSString *_desiredDataRate;
+}
+@property (nonatomic, readonly) NSBundle *bundle;
 @end
 
-static void FSData3GSwitchStatusDidChange(void);
+static void FSDataStatusChanged(void);
 
-@implementation Data3GSwitch
+@implementation DataSpeedSwitch
 
 - (id)init
 {
-	if ((self = [super init])) {
-		CFPropertyListRef telephonyGeneration = GSSystemCopyCapability(CFSTR("telephony-maximum-generation"));
-		if (!telephonyGeneration) {
-			[self release];
-			return nil;
-		}
-		float value = [(id)telephonyGeneration floatValue];
-		CFRelease(telephonyGeneration);
-		if (value < 3.0f || value >= 3.5f) {
-			[self release];
-			return nil;
-		}
-#if 0	
-		CFArrayRef supportedDataRates = CTRegistrationCopySupportedDataRates();
-		BOOL supports3G = [(NSArray *)supportedDataRates containsObject:(id)kCTRegistrationDataRate3G];
-		BOOL supports4G = [(NSArray *)supportedDataRates containsObject:(id)kCTRegistrationDataRate4G];
-		CFRelease(supportedDataRates);
-		if (!supports3G || supports4G) {
-			[self release];
-			return nil;
-		}
-#endif
+	[self release];
+	return nil;
+}
 
-		CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSData3GSwitchStatusDidChange, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
+- (id)initWithBundle:(NSBundle *)bundle desiredDataRate:(NSString *)desiredDataRate
+{
+	if ((self = [super init])) {
+		_bundle = [bundle retain];
+		_desiredDataRate = [desiredDataRate copy];
 	}
 
 	return self;
@@ -63,15 +53,22 @@ static void FSData3GSwitchStatusDidChange(void);
 
 - (void)dealloc
 {
-	CTTelephonyCenterRemoveObserver(CTTelephonyCenterGetDefault(), (CFNotificationCallback)FSData3GSwitchStatusDidChange, NULL, NULL);
-
+	[_bundle release];
+	[_desiredDataRate release];
 	[super dealloc];
+}
+
+@synthesize bundle = _bundle;
+
+- (NSBundle *)bundleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	return _bundle;
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	NSArray *supportedDataRates = [(NSArray *)CTRegistrationCopySupportedDataRates() autorelease];
-	NSUInteger desiredRateIndex = [supportedDataRates indexOfObject:(id)kCTRegistrationDataRate3G];
+	NSUInteger desiredRateIndex = [supportedDataRates indexOfObject:_desiredDataRate];
 	if (desiredRateIndex == NSNotFound)
 		return FSSwitchStateOff;
 	NSUInteger currentRateIndex = [supportedDataRates indexOfObject:(id)CTRegistrationGetCurrentMaxAllowedDataRate()];
@@ -85,7 +82,7 @@ static void FSData3GSwitchStatusDidChange(void);
 	if (newState == FSSwitchStateIndeterminate)
 		return;
 	NSArray *supportedDataRates = [(NSArray *)CTRegistrationCopySupportedDataRates() autorelease];
-	NSUInteger desiredRateIndex = [supportedDataRates indexOfObject:(id)kCTRegistrationDataRate3G];
+	NSUInteger desiredRateIndex = [supportedDataRates indexOfObject:_desiredDataRate];
 	if (desiredRateIndex == NSNotFound)
 		return;
 	NSUInteger currentRateIndex = [supportedDataRates indexOfObject:(id)CTRegistrationGetCurrentMaxAllowedDataRate()];
@@ -93,7 +90,7 @@ static void FSData3GSwitchStatusDidChange(void);
 		return;
 	if (newState) {
 		if (currentRateIndex < desiredRateIndex)
-			CTRegistrationSetMaxAllowedDataRate(kCTRegistrationDataRate3G);
+			CTRegistrationSetMaxAllowedDataRate((CFStringRef)_desiredDataRate);
 	} else {
 		if ((currentRateIndex >= desiredRateIndex) && desiredRateIndex)
 			CTRegistrationSetMaxAllowedDataRate((CFStringRef)[supportedDataRates objectAtIndex:desiredRateIndex - 1]);
@@ -108,7 +105,46 @@ static void FSData3GSwitchStatusDidChange(void);
 
 @end
 
-static void FSData3GSwitchStatusDidChange(void)
+static DataSpeedSwitch *activeSwitch;
+
+static void FSDataStatusChanged(void)
 {
-    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[Data3GSwitch class]].bundleIdentifier];
+    NSString *bundlePath = nil;
+    NSString *desiredDataRate = nil;
+	CFArrayRef supportedDataRates = CTRegistrationCopySupportedDataRates();
+	if (supportedDataRates) {
+		if ([(NSArray *)supportedDataRates containsObject:(id)kCTRegistrationDataRate3G]) {
+			if ([(NSArray *)supportedDataRates containsObject:(id)kCTRegistrationDataRate4G]) {
+				bundlePath = @"/Library/Switches/LTE.bundle";
+				desiredDataRate = (NSString *)kCTRegistrationDataRate4G;
+			} else {
+				bundlePath = @"/Library/Switches/3G.bundle";
+				desiredDataRate = (NSString *)kCTRegistrationDataRate3G;
+			}
+		}
+		CFRelease(supportedDataRates);
+	}
+	DataSpeedSwitch *oldActiveSwitch = activeSwitch;
+	if (!bundlePath && !oldActiveSwitch)
+		return;
+	if (bundlePath) {
+		if ([oldActiveSwitch.bundle.bundlePath isEqualToString:bundlePath]) {
+			[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:oldActiveSwitch.bundle.bundleIdentifier];
+			return;
+		}
+		NSBundle *newBundle = [NSBundle bundleWithPath:bundlePath];
+		activeSwitch = [[DataSpeedSwitch alloc] initWithBundle:newBundle desiredDataRate:desiredDataRate];
+		[[FSSwitchPanel sharedPanel] registerDataSource:activeSwitch forSwitchIdentifier:newBundle.bundleIdentifier];
+	}
+	if (oldActiveSwitch) {
+		[[FSSwitchPanel sharedPanel] unregisterSwitchIdentifier:oldActiveSwitch.bundle.bundleIdentifier];
+		[oldActiveSwitch release];
+	}
+}
+
+__attribute__((constructor))
+static void constructor(void)
+{
+	CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataStatusChanged, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
+	FSDataStatusChanged();
 }

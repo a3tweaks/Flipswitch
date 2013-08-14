@@ -4,8 +4,6 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
-	<key>CFBundleExecutable</key>
-	<string>LTE</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.a3tweaks.switch.lte</string>
 	<key>CFBundleDisplayName</key>
@@ -24,8 +22,6 @@
 	<string>iphoneos</string>
 	<key>MinimumOSVersion</key>
 	<string>6.0</string>
-	<key>NSPrincipalClass</key>
-	<string>LTESwitch</string>
 	<key>alternate-action-url</key>
 	<string>prefs:root=General&amp;path=MOBILE_DATA_SETTINGS_ID</string>
 	<key>required-capabilities</key>

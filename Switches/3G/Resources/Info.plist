@@ -24,8 +24,6 @@
 	<string>iphoneos</string>
 	<key>MinimumOSVersion</key>
 	<string>5.0</string>
-	<key>NSPrincipalClass</key>
-	<string>Data3GSwitch</string>
 	<key>alternate-action-url</key>
 	<string>prefs:root=General&amp;path=MOBILE_DATA_SETTINGS_ID</string>
 	<key>required-capabilities</key>
