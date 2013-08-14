@@ -303,11 +303,32 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 				return;
 		}
 	}
-	Class switchClass = [[bundle objectForInfoDictionaryKey:@"lazy-load"] boolValue] ? [FSLazySwitch class] : [bundle principalClass] ?: NSClassFromString([bundle objectForInfoDictionaryKey:@"NSPrincipalClass"]);
-	id<FSSwitchDataSource> switchImplementation = [switchClass instancesRespondToSelector:@selector(initWithBundle:)] ? [[switchClass alloc] initWithBundle:bundle] : [[switchClass alloc] init];
-	if (switchImplementation)
-		[self registerDataSource:switchImplementation forSwitchIdentifier:bundle.bundleIdentifier];
-	[switchImplementation release];
+	Class switchClass = nil;
+	if ([[bundle objectForInfoDictionaryKey:@"lazy-load"] boolValue]) {
+		switchClass = [FSLazySwitch class];
+	} else if ([bundle objectForInfoDictionaryKey:@"CFBundleExecutable"]) {
+		NSError *error = nil;
+		if ([bundle loadAndReturnError:&error]) {
+			NSString *principalClass = [bundle objectForInfoDictionaryKey:@"NSPrincipalClass"];
+			if (principalClass) {
+				switchClass = NSClassFromString(principalClass);
+			}
+		} else {
+			NSLog(@"Flipswitch: Failed to load bundle with error: %@", error);
+		}
+	} else {
+		NSString *principalClass = [bundle objectForInfoDictionaryKey:@"NSPrincipalClass"];
+		if (principalClass) {
+			switchClass = NSClassFromString(principalClass);
+		}
+	}
+	if (switchClass) {
+		id<FSSwitchDataSource> switchImplementation = [switchClass instancesRespondToSelector:@selector(initWithBundle:)] ? [[switchClass alloc] initWithBundle:bundle] : [[switchClass alloc] init];
+		if (switchImplementation) {
+			[self registerDataSource:switchImplementation forSwitchIdentifier:bundle.bundleIdentifier];
+			[switchImplementation release];
+		}
+	}
 }
 
 - (id)init
