@@ -331,6 +331,17 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 	}
 }
 
+- (void)_loadBuiltInSwitches
+{
+	NSArray *switchDirectoryContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:kSwitchesPath error:nil];
+	for (NSString *folder in switchDirectoryContents) {
+		NSBundle *bundle = [NSBundle bundleWithPath:[kSwitchesPath stringByAppendingPathComponent:folder]];
+		if (bundle) {
+			[self _loadSwitchForBundle:bundle];
+		}
+	}
+}
+
 - (id)init
 {
 	if ((self = [super init]))
@@ -345,13 +356,6 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 		kern_return_t err = bootstrap_register(bootstrap, kFSSwitchServiceName, port);
 		if (err) NSLog(@"FS Switch API: Connection Creation failed with Error: %x", err);
 		_switchImplementations = [[NSMutableDictionary alloc] init];
-		NSArray *switchDirectoryContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:kSwitchesPath error:nil];
-		for (NSString *folder in switchDirectoryContents) {
-			NSBundle *bundle = [NSBundle bundleWithPath:[kSwitchesPath stringByAppendingPathComponent:folder]];
-			if (bundle)
-				[self _loadSwitchForBundle:bundle];
-		}
-
 	}
 	return self;
 }

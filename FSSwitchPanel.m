@@ -63,7 +63,9 @@ static void WillOpenURLCallback(CFNotificationCenterRef center, void *observer, 
 	if (self == [FSSwitchPanel class]) {
 		if (objc_getClass("SpringBoard")) {
 			dlopen("/Library/Flipswitch/FlipswitchSpringBoard.dylib", RTLD_LAZY);
-			_switchManager = [[objc_getClass("FSSwitchMainPanel") alloc] init];
+			FSSwitchMainPanel *mainPanel = [[objc_getClass("FSSwitchMainPanel") alloc] init];
+			_switchManager = mainPanel;
+			[mainPanel _loadBuiltInSwitches];
 		} else {
 			_switchManager = [[self alloc] init];
 			CFNotificationCenterRef darwin = CFNotificationCenterGetDarwinNotifyCenter();
