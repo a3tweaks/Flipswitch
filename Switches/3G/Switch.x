@@ -135,6 +135,8 @@ static void FSDataStatusChanged(void)
 		NSBundle *newBundle = [NSBundle bundleWithPath:bundlePath];
 		activeSwitch = [[DataSpeedSwitch alloc] initWithBundle:newBundle desiredDataRate:desiredDataRate];
 		[[FSSwitchPanel sharedPanel] registerDataSource:activeSwitch forSwitchIdentifier:newBundle.bundleIdentifier];
+	} else {
+		activeSwitch = nil;
 	}
 	if (oldActiveSwitch) {
 		[[FSSwitchPanel sharedPanel] unregisterSwitchIdentifier:oldActiveSwitch.bundle.bundleIdentifier];
