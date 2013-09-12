@@ -1,2 +1,2 @@
 #!/bin/sh
-rm -rf /tmp/Flipswitch
+rm -rf /tmp/FlipswitchCache
