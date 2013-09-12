@@ -272,45 +272,8 @@ static inline NSString *MD5OfString(NSString *string)
     return MD5OfData([string dataUsingEncoding:NSUTF8StringEncoding] ?: [NSData data]);
 }
 
-- (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
+- (void)_renderImageOfLayers:(NSArray *)layers switchState:(FSSwitchState)state controlState:(UIControlState)controlState size:(CGSize)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
 {
-	template = [template flipswitchThemedBundle];
-	CGSize size;
-	size.width = [[template objectForInfoDictionaryKey:@"width"] floatValue];
-	if (size.width == 0.0f)
-		return nil;
-	size.height = [[template objectForInfoDictionaryKey:@"height"] floatValue];
-	if (size.height == 0.0f)
-		return nil;
-	NSArray *layers;
-	NSString *prerenderedImageName;
-	id cacheKey = [self _cacheKeyForSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template layers:&layers prerenderedFileName:&prerenderedImageName];
-	if (!cacheKey)
-		return nil;
-	OSSpinLockLock(&_lock);
-	UIImage *result = [[_cachedSwitchImages objectForKey:cacheKey] retain];
-	OSSpinLockUnlock(&_lock);
-	if (result) {
-		return [result autorelease];
-	}
-	if (prerenderedImageName) {
-		result = [UIImage imageWithContentsOfFile:prerenderedImageName];
-		goto cache_and_return_result;
-	}
-	NSString *cachePath = [@"/tmp/FlipswitchCache/" stringByAppendingString:MD5OfString([template bundlePath])];
-	NSString *cacheImageName = [cachePath stringByAppendingFormat:@"/%@.png", MD5OfData([NSPropertyListSerialization dataFromPropertyList:cacheKey format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL] ?: [NSData data])];
-	result = [UIImage imageWithContentsOfFile:cacheImageName];
-	if (result) {
-		if (scale != 1.0f && [UIImage respondsToSelector:@selector(imageWithCGImage:scale:orientation:)])
-			result = [UIImage imageWithCGImage:result.CGImage scale:scale orientation:result.imageOrientation];
-		goto cache_and_return_result;
-	}
-	if (&UIGraphicsBeginImageContextWithOptions != NULL) {
-		UIGraphicsBeginImageContextWithOptions(size, NO, scale);
-	} else {
-		UIGraphicsBeginImageContext(size);
-		scale = 1.0f;
-	}
 	size_t maskWidth = size.width * scale;
 	size_t maskHeight = size.height * scale * 2;
 	void *maskData = NULL;
@@ -387,12 +350,55 @@ static inline NSString *MD5OfString(NSString *string)
 		}
 		CGContextRestoreGState(context);
 	}
-	result = UIGraphicsGetImageFromCurrentImageContext();
-	UIGraphicsEndImageContext();
 	if (maskData)
 		free(maskData);
 	if (secondMaskData)
 		free(secondMaskData);
+}
+
+- (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
+{
+	template = [template flipswitchThemedBundle];
+	CGSize size;
+	size.width = [[template objectForInfoDictionaryKey:@"width"] floatValue];
+	if (size.width == 0.0f)
+		return nil;
+	size.height = [[template objectForInfoDictionaryKey:@"height"] floatValue];
+	if (size.height == 0.0f)
+		return nil;
+	NSArray *layers;
+	NSString *prerenderedImageName;
+	id cacheKey = [self _cacheKeyForSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template layers:&layers prerenderedFileName:&prerenderedImageName];
+	if (!cacheKey)
+		return nil;
+	OSSpinLockLock(&_lock);
+	UIImage *result = [[_cachedSwitchImages objectForKey:cacheKey] retain];
+	OSSpinLockUnlock(&_lock);
+	if (result) {
+		return [result autorelease];
+	}
+	if (prerenderedImageName) {
+		result = [UIImage imageWithContentsOfFile:prerenderedImageName];
+		goto cache_and_return_result;
+	}
+	NSString *cachePath = [@"/tmp/FlipswitchCache/" stringByAppendingString:MD5OfString([template bundlePath])];
+	NSString *cacheImageName = [cachePath stringByAppendingFormat:@"/%@.png", MD5OfData([NSPropertyListSerialization dataFromPropertyList:cacheKey format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL] ?: [NSData data])];
+	result = [UIImage imageWithContentsOfFile:cacheImageName];
+	if (result) {
+		if (scale != 1.0f && [UIImage respondsToSelector:@selector(imageWithCGImage:scale:orientation:)])
+			result = [UIImage imageWithCGImage:result.CGImage scale:scale orientation:result.imageOrientation];
+		goto cache_and_return_result;
+	}
+	// Render new image
+	if (&UIGraphicsBeginImageContextWithOptions != NULL) {
+		UIGraphicsBeginImageContextWithOptions(size, NO, scale);
+	} else {
+		UIGraphicsBeginImageContext(size);
+		scale = 1.0f;
+	}
+	[self _renderImageOfLayers:layers switchState:state controlState:controlState size:size scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
+	result = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
 	mkdir("/tmp/FlipswitchCache", 0777);
 	mkdir([cachePath UTF8String], 0777);
 	[UIImagePNGRepresentation(result) writeToFile:cacheImageName atomically:YES];
