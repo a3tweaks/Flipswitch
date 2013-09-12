@@ -9,6 +9,8 @@
 
 #import <dlfcn.h>
 #import <sys/stat.h>
+#import <unistd.h>
+#import <sys/mman.h>
 #import <UIKit/UIKit2.h>
 #import <libkern/OSAtomic.h>
 #import <CommonCrypto/CommonDigest.h>
@@ -32,6 +34,7 @@ static NSMutableDictionary *_cachedSwitchImages;
 static volatile OSSpinLock _lock;
 static BOOL _scaleIsSupported;
 static CGColorSpaceRef _sharedColorSpace;
+static long int _pageSize;
 
 @implementation FSSwitchPanel
 
@@ -67,6 +70,7 @@ static void WillOpenURLCallback(CFNotificationCenterRef center, void *observer, 
 	if (self == [FSSwitchPanel class]) {
 		_scaleIsSupported = [UIImage respondsToSelector:@selector(imageWithCGImage:scale:orientation:)];
 		_sharedColorSpace = CGColorSpaceCreateDeviceRGB();
+		_pageSize = sysconf(_SC_PAGESIZE);
 		if (objc_getClass("SpringBoard")) {
 			dlopen("/Library/Flipswitch/FlipswitchSpringBoard.dylib", RTLD_LAZY);
 			FSSwitchMainPanel *mainPanel = [[objc_getClass("FSSwitchMainPanel") alloc] init];
@@ -360,6 +364,11 @@ static inline NSString *MD5OfString(NSString *string)
 		free(secondMaskData);
 }
 
+static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const void *data, size_t size)
+{
+	munmap((void *)data, size);
+}
+
 - (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
 {
 	template = [template flipswitchThemedBundle];
@@ -385,34 +394,60 @@ static inline NSString *MD5OfString(NSString *string)
 		result = [UIImage imageWithContentsOfFile:prerenderedImageName];
 		goto cache_and_return_result;
 	}
-	NSString *cachePath = [@"/tmp/FlipswitchCache/" stringByAppendingString:MD5OfString([template bundlePath])];
-	NSString *cacheImageName = [cachePath stringByAppendingFormat:@"/%@.png", MD5OfData([NSPropertyListSerialization dataFromPropertyList:cacheKey format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL] ?: [NSData data])];
-	result = [UIImage imageWithContentsOfFile:cacheImageName];
-	if (result) {
-		if (scale != 1.0f && _scaleIsSupported)
-			result = [UIImage imageWithCGImage:result.CGImage scale:scale orientation:result.imageOrientation];
-		goto cache_and_return_result;
-	}
 	size_t rawWidth = _scaleIsSupported ? (size.width * scale) : size.width;
 	size_t rawHeight = _scaleIsSupported ? (size.height * scale) : size.height;
-	CGContextRef context = CGBitmapContextCreate(NULL, rawWidth, rawHeight, 8, rawWidth * 4, _sharedColorSpace, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little);
-	if (_scaleIsSupported && scale != 1.0f) {
-		CGContextScaleCTM(context, scale, scale);
+	size_t rawSize = rawWidth * 4 * rawHeight;
+	size_t mappingSize = ((rawSize + _pageSize - 1) / _pageSize) * _pageSize;
+	int fd;
+	void *buffer;
+	struct stat cache_file_stat;
+	NSString *cachePath = [@"/tmp/FlipswitchCache/" stringByAppendingString:MD5OfString([template bundlePath])];
+	const char *cacheImageName = [[cachePath stringByAppendingPathComponent:MD5OfData([NSPropertyListSerialization dataFromPropertyList:cacheKey format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL] ?: [NSData data])] UTF8String];
+	int stat_result = stat(cacheImageName, &cache_file_stat);
+	if ((stat_result != 0) || (cache_file_stat.st_size < mappingSize)) {
+		mkdir("/tmp/FlipswitchCache", 0777);
+		mkdir([cachePath UTF8String], 0777);
+		fd = open(cacheImageName, O_RDWR | O_CREAT);
+		fchmod(fd, S_IRWXU | S_IRGRP | S_IROTH);
+		lseek(fd, mappingSize - 1, SEEK_SET);
+		char zero = 0;
+		write(fd, &zero, 1);
+		lseek(fd, 0, SEEK_SET);
+		buffer = mmap(NULL, mappingSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+		if (buffer == MAP_FAILED) {
+			NSLog(@"Flipswitch: Unable to create mapping to cache image with error: %x", errno);
+			close(fd);
+			return nil;
+		}
+		memset(buffer, 0, rawSize);
+		CGContextRef context = CGBitmapContextCreate(buffer, rawWidth, rawHeight, 8, rawWidth * 4, _sharedColorSpace, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little);
+		if (_scaleIsSupported) {
+			CGContextScaleCTM(context, scale, -scale);
+			CGContextTranslateCTM(context, 0.0f, -size.height);
+		}
+		UIGraphicsPushContext(context);
+		[self _renderImageOfLayers:layers switchState:state controlState:controlState size:size scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
+		UIGraphicsPopContext();
+		CGContextFlush(context);
+		msync(buffer, mappingSize, MS_SYNC);
+	} else {
+		fd = open(cacheImageName, O_RDONLY);
+		buffer = mmap(NULL, mappingSize, PROT_READ, MAP_SHARED, fd, 0);
+		if (buffer == MAP_FAILED) {
+			NSLog(@"Flipswitch: Unable to map cached image with error: %x", errno);
+			close(fd);
+			return nil;
+		}
 	}
-	UIGraphicsPushContext(context);
-	[self _renderImageOfLayers:layers switchState:state controlState:controlState size:size scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
-	UIGraphicsPopContext();
-	CGContextFlush(context);
-	CGImageRef cgResult = CGBitmapContextCreateImage(context);
-	CGContextRelease(context);
+	CGDataProviderRef dataProvider = CGDataProviderCreateWithData(NULL, buffer, mappingSize, FlipSwitchMappingCGDataProviderReleaseDataCallback);
+	close(fd);
+	CGImageRef cgResult = CGImageCreate(rawWidth, rawHeight, 8, 32, rawWidth * 4, _sharedColorSpace, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little, dataProvider, NULL, false, kCGRenderingIntentDefault);
+	CGDataProviderRelease(dataProvider);
 	if (_scaleIsSupported)
 		result = [UIImage imageWithCGImage:cgResult scale:scale orientation:UIImageOrientationUp];
 	else
 		result = [UIImage imageWithCGImage:cgResult];
 	CGImageRelease(cgResult);
-	mkdir("/tmp/FlipswitchCache", 0777);
-	mkdir([cachePath UTF8String], 0777);
-	[UIImagePNGRepresentation(result) writeToFile:cacheImageName atomically:YES];
 cache_and_return_result:
 	if (result) {
 		OSSpinLockLock(&_lock);
