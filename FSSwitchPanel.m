@@ -30,6 +30,8 @@ NSString * const FSSwitchPanelSwitchWillOpenURLNotification = @"FSSwitchPanelSwi
 static FSSwitchPanel *_switchManager;
 static NSMutableDictionary *_cachedSwitchImages;
 static volatile OSSpinLock _lock;
+static BOOL _scaleIsSupported;
+static CGColorSpaceRef _sharedColorSpace;
 
 @implementation FSSwitchPanel
 
@@ -63,6 +65,8 @@ static void WillOpenURLCallback(CFNotificationCenterRef center, void *observer, 
 + (void)initialize
 {
 	if (self == [FSSwitchPanel class]) {
+		_scaleIsSupported = [UIImage respondsToSelector:@selector(imageWithCGImage:scale:orientation:)];
+		_sharedColorSpace = CGColorSpaceCreateDeviceRGB();
 		if (objc_getClass("SpringBoard")) {
 			dlopen("/Library/Flipswitch/FlipswitchSpringBoard.dylib", RTLD_LAZY);
 			FSSwitchMainPanel *mainPanel = [[objc_getClass("FSSwitchMainPanel") alloc] init];
@@ -385,20 +389,27 @@ static inline NSString *MD5OfString(NSString *string)
 	NSString *cacheImageName = [cachePath stringByAppendingFormat:@"/%@.png", MD5OfData([NSPropertyListSerialization dataFromPropertyList:cacheKey format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL] ?: [NSData data])];
 	result = [UIImage imageWithContentsOfFile:cacheImageName];
 	if (result) {
-		if (scale != 1.0f && [UIImage respondsToSelector:@selector(imageWithCGImage:scale:orientation:)])
+		if (scale != 1.0f && _scaleIsSupported)
 			result = [UIImage imageWithCGImage:result.CGImage scale:scale orientation:result.imageOrientation];
 		goto cache_and_return_result;
 	}
-	// Render new image
-	if (&UIGraphicsBeginImageContextWithOptions != NULL) {
-		UIGraphicsBeginImageContextWithOptions(size, NO, scale);
-	} else {
-		UIGraphicsBeginImageContext(size);
-		scale = 1.0f;
+	size_t rawWidth = _scaleIsSupported ? (size.width * scale) : size.width;
+	size_t rawHeight = _scaleIsSupported ? (size.height * scale) : size.height;
+	CGContextRef context = CGBitmapContextCreate(NULL, rawWidth, rawHeight, 8, rawWidth * 4, _sharedColorSpace, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little);
+	if (_scaleIsSupported && scale != 1.0f) {
+		CGContextScaleCTM(context, scale, scale);
 	}
+	UIGraphicsPushContext(context);
 	[self _renderImageOfLayers:layers switchState:state controlState:controlState size:size scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
-	result = UIGraphicsGetImageFromCurrentImageContext();
-	UIGraphicsEndImageContext();
+	UIGraphicsPopContext();
+	CGContextFlush(context);
+	CGImageRef cgResult = CGBitmapContextCreateImage(context);
+	CGContextRelease(context);
+	if (_scaleIsSupported)
+		result = [UIImage imageWithCGImage:cgResult scale:scale orientation:UIImageOrientationUp];
+	else
+		result = [UIImage imageWithCGImage:cgResult];
+	CGImageRelease(cgResult);
 	mkdir("/tmp/FlipswitchCache", 0777);
 	mkdir([cachePath UTF8String], 0777);
 	[UIImagePNGRepresentation(result) writeToFile:cacheImageName atomically:YES];
