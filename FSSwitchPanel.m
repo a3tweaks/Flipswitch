@@ -8,8 +8,10 @@
 #import "Internal.h"
 
 #import <dlfcn.h>
+#import <sys/stat.h>
 #import <UIKit/UIKit2.h>
 #import <libkern/OSAtomic.h>
+#import <CommonCrypto/CommonDigest.h>
 #import "LightMessaging/LightMessaging.h"
 
 static LMConnection connection = {
@@ -252,6 +254,24 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	return [result autorelease];
 }
 
+
+static inline NSString *MD5OfData(NSData *data)
+{
+	unsigned char digest[16];
+	CC_MD5((unsigned char *)data.bytes, data.length, digest);
+	return [NSString stringWithFormat:@"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+		digest[0], digest[1], digest[2], digest[3],
+		digest[4], digest[5], digest[6], digest[7],
+		digest[8], digest[9], digest[10], digest[11],
+		digest[12], digest[13], digest[14], digest[15]
+	];
+}
+
+static inline NSString *MD5OfString(NSString *string)
+{
+    return MD5OfData([string dataUsingEncoding:NSUTF8StringEncoding] ?: [NSData data]);
+}
+
 - (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
 {
 	template = [template flipswitchThemedBundle];
@@ -270,10 +290,19 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	OSSpinLockLock(&_lock);
 	UIImage *result = [[_cachedSwitchImages objectForKey:cacheKey] retain];
 	OSSpinLockUnlock(&_lock);
-	if (result)
+	if (result) {
 		return [result autorelease];
+	}
 	if (prerenderedImageName) {
 		result = [UIImage imageWithContentsOfFile:prerenderedImageName];
+		goto cache_and_return_result;
+	}
+	NSString *cachePath = [@"/tmp/FlipswitchCache/" stringByAppendingString:MD5OfString([template bundlePath])];
+	NSString *cacheImageName = [cachePath stringByAppendingFormat:@"/%@.png", MD5OfData([NSPropertyListSerialization dataFromPropertyList:cacheKey format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL] ?: [NSData data])];
+	result = [UIImage imageWithContentsOfFile:cacheImageName];
+	if (result) {
+		if (scale != 1.0f && [UIImage respondsToSelector:@selector(imageWithCGImage:scale:orientation:)])
+			result = [UIImage imageWithCGImage:result.CGImage scale:scale orientation:result.imageOrientation];
 		goto cache_and_return_result;
 	}
 	if (&UIGraphicsBeginImageContextWithOptions != NULL) {
@@ -364,6 +393,9 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 		free(maskData);
 	if (secondMaskData)
 		free(secondMaskData);
+	mkdir("/tmp/FlipswitchCache", 0777);
+	mkdir([cachePath UTF8String], 0777);
+	[UIImagePNGRepresentation(result) writeToFile:cacheImageName atomically:YES];
 cache_and_return_result:
 	if (result) {
 		OSSpinLockLock(&_lock);

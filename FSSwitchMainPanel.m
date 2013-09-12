@@ -9,6 +9,7 @@
 #import "Internal.h"
 
 #import <notify.h>
+#import <sys/stat.h>
 
 extern BOOL GSSystemHasCapability(NSString *capability);
 
@@ -368,12 +369,32 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 
 @end
 
+static struct timespec GetFileModifiedTime(const char *path)
+{
+	struct stat temp;
+	if (stat(path, &temp) == 0)
+		return temp.st_mtimespec;
+	struct timespec distantPast;
+	distantPast.tv_sec = 0;
+	distantPast.tv_nsec = 0;
+	return distantPast;
+}
+
 __attribute__((constructor))
 static void constructor(void)
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	// Initialize in SpringBoard automatically so that the bootstrap service gets registered
 	if ([[NSBundle mainBundle].bundleIdentifier isEqualToString:@"com.apple.springboard"]) {
+		// Clear the cache if a new WinterBoard theme has been applied
+		struct timespec cacheModified = GetFileModifiedTime("/tmp/FlipswitchCache");
+		if (cacheModified.tv_sec != 0) {
+			struct timespec winterboardModified = GetFileModifiedTime("/var/mobile/Library/Preferences/com.saurik.WinterBoard.plist");
+			if ((cacheModified.tv_sec < winterboardModified.tv_sec) || (cacheModified.tv_sec == winterboardModified.tv_sec && cacheModified.tv_nsec < winterboardModified.tv_nsec)) {
+				NSLog(@"Flipswitch: Clearing image cache!");
+				[[NSFileManager defaultManager] removeItemAtPath:@"/tmp/FlipswitchCache" error:NULL];
+			}
+		}
 		[FSSwitchPanel sharedPanel];
 	}
 	[pool drain];
