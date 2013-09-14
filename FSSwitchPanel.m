@@ -364,9 +364,19 @@ static inline NSString *MD5OfString(NSString *string)
 		free(secondMaskData);
 }
 
+static uintptr_t ceil_to_page(uintptr_t value)
+{
+	return ((value + _pageSize - 1) / _pageSize) * _pageSize;
+}
+
+static uintptr_t floor_to_page(uintptr_t value)
+{
+	return (value / _pageSize) * _pageSize;
+}
+
 static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const void *data, size_t size)
 {
-	munmap((void *)data, size);
+	munmap(info, ceil_to_page((uintptr_t)data - (uintptr_t)info + size));
 }
 
 - (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
@@ -397,30 +407,46 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 	size_t rawWidth = _scaleIsSupported ? (size.width * scale) : size.width;
 	size_t rawHeight = _scaleIsSupported ? (size.height * scale) : size.height;
 	size_t rawSize = rawWidth * 4 * rawHeight;
-	size_t mappingSize = ((rawSize + _pageSize - 1) / _pageSize) * _pageSize;
-	int fd;
-	void *buffer;
-	struct stat cache_file_stat;
-	NSString *cachePath = [@"/tmp/FlipswitchCache/" stringByAppendingString:MD5OfString([template bundlePath])];
-	const char *cacheImageName = [[cachePath stringByAppendingPathComponent:MD5OfData([NSPropertyListSerialization dataFromPropertyList:cacheKey format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL] ?: [NSData data])] UTF8String];
-	int stat_result = stat(cacheImageName, &cache_file_stat);
-	if ((stat_result != 0) || (cache_file_stat.st_size < mappingSize)) {
-		mkdir("/tmp/FlipswitchCache", 0777);
-		mkdir([cachePath UTF8String], 0777);
-		fd = open(cacheImageName, O_RDWR | O_CREAT);
-		fchmod(fd, S_IRWXU | S_IRGRP | S_IROTH);
-		lseek(fd, mappingSize - 1, SEEK_SET);
+	char *buffer;
+	NSString *basePath = [@"/tmp/FlipswitchCache/" stringByAppendingString:MD5OfString([template bundlePath])];
+	NSString *metadataPath = [basePath stringByAppendingString:@".plist"];
+	NSString *binaryPath = [basePath stringByAppendingString:@".bin"];
+	mkdir("/tmp/FlipswitchCache", 0777);
+	int fd = open([binaryPath UTF8String], O_RDWR | O_CREAT);
+	fchmod(fd, S_IRWXU | S_IRGRP | S_IROTH);
+	flock(fd, LOCK_EX);
+	NSDictionary *metadata = [NSDictionary dictionaryWithContentsOfFile:metadataPath];
+	NSString *keyName = MD5OfData([NSPropertyListSerialization dataFromPropertyList:cacheKey format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]); 
+	NSNumber *position = [metadata objectForKey:keyName];
+	uintptr_t positionOffset;
+	uintptr_t mappingStart;
+	uintptr_t mappingEnd;
+	if (position) {
+		positionOffset = [position unsignedIntegerValue];
+		mappingStart = floor_to_page(positionOffset);
+		mappingEnd = ceil_to_page(positionOffset + rawSize);
+	} else {
+		// Find position for new image
+		NSNumber *newOffset = [metadata objectForKey:@"end"] ?: [NSNumber numberWithUnsignedInteger:0];
+		positionOffset = [newOffset unsignedIntegerValue];
+		mappingStart = floor_to_page(positionOffset);
+		mappingEnd = ceil_to_page(positionOffset + rawSize);
+		// Make file larger to accomodate new buffer
+		lseek(fd, mappingEnd, SEEK_SET);
 		char zero = 0;
 		write(fd, &zero, 1);
 		lseek(fd, 0, SEEK_SET);
-		buffer = mmap(NULL, mappingSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+		// Map it in
+		buffer = mmap(NULL, mappingEnd - mappingStart, PROT_READ | PROT_WRITE, MAP_SHARED, fd, mappingStart);
 		if (buffer == MAP_FAILED) {
 			NSLog(@"Flipswitch: Unable to create mapping to cache image with error: %x", errno);
 			close(fd);
 			return nil;
 		}
-		memset(buffer, 0, rawSize);
-		CGContextRef context = CGBitmapContextCreate(buffer, rawWidth, rawHeight, 8, rawWidth * 4, _sharedColorSpace, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little);
+		// Clear buffer
+		memset(&buffer[positionOffset - mappingStart], 0, rawSize);
+		// Draw image
+		CGContextRef context = CGBitmapContextCreate(&buffer[positionOffset - mappingStart], rawWidth, rawHeight, 8, rawWidth * 4, _sharedColorSpace, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little);
 		if (_scaleIsSupported) {
 			CGContextScaleCTM(context, scale, -scale);
 			CGContextTranslateCTM(context, 0.0f, -size.height);
@@ -429,17 +455,24 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 		[self _renderImageOfLayers:layers switchState:state controlState:controlState size:size scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
 		UIGraphicsPopContext();
 		CGContextFlush(context);
-		msync(buffer, mappingSize, MS_SYNC);
-	} else {
-		fd = open(cacheImageName, O_RDONLY);
-		buffer = mmap(NULL, mappingSize, PROT_READ, MAP_SHARED, fd, 0);
-		if (buffer == MAP_FAILED) {
-			NSLog(@"Flipswitch: Unable to map cached image with error: %x", errno);
-			close(fd);
-			return nil;
-		}
+		// Sync
+		msync(buffer, mappingEnd - mappingStart, MS_SYNC);
+		// Write new metadata
+		NSMutableDictionary *newMetadata = [metadata mutableCopy] ?: [[NSMutableDictionary alloc] init];
+		[newMetadata setObject:newOffset forKey:keyName];
+		[newMetadata setObject:[NSNumber numberWithUnsignedInteger:positionOffset + rawSize] forKey:@"end"];
+		[newMetadata writeToFile:metadataPath atomically:YES];
+		[newMetadata release];
 	}
-	CGDataProviderRef dataProvider = CGDataProviderCreateWithData(NULL, buffer, mappingSize, FlipSwitchMappingCGDataProviderReleaseDataCallback);
+	flock(fd, LOCK_UN);
+	// Map it in
+	buffer = mmap(NULL, mappingEnd - mappingStart, PROT_READ, MAP_SHARED, fd, mappingStart);
+	if (buffer == MAP_FAILED) {
+		NSLog(@"Flipswitch: Unable to map cached image with error: %x", errno);
+		close(fd);
+		return nil;
+	}
+	CGDataProviderRef dataProvider = CGDataProviderCreateWithData(buffer, &buffer[positionOffset - mappingStart], rawSize, FlipSwitchMappingCGDataProviderReleaseDataCallback);
 	close(fd);
 	CGImageRef cgResult = CGImageCreate(rawWidth, rawHeight, 8, 32, rawWidth * 4, _sharedColorSpace, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little, dataProvider, NULL, false, kCGRenderingIntentDefault);
 	CGDataProviderRelease(dataProvider);
