@@ -35,6 +35,7 @@ static volatile OSSpinLock _lock;
 static BOOL _scaleIsSupported;
 static CGColorSpaceRef _sharedColorSpace;
 static long int _pageSize;
+static NSMutableDictionary *_fileDescriptors;
 
 @implementation FSSwitchPanel
 
@@ -71,6 +72,7 @@ static void WillOpenURLCallback(CFNotificationCenterRef center, void *observer, 
 		_scaleIsSupported = [UIImage respondsToSelector:@selector(imageWithCGImage:scale:orientation:)];
 		_sharedColorSpace = CGColorSpaceCreateDeviceRGB();
 		_pageSize = sysconf(_SC_PAGESIZE);
+		_fileDescriptors = [[NSMutableDictionary alloc] init];
 		if (objc_getClass("SpringBoard")) {
 			dlopen("/Library/Flipswitch/FlipswitchSpringBoard.dylib", RTLD_LAZY);
 			FSSwitchMainPanel *mainPanel = [[objc_getClass("FSSwitchMainPanel") alloc] init];
@@ -411,12 +413,22 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 	NSString *basePath = [@"/tmp/FlipswitchCache/" stringByAppendingString:MD5OfString([template bundlePath])];
 	NSString *metadataPath = [basePath stringByAppendingString:@".plist"];
 	NSString *binaryPath = [basePath stringByAppendingString:@".bin"];
-	mkdir("/tmp/FlipswitchCache", 0777);
-	int fd = open([binaryPath UTF8String], O_RDWR | O_CREAT);
-	fchmod(fd, S_IRWXU | S_IRGRP | S_IROTH);
+	int fd;
+	OSSpinLockLock(&_lock);
+	NSNumber *fileDescriptor = [_fileDescriptors objectForKey:basePath];
+	if (fileDescriptor) {
+		OSSpinLockUnlock(&_lock);
+		fd = [fileDescriptor intValue];
+	} else {
+		mkdir("/tmp/FlipswitchCache", 0777);
+		fd = open([binaryPath UTF8String], O_RDWR | O_CREAT);
+		[_fileDescriptors setObject:[NSNumber numberWithInt:fd] forKey:basePath];
+		OSSpinLockUnlock(&_lock);
+		fchmod(fd, S_IRWXU | S_IRGRP | S_IROTH);		
+	}
+	NSString *keyName = MD5OfData([NSPropertyListSerialization dataFromPropertyList:cacheKey format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]); 
 	flock(fd, LOCK_EX);
 	NSDictionary *metadata = [NSDictionary dictionaryWithContentsOfFile:metadataPath];
-	NSString *keyName = MD5OfData([NSPropertyListSerialization dataFromPropertyList:cacheKey format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]); 
 	NSNumber *position = [metadata objectForKey:keyName];
 	uintptr_t positionOffset;
 	uintptr_t mappingStart;
@@ -440,7 +452,6 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 		buffer = mmap(NULL, mappingEnd - mappingStart, PROT_READ | PROT_WRITE, MAP_SHARED, fd, mappingStart);
 		if (buffer == MAP_FAILED) {
 			NSLog(@"Flipswitch: Unable to create mapping to cache image with error: %x", errno);
-			close(fd);
 			return nil;
 		}
 		// Clear buffer
@@ -469,11 +480,9 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 	buffer = mmap(NULL, mappingEnd - mappingStart, PROT_READ, MAP_SHARED, fd, mappingStart);
 	if (buffer == MAP_FAILED) {
 		NSLog(@"Flipswitch: Unable to map cached image with error: %x", errno);
-		close(fd);
 		return nil;
 	}
 	CGDataProviderRef dataProvider = CGDataProviderCreateWithData(buffer, &buffer[positionOffset - mappingStart], rawSize, FlipSwitchMappingCGDataProviderReleaseDataCallback);
-	close(fd);
 	CGImageRef cgResult = CGImageCreate(rawWidth, rawHeight, 8, 32, rawWidth * 4, _sharedColorSpace, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little, dataProvider, NULL, false, kCGRenderingIntentDefault);
 	CGDataProviderRelease(dataProvider);
 	if (_scaleIsSupported)
