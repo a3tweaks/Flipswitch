@@ -422,6 +422,19 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 	} else {
 		mkdir("/tmp/FlipswitchCache", 0777);
 		fd = open([binaryPath UTF8String], O_RDWR | O_CREAT);
+		if (fd == -1) {
+in_memory_fallback:
+			if (&UIGraphicsBeginImageContextWithOptions != NULL) {
+				UIGraphicsBeginImageContextWithOptions(size, NO, scale);
+			} else {
+				UIGraphicsBeginImageContext(size);
+				scale = 1.0f;
+			}
+			[self _renderImageOfLayers:layers switchState:state controlState:controlState size:size scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
+			result = UIGraphicsGetImageFromCurrentImageContext();
+			UIGraphicsEndImageContext();
+			goto cache_and_return_result;
+		}
 		[_fileDescriptors setObject:[NSNumber numberWithInt:fd] forKey:basePath];
 		OSSpinLockUnlock(&_lock);
 		fchmod(fd, S_IRWXU | S_IRGRP | S_IROTH);		
@@ -444,16 +457,17 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 		mappingStart = floor_to_page(positionOffset);
 		mappingEnd = ceil_to_page(positionOffset + rawSize);
 		// Make file larger to accomodate new buffer
-		lseek(fd, mappingEnd, SEEK_SET);
+		if (lseek(fd, mappingEnd, SEEK_SET) == -1)
+			goto in_memory_fallback;
 		char zero = 0;
-		write(fd, &zero, 1);
-		lseek(fd, 0, SEEK_SET);
+		if (write(fd, &zero, 1) == -1)
+			goto in_memory_fallback;
+		if (lseek(fd, 0, SEEK_SET) == -1)
+			goto in_memory_fallback;
 		// Map it in
 		buffer = mmap(NULL, mappingEnd - mappingStart, PROT_READ | PROT_WRITE, MAP_SHARED, fd, mappingStart);
-		if (buffer == MAP_FAILED) {
-			NSLog(@"Flipswitch: Unable to create mapping to cache image with error: %x", errno);
-			return nil;
-		}
+		if (buffer == MAP_FAILED)
+			goto in_memory_fallback;
 		// Clear buffer
 		memset(&buffer[positionOffset - mappingStart], 0, rawSize);
 		// Draw image
@@ -478,10 +492,8 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 	flock(fd, LOCK_UN);
 	// Map it in
 	buffer = mmap(NULL, mappingEnd - mappingStart, PROT_READ, MAP_SHARED, fd, mappingStart);
-	if (buffer == MAP_FAILED) {
-		NSLog(@"Flipswitch: Unable to map cached image with error: %x", errno);
-		return nil;
-	}
+	if (buffer == MAP_FAILED)
+		goto in_memory_fallback;
 	CGDataProviderRef dataProvider = CGDataProviderCreateWithData(buffer, &buffer[positionOffset - mappingStart], rawSize, FlipSwitchMappingCGDataProviderReleaseDataCallback);
 	CGImageRef cgResult = CGImageCreate(rawWidth, rawHeight, 8, 32, rawWidth * 4, _sharedColorSpace, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little, dataProvider, NULL, false, kCGRenderingIntentDefault);
 	CGDataProviderRelease(dataProvider);
