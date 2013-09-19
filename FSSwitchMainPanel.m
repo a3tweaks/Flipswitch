@@ -17,6 +17,7 @@ extern BOOL GSSystemHasCapability(NSString *capability);
 
 @interface UIApplication (Private)
 - (void)applicationOpenURL:(NSURL *)url;
+- (void)applicationOpenURL:(NSURL *)url publicURLsOnly:(BOOL)publicURLsOnly;
 @end
 
 static NSInteger stateChangeCount;
@@ -182,7 +183,11 @@ static NSInteger stateChangeCount;
 
 	NSDictionary *userInfo = url ? [NSDictionary dictionaryWithObject:[url absoluteString] forKey:@"url"] : nil;
 	[self postNotificationName:FSSwitchPanelSwitchWillOpenURLNotification userInfo:userInfo];
-	[[UIApplication sharedApplication] applicationOpenURL:url];
+	UIApplication *app = [UIApplication sharedApplication];
+	if ([app respondsToSelector:@selector(applicationOpenURL:publicURLsOnly:)])
+		[app applicationOpenURL:url publicURLsOnly:NO];
+	else
+		[app applicationOpenURL:url];
 }
 
 static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_t replyPort, CFDataRef data)
