@@ -11,7 +11,7 @@ FlipswitchSpringBoard_PRIVATE_FRAMEWORKS = GraphicsServices
 FlipswitchSpringBoard_LDFLAGS = -L$(THEOS_OBJ_DIR_NAME)
 FlipswitchSpringBoard_INSTALL_PATH = /Library/Flipswitch
 
-SUBPROJECTS = Switches/3G Switches/AirplaneMode Switches/Autolock Switches/Bluetooth Switches/Data Switches/DoNotDisturb Switches/Flashlight Switches/Hotspot Switches/Respring Switches/Ringer Switches/Rotation Switches/Settings Switches/Vibration Switches/VPN Switches/Wifi
+SUBPROJECTS = Switches/3G Switches/AirplaneMode Switches/Autolock Switches/Bluetooth Switches/Data Switches/DoNotDisturb Switches/Flashlight Switches/Hotspot Switches/Respring Switches/Ringer Switches/Rotation Switches/Settings Switches/Vibration Switches/VPN Switches/Wifi Switches/WifiProxy
 
 SDKVERSION := 5.1
 TARGET_IPHONEOS_DEPLOYMENT_VERSION := 3.0
