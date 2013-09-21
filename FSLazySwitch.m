@@ -27,7 +27,7 @@
 		[[FSSwitchPanel sharedPanel] registerDataSource:switchImplementation forSwitchIdentifier:switchIdentifier];
 	} else {
 		[[FSSwitchPanel sharedPanel] unregisterSwitchIdentifier:switchIdentifier];
-		NSLog(@"Flipswitch: Lazy switch with identifier '%@' was unregistered because it failed to load!");
+		NSLog(@"Flipswitch: Lazy switch with identifier '%@' was unregistered because it failed to load!", switchIdentifier);
 	}
 
 	[switchImplementation release];
