@@ -20,6 +20,7 @@
 		[self addObserver:self forKeyPath:@"selected" options:0 context:template];
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(switchStateDidChange:) name:FSSwitchPanelSwitchStateChangedNotification object:nil];
 		[self addTarget:self action:@selector(_pressed) forControlEvents:UIControlEventTouchUpInside];
+		self.enabled = [[FSSwitchPanel sharedPanel] switchWithIdentifierIsEnabled:switchIdentifier_];
 	}
 	return self;
 }
@@ -46,8 +47,10 @@
 - (void)switchStateDidChange:(NSNotification *)notification
 {
 	NSString *changedIdentifier = [notification.userInfo objectForKey:FSSwitchPanelSwitchIdentifierKey];
-	if ([changedIdentifier isEqual:switchIdentifier] || !changedIdentifier)
+	if ([changedIdentifier isEqual:switchIdentifier] || !changedIdentifier) {
+		self.enabled = [[FSSwitchPanel sharedPanel] switchWithIdentifierIsEnabled:switchIdentifier];
 		[self.layer setNeedsDisplay];
+	}
 }
 
 - (void)displayLayer:(CALayer *)layer

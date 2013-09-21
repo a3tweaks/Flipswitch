@@ -599,6 +599,15 @@ cache_and_return_result:
 	[[UIApplication sharedApplication] openURL:url];
 }
 
+- (BOOL)switchWithIdentifierIsEnabled:(NSString *)switchIdentifier
+{
+	LMResponseBuffer responseBuffer;
+	if (LMConnectionSendTwoWayPropertyList(&connection, FSSwitchServiceMessageGetEnabledForIdentifier, switchIdentifier, &responseBuffer)) {
+		return NO;
+	}
+	return LMResponseConsumeInteger(&responseBuffer);
+}
+
 @end
 
 @implementation FSSwitchPanel (SpringBoard)

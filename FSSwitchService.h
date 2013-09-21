@@ -10,4 +10,5 @@ typedef enum {
 	FSSwitchServiceMessageHasAlternateActionForIdentifier = 6,
 	FSSwitchServiceMessageApplyAlternateActionForIdentifier = 7,
 	FSSwitchServiceMessageGetPendingNotificationUserInfo = 8,
+	FSSwitchServiceMessageGetEnabledForIdentifier = 9,
 } FSSwitchServiceMessage;

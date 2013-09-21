@@ -190,6 +190,15 @@ static NSInteger stateChangeCount;
 		[app applicationOpenURL:url];
 }
 
+- (BOOL)switchWithIdentifierIsEnabled:(NSString *)switchIdentifier
+{
+	if (![NSThread isMainThread]) {
+		return [super switchWithIdentifierIsEnabled:switchIdentifier];
+	}
+	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
+	return [switchImplementation switchWithIdentifierIsEnabled:switchIdentifier];
+}
+
 static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_t replyPort, CFDataRef data)
 {
 	switch ((FSSwitchServiceMessage)messageId) {
@@ -265,6 +274,14 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 		case FSSwitchServiceMessageGetPendingNotificationUserInfo: {
 			LMSendPropertyListReply(replyPort, self->pendingNotificationUserInfo);
 			return;
+		}
+		case FSSwitchServiceMessageGetEnabledForIdentifier: {
+			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			if ([identifier isKindOfClass:[NSString class]]) {
+				LMSendIntegerReply(replyPort, [self switchWithIdentifierIsEnabled:identifier]);
+				return;
+			}
+			break;
 		}
 	}
 	LMSendReply(replyPort, NULL, 0);

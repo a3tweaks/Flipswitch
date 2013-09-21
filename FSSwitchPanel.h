@@ -38,6 +38,9 @@
 - (void)openURLAsAlternateAction:(NSURL *)url;
 // Helper method to open a particular URL as if it were launched from an alternate action
 
+- (BOOL)switchWithIdentifierIsEnabled:(NSString *)switchIdentifier;
+// Returns YES if the switch is enabled (1.0.1 or later)
+
 @end
 
 @protocol FSSwitchDataSource;

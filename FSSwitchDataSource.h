@@ -46,4 +46,9 @@
 // Applies the alternate or "hold" action
 // By default launches the URL stored in the "alternate-action-url" key of the switch's bundle
 
+- (BOOL)switchWithIdentifierIsEnabled:(NSString *)switchIdentifier;
+// Gets whether or not the switch is enabled
+// Must override if switch can be disabled
+// By default returns YES
+
 @end

@@ -99,4 +99,9 @@ extern BOOL GSSystemHasCapability(NSString *capability);
 	}
 }
 
+- (BOOL)switchWithIdentifierIsEnabled:(NSString *)switchIdentifier
+{
+	return YES;
+}
+
 @end
