@@ -536,7 +536,14 @@ cache_and_return_result:
 	OSSpinLockLock(&_lock);
 	UIImage *result = [_cachedSwitchImages objectForKey:cacheKey];
 	OSSpinLockUnlock(&_lock);
-	return result != nil;
+	if (result)
+		return YES;
+	NSString *basePath = [@"/tmp/FlipswitchCache/" stringByAppendingString:MD5OfString([templateBundle bundlePath])];
+	NSString *metadataPath = [basePath stringByAppendingString:@".plist"];
+	NSDictionary *metadata = [NSDictionary dictionaryWithContentsOfFile:metadataPath];
+	NSString *keyName = MD5OfData([NSPropertyListSerialization dataFromPropertyList:cacheKey format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]); 
+	NSNumber *position = [metadata objectForKey:keyName];
+	return position != nil;
 }
 
 - (BOOL)hasCachedImageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)templateBundle
