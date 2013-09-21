@@ -303,7 +303,6 @@ static inline NSString *MD5OfString(NSString *string)
 				[image drawAtPoint:position blendMode:kCGBlendModeNormal alpha:alpha];
 			}
 		} else if ([type isEqualToString:@"glyph"]) {
-			CGContextSetAlpha(context, alpha);
 			CGFloat blur = [[layer objectForKey:@"blur"] floatValue];
 			CGFloat glyphSize = [[layer objectForKey:@"size"] floatValue];
 			NSString *toggleState = [layer objectForKey:@"state"];
@@ -351,9 +350,10 @@ static inline NSString *MD5OfString(NSString *string)
 				CGContextRelease(maskContext);
 				CGContextClipToMask(context, CGRectMake(0.0f, 0.0f, size.width, size.height + size.height), maskImage);
 				CGImageRelease(maskImage);
-				[image drawInRect:CGRectMake(position.x - blur, position.y - blur, glyphSize + blur + blur, glyphSize + blur + blur)];
+				[image drawInRect:CGRectMake(position.x - blur, position.y - blur, glyphSize + blur + blur, glyphSize + blur + blur) blendMode:kCGBlendModeNormal alpha:alpha];
 			} else {
 				// Fast path for a solid color
+				CGContextSetAlpha(context, alpha);
 				CGColorRef color = (ColorWithHexString([layer objectForKey:@"color"]) ?: [UIColor blackColor]).CGColor;
 				[self drawGlyphImageDescriptor:descriptor toSize:glyphSize atPosition:position color:color blur:blur inContext:context ofSize:size];
 			}
