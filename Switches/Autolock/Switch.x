@@ -12,25 +12,19 @@
 @end
 
 @interface AutolockSwitch : NSObject <FSSwitchDataSource>
-+ (void)_effectiveSettingsDidChange:(NSNotification *)notification;
 @end
 
 %hook MCProfileConnection
 
 - (void)_effectiveSettingsDidChange:(id)notification
 {
-    [AutolockSwitch performSelectorOnMainThread:@selector(_effectiveSettingsDidChange:) withObject:notification waitUntilDone:NO];
+    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[AutolockSwitch class]].bundleIdentifier];
 	%orig();
 }
 
 %end
 
 @implementation AutolockSwitch
-
-+ (void)_effectiveSettingsDidChange:(NSNotification *)notification
-{
-    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:self].bundleIdentifier];
-}
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {

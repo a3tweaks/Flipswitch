@@ -10,6 +10,7 @@
 
 #import <notify.h>
 #import <sys/stat.h>
+#import <libkern/OSAtomic.h>
 
 extern BOOL GSSystemHasCapability(NSString *capability);
 
@@ -20,7 +21,7 @@ extern BOOL GSSystemHasCapability(NSString *capability);
 - (void)applicationOpenURL:(NSURL *)url publicURLsOnly:(BOOL)publicURLsOnly;
 @end
 
-static NSInteger stateChangeCount;
+static volatile int32_t stateChangeCount;
 
 @implementation FSSwitchMainPanel
 
@@ -77,12 +78,19 @@ static NSInteger stateChangeCount;
 	[self postNotificationName:FSSwitchPanelSwitchesChangedNotification userInfo:nil];
 }
 
-- (void)stateDidChangeForSwitchIdentifier:(NSString *)switchIdentifier
+- (void)_postNotificationForStateDidChangeForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
-	stateChangeCount++;
 	NSDictionary *userInfo = switchIdentifier ? [NSDictionary dictionaryWithObject:switchIdentifier forKey:FSSwitchPanelSwitchIdentifierKey] : nil;
 	[self postNotificationName:FSSwitchPanelSwitchStateChangedNotification userInfo:userInfo];
+}
+
+- (void)stateDidChangeForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	OSAtomicIncrement32(&stateChangeCount);
+	if ([NSThread isMainThread])
+		[self _postNotificationForStateDidChangeForSwitchIdentifier:switchIdentifier];
+	else
+		[self performSelectorOnMainThread:@selector(_postNotificationForStateDidChangeForSwitchIdentifier:) withObject:switchIdentifier waitUntilDone:NO];
 }
 
 - (NSArray *)switchIdentifiers
@@ -119,7 +127,7 @@ static NSInteger stateChangeCount;
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	// Workaround switches that don't explicitly send state change notifications :(
 	FSSwitchState oldState = [switchImplementation stateForSwitchIdentifier:switchIdentifier];
-	NSInteger oldStateChangeCount = stateChangeCount;
+	uint32_t oldStateChangeCount = stateChangeCount;
 	[switchImplementation applyState:state forSwitchIdentifier:switchIdentifier];
 	if (oldStateChangeCount == stateChangeCount && oldState != [switchImplementation stateForSwitchIdentifier:switchIdentifier]) {
 		[self stateDidChangeForSwitchIdentifier:switchIdentifier];
@@ -134,7 +142,7 @@ static NSInteger stateChangeCount;
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	// Workaround switches that don't explicitly send state change notifications :(
 	FSSwitchState oldState = [switchImplementation stateForSwitchIdentifier:switchIdentifier];
-	NSInteger oldStateChangeCount = stateChangeCount;
+	uint32_t oldStateChangeCount = stateChangeCount;
 	[switchImplementation applyActionForSwitchIdentifier:switchIdentifier];
 	if (oldStateChangeCount == stateChangeCount && oldState != [switchImplementation stateForSwitchIdentifier:switchIdentifier]) {
 		[self stateDidChangeForSwitchIdentifier:switchIdentifier];

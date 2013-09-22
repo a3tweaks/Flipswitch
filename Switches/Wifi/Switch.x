@@ -11,28 +11,22 @@
 @end
 
 @interface WifiSwitch : NSObject <FSSwitchDataSource>
-+ (void)_powerStateDidChange;
 @end
+
+static BOOL wiFiEnabled;
 
 %hook SBWiFiManager
 
 - (void)_powerStateDidChange
 {
 	%orig();
-	[WifiSwitch performSelectorOnMainThread:@selector(_powerStateDidChange) withObject:nil waitUntilDone:NO];
+	wiFiEnabled = [[%c(SBWiFiManager) sharedInstance] wiFiEnabled];
+	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[WifiSwitch class]].bundleIdentifier];
 }
 
 %end
 
-static BOOL wiFiEnabled;
-
 @implementation WifiSwitch
-
-+ (void)_powerStateDidChange
-{
-	wiFiEnabled = [[%c(SBWiFiManager) sharedInstance] wiFiEnabled];
-	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:self].bundleIdentifier];
-}
 
 - (id)init
 {
