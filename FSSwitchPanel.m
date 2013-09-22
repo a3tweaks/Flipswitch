@@ -487,8 +487,9 @@ in_memory_fallback:
 		NSMutableDictionary *newMetadata = [metadata mutableCopy] ?: [[NSMutableDictionary alloc] init];
 		[newMetadata setObject:newOffset forKey:keyName];
 		[newMetadata setObject:[NSNumber numberWithUnsignedInteger:positionOffset + rawSize] forKey:@"end"];
-		[newMetadata writeToFile:metadataPath atomically:YES];
+		NSData *metadataData = [NSPropertyListSerialization dataFromPropertyList:newMetadata format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL];
 		[newMetadata release];
+		[metadataData writeToFile:metadataPath atomically:YES];
 	}
 	flock(fd, LOCK_UN);
 	// Map it in
