@@ -2,7 +2,7 @@ Package: com.a3tweaks.flipswitch
 Name: Flipswitch
 Depends: mobilesubstrate
 Conflicts: com.rpetrich.donotdisturbtoggle (<= 1.0-1)
-Version: 1.0.1~beta3
+Version: 1.0.1~beta4
 Architecture: iphoneos-arm
 Description: Centralized toggle system for iOS
 Homepage: http://rpetri.ch/cydia/flipswitch/
