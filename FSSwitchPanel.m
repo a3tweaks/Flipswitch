@@ -172,7 +172,8 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 		}
 	}
 	if ([descriptor isKindOfClass:[UIImage class]]) {
-		CGContextSetShadowWithColor(context, CGSizeMake(0.0f, contextSize.height), blur, color);
+		CGSize shadowOffset = CGSizeApplyAffineTransform(CGSizeMake(0.0f, contextSize.height), CGContextGetCTM(context));
+		CGContextSetShadowWithColor(context, shadowOffset, blur, color);
 		CGContextTranslateCTM(context, 0.0f, -contextSize.height);
 		[descriptor drawInRect:CGRectMake(0.0f, 0.0f, glyphSize, glyphSize)];
 	}
