@@ -42,8 +42,6 @@ static BOOL wiFiEnabled;
 
 %end
 
-static SCPreferencesRef prefs;
-
 static SCNetworkServiceRef CopyWiFiNetworkService(SCPreferencesRef prefs)
 {
 	SCNetworkServiceRef result = NULL;
@@ -51,14 +49,16 @@ static SCNetworkServiceRef CopyWiFiNetworkService(SCPreferencesRef prefs)
 	if (currentSet) {
 		CFArrayRef services = SCNetworkSetCopyServices(currentSet);
 		if (services) {
-			for (id service_ in (NSArray *)services) {
-				SCNetworkServiceRef service = (SCNetworkServiceRef)service_;
-				SCNetworkInterfaceRef interface = SCNetworkServiceGetInterface(service);
-				if (interface) {
-					CFStringRef bsdName = SCNetworkInterfaceGetBSDName(interface);
-					if (bsdName && CFEqual(bsdName, CFSTR("en0"))) {
-						result = CFRetain(service);
-						break;
+			for (CFIndex i = 0, count = CFArrayGetCount(services); i < count; i++) {
+				SCNetworkServiceRef service = CFArrayGetValueAtIndex(services, i);
+				if (service) {
+					SCNetworkInterfaceRef interface = SCNetworkServiceGetInterface(service);
+					if (interface) {
+						CFStringRef bsdName = SCNetworkInterfaceGetBSDName(interface);
+						if (bsdName && CFEqual(bsdName, CFSTR("en0"))) {
+							result = CFRetain(service);
+							break;
+						}
 					}
 				}
 			}
@@ -72,17 +72,21 @@ static SCNetworkServiceRef CopyWiFiNetworkService(SCPreferencesRef prefs)
 static BOOL IsEnabled(void)
 {
 	BOOL result = NO;
-	if (wiFiEnabled && prefs) {
-		SCNetworkServiceRef wifiService = CopyWiFiNetworkService(prefs);
-		if (wifiService) {
-			SCNetworkProtocolRef proxyProtocol = SCNetworkServiceCopyProtocol(wifiService, kSCNetworkProtocolTypeProxies);
-			if (proxyProtocol) {
-				CFDictionaryRef configuration = SCNetworkProtocolGetConfiguration(proxyProtocol);
-				if (configuration && CFDictionaryGetValue(configuration, kSCPropNetProxiesHTTPProxy) && CFDictionaryGetValue(configuration, kSCPropNetProxiesHTTPPort)) {
-					result = YES;
+	if (wiFiEnabled) {
+		SCPreferencesRef prefs = SCPreferencesCreateWithAuthorization(NULL, CFSTR("com.apple.settings.wi-fi"), NULL, NULL);
+		if (prefs) {
+			SCNetworkServiceRef wifiService = CopyWiFiNetworkService(prefs);
+			if (wifiService) {
+				SCNetworkProtocolRef proxyProtocol = SCNetworkServiceCopyProtocol(wifiService, kSCNetworkProtocolTypeProxies);
+				if (proxyProtocol) {
+					CFDictionaryRef configuration = SCNetworkProtocolGetConfiguration(proxyProtocol);
+					if (configuration && CFDictionaryGetValue(configuration, kSCPropNetProxiesHTTPProxy) && CFDictionaryGetValue(configuration, kSCPropNetProxiesHTTPPort)) {
+						result = YES;
+					}
 				}
+				CFRelease(wifiService);
 			}
-			CFRelease(wifiService);
+			CFRelease(prefs);
 		}
 	}
 	return result;
@@ -93,9 +97,6 @@ static BOOL IsEnabled(void)
 - (void)_updateProxySettings
 {
 	%orig();
-	if (prefs) {
-		SCPreferencesSynchronize(prefs);
-	}
 	[WifiProxySwitch performSelectorOnMainThread:@selector(stateDidChange) withObject:nil waitUntilDone:NO];
 }
 
@@ -117,7 +118,6 @@ static BOOL IsEnabled(void)
 static void PreferencesCallBack(SCPreferencesRef _prefs, SCPreferencesNotification notificationType, void *info)
 {
 	if ((notificationType && kSCPreferencesNotificationApply) == kSCPreferencesNotificationApply) {
-		SCPreferencesSynchronize(_prefs);
 		[(Class)info performSelectorOnMainThread:@selector(stateDidChange) withObject:nil waitUntilDone:NO];
 	}
 }
@@ -125,7 +125,7 @@ static void PreferencesCallBack(SCPreferencesRef _prefs, SCPreferencesNotificati
 - (id)init
 {
 	[self release];
-	prefs = SCPreferencesCreateWithAuthorization(NULL, CFSTR("com.apple.settings.wi-fi"), NULL, NULL);
+	SCPreferencesRef prefs = SCPreferencesCreateWithAuthorization(NULL, CFSTR("com.apple.settings.wi-fi"), NULL, NULL);
 	if (prefs) {
 		if ([%c(NSNetworkSettings) respondsToSelector:@selector(sharedNetworkSettings)]) {
 			[%c(NSNetworkSettings) sharedNetworkSettings];
@@ -159,16 +159,20 @@ static void PreferencesCallBack(SCPreferencesRef _prefs, SCPreferencesNotificati
 {
 	FSSwitchState result = FSSwitchStateIndeterminate;
 	if (wiFiEnabled) {
-		SCNetworkServiceRef wifiService = CopyWiFiNetworkService(prefs);
-		if (wifiService) {
-			SCNetworkProtocolRef proxyProtocol = SCNetworkServiceCopyProtocol(wifiService, kSCNetworkProtocolTypeProxies);
-			if (proxyProtocol) {
-				CFDictionaryRef configuration = SCNetworkProtocolGetConfiguration(proxyProtocol);
-				if (configuration && CFDictionaryGetValue(configuration, kSCPropNetProxiesHTTPProxy) && CFDictionaryGetValue(configuration, kSCPropNetProxiesHTTPPort)) {
-					result = [[(NSDictionary *)configuration objectForKey:(id)kSCPropNetProxiesHTTPEnable] boolValue];
+		SCPreferencesRef prefs = SCPreferencesCreateWithAuthorization(NULL, CFSTR("com.apple.settings.wi-fi"), NULL, NULL);
+		if (prefs) {
+			SCNetworkServiceRef wifiService = CopyWiFiNetworkService(prefs);
+			if (wifiService) {
+				SCNetworkProtocolRef proxyProtocol = SCNetworkServiceCopyProtocol(wifiService, kSCNetworkProtocolTypeProxies);
+				if (proxyProtocol) {
+					CFDictionaryRef configuration = SCNetworkProtocolGetConfiguration(proxyProtocol);
+					if (configuration && CFDictionaryGetValue(configuration, kSCPropNetProxiesHTTPProxy) && CFDictionaryGetValue(configuration, kSCPropNetProxiesHTTPPort)) {
+						result = [[(NSDictionary *)configuration objectForKey:(id)kSCPropNetProxiesHTTPEnable] boolValue];
+					}
 				}
+				CFRelease(wifiService);
 			}
-			CFRelease(wifiService);
+			CFRelease(prefs);
 		}
 	}
 	return result;
@@ -180,9 +184,11 @@ static void PreferencesCallBack(SCPreferencesRef _prefs, SCPreferencesNotificati
 		return;
 	if (!wiFiEnabled)
 		return;
-	SCPreferencesSynchronize(prefs);
-	if (!SCPreferencesLock(prefs, NO))
+	SCPreferencesRef prefs = SCPreferencesCreateWithAuthorization(NULL, CFSTR("com.apple.settings.wi-fi"), NULL, NULL);
+	if (!SCPreferencesLock(prefs, NO)) {
+		CFRelease(prefs);
 		return;
+	}
 	SCNetworkServiceRef wifiService = CopyWiFiNetworkService(prefs);
 	if (wifiService) {
 		SCNetworkProtocolRef proxyProtocol = SCNetworkServiceCopyProtocol(wifiService, kSCNetworkProtocolTypeProxies);
@@ -202,6 +208,7 @@ static void PreferencesCallBack(SCPreferencesRef _prefs, SCPreferencesNotificati
 		CFRelease(wifiService);
 	}
 	SCPreferencesUnlock(prefs);
+	CFRelease(prefs);
 }
 
 @end
