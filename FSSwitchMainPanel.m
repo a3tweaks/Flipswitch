@@ -127,7 +127,7 @@ static volatile int32_t stateChangeCount;
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	// Workaround switches that don't explicitly send state change notifications :(
 	FSSwitchState oldState = [switchImplementation stateForSwitchIdentifier:switchIdentifier];
-	uint32_t oldStateChangeCount = stateChangeCount;
+	int32_t oldStateChangeCount = stateChangeCount;
 	[switchImplementation applyState:state forSwitchIdentifier:switchIdentifier];
 	if (oldStateChangeCount == stateChangeCount && oldState != [switchImplementation stateForSwitchIdentifier:switchIdentifier]) {
 		[self stateDidChangeForSwitchIdentifier:switchIdentifier];
@@ -142,7 +142,7 @@ static volatile int32_t stateChangeCount;
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	// Workaround switches that don't explicitly send state change notifications :(
 	FSSwitchState oldState = [switchImplementation stateForSwitchIdentifier:switchIdentifier];
-	uint32_t oldStateChangeCount = stateChangeCount;
+	int32_t oldStateChangeCount = stateChangeCount;
 	[switchImplementation applyActionForSwitchIdentifier:switchIdentifier];
 	if (oldStateChangeCount == stateChangeCount && oldState != [switchImplementation stateForSwitchIdentifier:switchIdentifier]) {
 		[self stateDidChangeForSwitchIdentifier:switchIdentifier];
