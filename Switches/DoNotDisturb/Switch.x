@@ -264,14 +264,15 @@ static FSSwitchState state;
 			break;
 		case FSSwitchStateOff:
 			state = FSSwitchStateOff;
-			[gateway getBehaviorOverridesWithCompletion:^(NSArray *overrides) {
+			[self applyMode:0];
+			/*[gateway getBehaviorOverridesWithCompletion:^(NSArray *overrides) {
 				if ([overrides count]) {
 					BBBehaviorOverride *override = [overrides objectAtIndex:0];
 					[self applyMode:override.mode ? 2 : 0];
 				} else {
 					[self applyMode:0];
 				}
-			}];
+			}];*/
 			break;
 	}
 }
