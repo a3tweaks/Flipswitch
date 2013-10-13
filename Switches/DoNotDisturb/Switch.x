@@ -241,7 +241,7 @@ static FSSwitchState state;
 		[[%c(SBBulletinSystemStateAdapter) sharedInstanceIfExists] _activeBehaviorOverrideTypesChanged:state];
 	}
 	[[NSNotificationCenter defaultCenter] postNotificationName:@"SBQuietModeStatusChangedNotification" object:nil];
-	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_current_queue(), ^{
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
 		SBStatusBarDataManager *dm = [%c(SBStatusBarDataManager) sharedDataManager];
 		[dm setStatusBarItem:1 enabled:NO];
 		if (state) {

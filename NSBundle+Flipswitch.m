@@ -54,8 +54,8 @@
 		return nil;
 	if (imageSize == NSNotFound)
 		return nil;
-	NSString *suffix = imageSize ? [NSString stringWithFormat:@"-%u", imageSize] : @"";
-	NSString *scaleSuffix = preferredScale > 1.0f ? [NSString stringWithFormat:@"@%.0fx"] : nil;
+	NSString *suffix = imageSize ? [NSString stringWithFormat:@"-%lu", (unsigned long)imageSize] : @"";
+	NSString *scaleSuffix = preferredScale > 1.0f ? [NSString stringWithFormat:@"@%.0fx", preferredScale] : nil;
 	for (NSString *fileType in self.FSImageImageFileTypes) {
 		for (size_t i = 0; i < sizeof(ControlStateVariantMasks) / sizeof(*ControlStateVariantMasks); i++) {
 			UIControlState newState = controlState & ControlStateVariantMasks[i];

@@ -170,7 +170,7 @@ static void (*setEnabled)(BOOL newState);
 					for (id reason in [[CHIvar(lockManager, _lockOverrideReasons, NSMutableSet *) copy] autorelease])
 						[lockManager setLockOverrideEnabled:NO forReason:reason];
 				} else {
-					[lockManager setLockOverride:0 orientation:UIDeviceOrientationPortrait];
+					[lockManager setLockOverride:0 orientation:UIInterfaceOrientationPortrait];
 				}
 			}
 		}

@@ -117,7 +117,7 @@ static BOOL IsEnabled(void)
 
 static void PreferencesCallBack(SCPreferencesRef _prefs, SCPreferencesNotification notificationType, void *info)
 {
-	if ((notificationType && kSCPreferencesNotificationApply) == kSCPreferencesNotificationApply) {
+	if ((notificationType & kSCPreferencesNotificationApply) == kSCPreferencesNotificationApply) {
 		[(Class)info performSelectorOnMainThread:@selector(stateDidChange) withObject:nil waitUntilDone:NO];
 	}
 }

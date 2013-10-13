@@ -11,6 +11,7 @@
 #import <sys/stat.h>
 #import <unistd.h>
 #import <sys/mman.h>
+#import <objc/message.h>
 #import <UIKit/UIKit2.h>
 #import <libkern/OSAtomic.h>
 #import <CommonCrypto/CommonDigest.h>
@@ -317,7 +318,7 @@ static inline NSString *MD5OfString(NSString *string)
 				if (!maskData)
 					maskData = malloc(maskWidth * maskHeight);
 				memset(maskData, '\0', maskWidth * maskHeight);
-				CGContextRef maskContext = CGBitmapContextCreate(maskData, maskWidth, maskHeight, 8, maskWidth, NULL, kCGImageAlphaOnly);
+				CGContextRef maskContext = CGBitmapContextCreate(maskData, maskWidth, maskHeight, 8, maskWidth, NULL, (CGBitmapInfo)kCGImageAlphaOnly);
 				CGContextScaleCTM(maskContext, scale, scale);
 				CGContextSetBlendMode(maskContext, kCGBlendModeCopy);
 				[self drawGlyphImageDescriptor:descriptor toSize:glyphSize atPosition:CGPointMake(position.x + cutoutX, position.y + cutoutY) color:[UIColor whiteColor].CGColor blur:cutoutBlur inContext:maskContext ofSize:size];
@@ -343,7 +344,7 @@ static inline NSString *MD5OfString(NSString *string)
 					localMaskData = maskData;
 				}
 				memset(localMaskData, '\0', maskWidth * maskHeight);
-				CGContextRef maskContext = CGBitmapContextCreate(localMaskData, maskWidth, maskHeight, 8, maskWidth, NULL, kCGImageAlphaOnly);
+				CGContextRef maskContext = CGBitmapContextCreate(localMaskData, maskWidth, maskHeight, 8, maskWidth, NULL, (CGBitmapInfo)kCGImageAlphaOnly);
 				CGContextSetBlendMode(maskContext, kCGBlendModeCopy);
 				CGContextScaleCTM(maskContext, scale, scale);
 				[self drawGlyphImageDescriptor:descriptor toSize:glyphSize atPosition:position color:[UIColor whiteColor].CGColor blur:blur inContext:maskContext ofSize:size];
