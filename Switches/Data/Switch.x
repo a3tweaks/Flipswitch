@@ -1,11 +1,6 @@
 #import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
 
-#ifndef GSCAPABILITY_H
-extern BOOL GSSystemHasCapability(CFStringRef capability);
-extern CFPropertyListRef GSSystemCopyCapability(CFStringRef capability);
-#endif
-
 #ifndef CTREGISTRATION_H_
 extern CFStringRef const kCTRegistrationDataStatusChangedNotification;
 #endif

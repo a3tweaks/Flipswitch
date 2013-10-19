@@ -1,8 +1,7 @@
 #import "FSSwitchDataSource.h"
 #import "FSSwitchPanel.h"
+#import "FSCapability.h"
 #import "NSBundle+Flipswitch.h"
-
-extern BOOL GSSystemHasCapability(NSString *capability);
 
 @implementation NSObject (FSSwitchDataSource)
 
@@ -73,7 +72,7 @@ extern BOOL GSSystemHasCapability(NSString *capability);
 	if ([capabilities isKindOfClass:[NSArray class]])
 		for (NSString *capability in capabilities)
 			if ([capability isKindOfClass:[NSString class]])
-				if (!GSSystemHasCapability(capability))
+				if (!FSSystemHasCapability(capability))
 					return NO;
 
 	return YES;

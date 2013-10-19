@@ -4,6 +4,7 @@
 #import "FSSwitchDataSource.h"
 #import "FSPreferenceSwitchDataSource.h"
 #import "FSLazySwitch.h"
+#import "FSCapability.h"
 
 #import "LightMessaging/LightMessaging.h"
 #import "Internal.h"
@@ -11,8 +12,6 @@
 #import <notify.h>
 #import <sys/stat.h>
 #import <libkern/OSAtomic.h>
-
-extern BOOL GSSystemHasCapability(NSString *capability);
 
 #define kSwitchesPath @"/Library/Switches/"
 
@@ -321,7 +320,7 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 	if ([capabilities isKindOfClass:arrayClass])
 		for (NSString *capability in capabilities)
 			if ([capability isKindOfClass:[NSString class]])
-				if (!GSSystemHasCapability(capability))
+				if (!FSSystemHasCapability(capability))
 					return;
 	NSArray *coreFoundationVersion = [bundle objectForInfoDictionaryKey:@"CoreFoundationVersion"];
 	if ([coreFoundationVersion isKindOfClass:arrayClass] && coreFoundationVersion.count > 0) {
