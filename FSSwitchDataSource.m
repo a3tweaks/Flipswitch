@@ -68,7 +68,7 @@ extern BOOL GSSystemHasCapability(NSString *capability);
 
 - (BOOL)shouldShowSwitchIdentifier:(NSString *)switchIdentifier
 {
-	NSBundle *bundle = [self  bundleForSwitchIdentifier:switchIdentifier];
+	NSBundle *bundle = [self bundleForSwitchIdentifier:switchIdentifier];
 	NSArray *capabilities = [bundle objectForInfoDictionaryKey:@"required-capabilities"];
 	if ([capabilities isKindOfClass:[NSArray class]])
 		for (NSString *capability in capabilities)

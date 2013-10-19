@@ -118,7 +118,7 @@ static BOOL IsEnabled(void)
 static void PreferencesCallBack(SCPreferencesRef _prefs, SCPreferencesNotification notificationType, void *info)
 {
 	if ((notificationType & kSCPreferencesNotificationApply) == kSCPreferencesNotificationApply) {
-		[(Class)info performSelectorOnMainThread:@selector(stateDidChange) withObject:nil waitUntilDone:NO];
+		[WifiProxySwitch performSelectorOnMainThread:@selector(stateDidChange) withObject:nil waitUntilDone:NO];
 	}
 }
 
@@ -132,7 +132,7 @@ static void PreferencesCallBack(SCPreferencesRef _prefs, SCPreferencesNotificati
 		}
 		SCPreferencesContext context = {
 			0,
-			self,
+			NULL,
 			NULL,
 			NULL,
 			NULL
