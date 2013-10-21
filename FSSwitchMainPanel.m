@@ -24,14 +24,22 @@ static volatile int32_t stateChangeCount;
 
 @implementation FSSwitchMainPanel
 
+- (void)_registerDataSourceForSwitchIdentifier:(NSArray *)args
+{
+	[self registerDataSource:[args objectAtIndex:0] forSwitchIdentifier:[args objectAtIndex:1]];
+}
+
 - (void)registerDataSource:(id<FSSwitchDataSource>)dataSource forSwitchIdentifier:(NSString *)switchIdentifier;
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	if (!switchIdentifier) {
 		[NSException raise:NSInvalidArgumentException format:@"Switch identifier passed to -[FSSwitchPanel registerSwitch:forIdentifier:] must not be nil"];
 	}
 	if (!dataSource) {
 		[NSException raise:NSInvalidArgumentException format:@"Switch data source passed to -[FSSwitchPanel registerSwitch:forIdentifier:] must not be nil"];
+	}
+	if (![NSThread isMainThread]) {
+		[self performSelectorOnMainThread:@selector(_registerDataSourceForSwitchIdentifier:) withObject:[NSArray arrayWithObjects:dataSource, switchIdentifier, nil] waitUntilDone:YES];
+		return;		
 	}
 	// Verify that switchImplementation is either a valid action-like switchImplementation or setting-like switchImplementation
 	if ([(NSObject *)dataSource methodForSelector:@selector(applyState:forSwitchIdentifier:)] == [NSObject instanceMethodForSelector:@selector(applyState:forSwitchIdentifier:)]) {
@@ -56,9 +64,12 @@ static volatile int32_t stateChangeCount;
 
 - (void)unregisterSwitchIdentifier:(NSString *)switchIdentifier
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
 	if (!switchIdentifier) {
 		[NSException raise:NSInvalidArgumentException format:@"Switch identifier passed to -[FSSwitchPanel unregisterSwitchIdentifier:] must not be nil"];
+	}
+	if (![NSThread isMainThread]) {
+		[self performSelectorOnMainThread:@selector(unregisterSwitchIdentifier:) withObject:switchIdentifier waitUntilDone:YES];
+		return;
 	}
 	id<FSSwitchDataSource> oldSwitch = [[_switchImplementations objectForKey:switchIdentifier] retain];
 	[_switchImplementations removeObjectForKey:switchIdentifier];
@@ -186,8 +197,10 @@ static volatile int32_t stateChangeCount;
 
 - (void)openURLAsAlternateAction:(NSURL *)url
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
-
+	if (![NSThread isMainThread]) {
+		[self performSelectorOnMainThread:_cmd withObject:url waitUntilDone:YES];
+		return;
+	}
 	NSDictionary *userInfo = url ? [NSDictionary dictionaryWithObject:[url absoluteString] forKey:@"url"] : nil;
 	[self postNotificationName:FSSwitchPanelSwitchWillOpenURLNotification userInfo:userInfo];
 	UIApplication *app = [UIApplication sharedApplication];
