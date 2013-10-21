@@ -98,8 +98,6 @@ static void FSDataStatusChanged(void);
 	[[FSSwitchPanel sharedPanel] openURLAsAlternateAction:url];
 }
 
-@end
-
 static DataSpeedSwitch *activeSwitch;
 
 static void FSDataStatusChanged(void)
@@ -139,9 +137,20 @@ static void FSDataStatusChanged(void)
 	}
 }
 
-__attribute__((constructor))
-static void constructor(void)
++ (void)registerSwitch
 {
 	CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataStatusChanged, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
 	FSDataStatusChanged();
+}
+
+@end
+
+__attribute__((constructor))
+static void constructor(void)
+{
+	if ([NSThread isMainThread]) {
+		[DataSpeedSwitch registerSwitch];
+	} else {
+		[DataSpeedSwitch performSelectorOnMainThread:@selector(registerSwitch) withObject:nil waitUntilDone:NO];
+	}
 }
