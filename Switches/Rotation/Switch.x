@@ -175,8 +175,12 @@ static void (*setEnabled)(BOOL newState);
 			}
 		}
 		SBNowPlayingBar **nowPlayingBar = CHIvarRef([%c(SBAppSwitcherController) sharedInstanceIfAvailable], _nowPlaying, SBNowPlayingBar *);
-		if (nowPlayingBar)
-			[CHIvar(*nowPlayingBar, _orientationLockButton, UIButton *) setSelected:[lockManager isLocked]];
+		if (nowPlayingBar) {
+			UIButton **_orientationLockButton = CHIvarRef(*nowPlayingBar, _orientationLockButton, UIButton *);
+			if (_orientationLockButton) {
+				[*_orientationLockButton setSelected:[lockManager isLocked]];
+			}
+		}
 	} else {
 		if (setEnabled) {
 			setEnabled(newState);
