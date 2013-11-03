@@ -40,6 +40,29 @@ static NSMutableDictionary *_fileDescriptors;
 
 @implementation FSSwitchPanel
 
+static UIImage *FlipSwitchUnmappedImageWithContentsOfFile(NSString *filePath, CGFloat requestedScale)
+{
+	if (!_scaleIsSupported || (requestedScale == [UIScreen mainScreen].scale)) {
+		return [UIImage imageWithContentsOfFile:filePath];
+	}
+	CGFloat scale = 1.0f;
+	NSString *strippedFileName = [[filePath lastPathComponent] stringByDeletingPathExtension];
+	if ([strippedFileName hasSuffix:@"x"]) {
+		NSRange entireRange = NSMakeRange(0, [strippedFileName length]);
+		NSRange range = [strippedFileName rangeOfString:@"@" options:NSBackwardsSearch | NSLiteralSearch range:entireRange];
+		if (range.location != NSNotFound) {
+			range.location += 1;
+			range.length = entireRange.length - 1 - range.location;
+			scale = [[strippedFileName substringWithRange:range] floatValue] ?: 1.0f;
+		}
+	}
+	UIImage *result = [UIImage imageWithData:[NSData dataWithContentsOfFile:filePath]];
+	if (result) {
+		result = [UIImage imageWithCGImage:result.CGImage scale:scale orientation:result.imageOrientation];
+	}
+	return result;
+}
+
 static void SwitchesChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
 	[[NSNotificationCenter defaultCenter] postNotificationName:FSSwitchPanelSwitchesChangedNotification object:_switchManager userInfo:nil];
@@ -147,7 +170,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	return [UIColor colorWithRed:r / 255.0f green:g / 255.0f blue:b / 255.0f alpha:1.0f];
 }
 
-- (void)drawGlyphImageDescriptor:(id)descriptor toSize:(CGFloat)glyphSize atPosition:(CGPoint)position color:(CGColorRef)color blur:(CGFloat)blur inContext:(CGContextRef)context ofSize:(CGSize)contextSize
+- (void)drawGlyphImageDescriptor:(id)descriptor toSize:(CGFloat)glyphSize atPosition:(CGPoint)position color:(CGColorRef)color blur:(CGFloat)blur inContext:(CGContextRef)context ofSize:(CGSize)contextSize scale:(CGFloat)scale
 {
 	CGContextTranslateCTM(context, position.x, position.y);
 	if ([descriptor isKindOfClass:[NSString class]]) {
@@ -168,7 +191,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 				CGContextDrawPDFPage(context, firstPage);
 				CGPDFDocumentRelease(pdf);
 			}
-		} else if ((image = [UIImage imageWithContentsOfFile:descriptor])) {
+		} else if ((image = FlipSwitchUnmappedImageWithContentsOfFile(descriptor, scale))) {
 			descriptor = image;
 		}
 	}
@@ -301,7 +324,7 @@ static inline NSString *MD5OfString(NSString *string)
 			NSString *fileName = [layer objectForKey:@"fileName"];
 			if (fileName) {
 				NSString *fullPath = [template imagePathForFlipswitchImageName:fileName imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
-				UIImage *image = [UIImage imageWithContentsOfFile:fullPath];
+				UIImage *image = FlipSwitchUnmappedImageWithContentsOfFile(fullPath, scale);
 				[image drawAtPoint:position blendMode:kCGBlendModeNormal alpha:alpha];
 			}
 		} else if ([type isEqualToString:@"glyph"]) {
@@ -321,7 +344,7 @@ static inline NSString *MD5OfString(NSString *string)
 				CGContextRef maskContext = CGBitmapContextCreate(maskData, maskWidth, maskHeight, 8, maskWidth, NULL, (CGBitmapInfo)kCGImageAlphaOnly);
 				CGContextScaleCTM(maskContext, scale, scale);
 				CGContextSetBlendMode(maskContext, kCGBlendModeCopy);
-				[self drawGlyphImageDescriptor:descriptor toSize:glyphSize atPosition:CGPointMake(position.x + cutoutX, position.y + cutoutY) color:[UIColor whiteColor].CGColor blur:cutoutBlur inContext:maskContext ofSize:size];
+				[self drawGlyphImageDescriptor:descriptor toSize:glyphSize atPosition:CGPointMake(position.x + cutoutX, position.y + cutoutY) color:[UIColor whiteColor].CGColor blur:cutoutBlur inContext:maskContext ofSize:size scale:scale];
 				CGContextRelease(maskContext);
 				CGDataProviderRef dataProvider = CGDataProviderCreateWithCFData((CFDataRef)[NSData dataWithBytesNoCopy:maskData length:maskWidth * maskHeight freeWhenDone:NO]);
 				CGImageRef maskImage = CGImageMaskCreate(maskWidth, maskHeight, 8, 8, maskWidth, dataProvider, NULL, TRUE);
@@ -330,7 +353,7 @@ static inline NSString *MD5OfString(NSString *string)
 				CGImageRelease(maskImage);
 			}
 			UIImage *image;
-			if (fileName && (image = [UIImage imageWithContentsOfFile:[template imagePathForFlipswitchImageName:fileName imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil]])) {
+			if (fileName && (image = FlipSwitchUnmappedImageWithContentsOfFile([template imagePathForFlipswitchImageName:fileName imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil], scale))) {
 				// Slow path to draw an image
 				void *localMaskData;
 				if (hasCutout) {
@@ -347,7 +370,7 @@ static inline NSString *MD5OfString(NSString *string)
 				CGContextRef maskContext = CGBitmapContextCreate(localMaskData, maskWidth, maskHeight, 8, maskWidth, NULL, (CGBitmapInfo)kCGImageAlphaOnly);
 				CGContextSetBlendMode(maskContext, kCGBlendModeCopy);
 				CGContextScaleCTM(maskContext, scale, scale);
-				[self drawGlyphImageDescriptor:descriptor toSize:glyphSize atPosition:position color:[UIColor whiteColor].CGColor blur:blur inContext:maskContext ofSize:size];
+				[self drawGlyphImageDescriptor:descriptor toSize:glyphSize atPosition:position color:[UIColor whiteColor].CGColor blur:blur inContext:maskContext ofSize:size scale:scale];
 				CGImageRef maskImage = CGBitmapContextCreateImage(maskContext);
 				CGContextRelease(maskContext);
 				CGContextClipToMask(context, CGRectMake(0.0f, 0.0f, size.width, size.height + size.height), maskImage);
@@ -357,7 +380,7 @@ static inline NSString *MD5OfString(NSString *string)
 				// Fast path for a solid color
 				CGContextSetAlpha(context, alpha);
 				CGColorRef color = (ColorWithHexString([layer objectForKey:@"color"]) ?: [UIColor blackColor]).CGColor;
-				[self drawGlyphImageDescriptor:descriptor toSize:glyphSize atPosition:position color:color blur:blur inContext:context ofSize:size];
+				[self drawGlyphImageDescriptor:descriptor toSize:glyphSize atPosition:position color:color blur:blur inContext:context ofSize:size scale:scale];
 			}
 		}
 		CGContextRestoreGState(context);
@@ -405,7 +428,7 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 		return [result autorelease];
 	}
 	if (prerenderedImageName) {
-		result = [UIImage imageWithContentsOfFile:prerenderedImageName];
+		result = FlipSwitchUnmappedImageWithContentsOfFile(prerenderedImageName, scale);
 		goto cache_and_return_result;
 	}
 	size_t rawWidth = _scaleIsSupported ? (size.width * scale) : size.width;
