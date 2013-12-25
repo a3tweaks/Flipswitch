@@ -270,18 +270,14 @@ static FSSwitchState state;
 {
 	state = FSSwitchStateIndeterminate;
 	dispatch_async(dispatch_get_main_queue(), ^{
-		NSLog(@"DoNotDisturbSwitch: _reportAppLaunchFinished");
 		if ([BBSettingsGateway instancesRespondToSelector:@selector(initWithQueue:)])
 			gateway = [[BBSettingsGateway alloc] initWithQueue:dispatch_get_main_queue()];
 		else
 			gateway = [[BBSettingsGateway alloc] init];
-		NSLog(@"DoNotDisturbSwitch: gateway=%@", gateway);
 		[gateway getBehaviorOverridesWithCompletion:^(NSArray *overrides) {
-			NSLog(@"DoNotDisturbSwitch: getBehaviourOverrides callback with overrides:%@", overrides);
 		}];
 		[gateway setActiveBehaviorOverrideTypesChangeHandler:^(int value){
 			state = value & 1;
-			NSLog(@"DoNotDisturbSwitch: active behaviour override types changed: %i", value);
 			[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[DoNotDisturbSwitch class]].bundleIdentifier];
 		}];
 		BKSTerminateApplicationForReasonAndReportWithDescription = dlsym(RTLD_DEFAULT, "BKSTerminateApplicationForReasonAndReportWithDescription");
