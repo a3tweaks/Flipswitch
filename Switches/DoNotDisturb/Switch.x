@@ -34,6 +34,10 @@
 - (id)init;
 @end
 
+@interface BBSettingsGateway (iOS7)
+- (id)initWithQueue:(dispatch_queue_t)queue;
+@end
+
 @interface BBBehaviorOverride : NSObject <NSCopying, NSCoding> {
 @private
 	unsigned _overrideType;
@@ -209,23 +213,6 @@ static void (*BKSTerminateApplicationForReasonAndReportWithDescription)(NSString
 static BBSettingsGateway *gateway;
 static FSSwitchState state;
 
-%hook SpringBoard
-
-- (void)_reportAppLaunchFinished
-{
-	%orig();
-	gateway = [[BBSettingsGateway alloc] init];
-	[gateway getBehaviorOverridesWithCompletion:^(NSArray *overrides) {
-	}];
-	[gateway setActiveBehaviorOverrideTypesChangeHandler:^(int value){
-		state = value & 1;
-		[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[DoNotDisturbSwitch class]].bundleIdentifier];
-	}];
-	BKSTerminateApplicationForReasonAndReportWithDescription = dlsym(RTLD_DEFAULT, "BKSTerminateApplicationForReasonAndReportWithDescription");
-}
-
-%end
-
 @implementation DoNotDisturbSwitch
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
@@ -282,5 +269,21 @@ static FSSwitchState state;
 %ctor
 {
 	state = FSSwitchStateIndeterminate;
-	%init();
+	dispatch_async(dispatch_get_main_queue(), ^{
+		NSLog(@"DoNotDisturbSwitch: _reportAppLaunchFinished");
+		if ([BBSettingsGateway instancesRespondToSelector:@selector(initWithQueue:)])
+			gateway = [[BBSettingsGateway alloc] initWithQueue:dispatch_get_main_queue()];
+		else
+			gateway = [[BBSettingsGateway alloc] init];
+		NSLog(@"DoNotDisturbSwitch: gateway=%@", gateway);
+		[gateway getBehaviorOverridesWithCompletion:^(NSArray *overrides) {
+			NSLog(@"DoNotDisturbSwitch: getBehaviourOverrides callback with overrides:%@", overrides);
+		}];
+		[gateway setActiveBehaviorOverrideTypesChangeHandler:^(int value){
+			state = value & 1;
+			NSLog(@"DoNotDisturbSwitch: active behaviour override types changed: %i", value);
+			[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[DoNotDisturbSwitch class]].bundleIdentifier];
+		}];
+		BKSTerminateApplicationForReasonAndReportWithDescription = dlsym(RTLD_DEFAULT, "BKSTerminateApplicationForReasonAndReportWithDescription");
+	});
 }
