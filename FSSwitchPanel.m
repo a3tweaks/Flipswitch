@@ -530,6 +530,8 @@ in_memory_fallback:
 	CGImageRelease(cgResult);
 cache_and_return_result:
 	if (result) {
+		if ([result respondsToSelector:@selector(imageWithRenderingMode:)])
+			result = [result imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
 		OSSpinLockLock(&_lock);
 		if (!_cachedSwitchImages)
 			_cachedSwitchImages = [[NSMutableDictionary alloc] init];
