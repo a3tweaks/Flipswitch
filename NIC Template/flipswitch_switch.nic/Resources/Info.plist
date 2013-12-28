@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>@@PROJECTNAME@@</string>
 	<key>CFBundleIdentifier</key>
-	<string>@PACKAGENAME@@</string>
+	<string>@@PACKAGENAME@@</string>
 	<key>CFBundleDisplayName</key>
 	<string>@@PROJECTNAME@@</string>
 	<key>CFBundleInfoDictionaryVersion</key>
