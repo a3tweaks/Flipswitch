@@ -14,12 +14,6 @@
 
 @implementation LocationSwitch
 
-- (id)initWithBundle:(NSBundle *)_bundle
-{
-    NSLog(@"Flipswitch: LocationSwitch initialize");
-    return [super initWithBundle:_bundle];
-}
-
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
     if (kCFCoreFoundationVersionNumber >= 800.0) {

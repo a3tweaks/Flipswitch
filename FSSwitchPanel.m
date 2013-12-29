@@ -15,6 +15,8 @@
 #import <UIKit/UIKit2.h>
 #import <libkern/OSAtomic.h>
 #import <CommonCrypto/CommonDigest.h>
+
+#define ROCKETBOOTSTRAP_LOAD_DYNAMIC
 #import "LightMessaging/LightMessaging.h"
 
 static LMConnection connection = {

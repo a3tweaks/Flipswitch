@@ -6,6 +6,7 @@
 #import "FSLazySwitch.h"
 #import "FSCapability.h"
 
+#define ROCKETBOOTSTRAP_LOAD_DYNAMIC
 #import "LightMessaging/LightMessaging.h"
 #import "Internal.h"
 
@@ -389,14 +390,7 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 {
 	if ((self = [super init]))
 	{
-		mach_port_t bootstrap = MACH_PORT_NULL;
-		task_get_bootstrap_port(mach_task_self(), &bootstrap);
-		CFMachPortContext context = { 0, self, NULL, NULL, NULL };
-		CFMachPortRef machPort = CFMachPortCreate(kCFAllocatorDefault, machPortCallback, &context, NULL);
-		CFRunLoopSourceRef machPortSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, machPort, 0);
-		CFRunLoopAddSource(CFRunLoopGetCurrent(), machPortSource, kCFRunLoopDefaultMode);
-		mach_port_t port = CFMachPortGetPort(machPort);
-		kern_return_t err = bootstrap_register(bootstrap, kFSSwitchServiceName, port);
+		kern_return_t err = LMStartServiceWithUserInfo(kFSSwitchServiceName, CFRunLoopGetCurrent(), machPortCallback, self);
 		if (err) NSLog(@"FS Switch API: Connection Creation failed with Error: %x", err);
 		_switchImplementations = [[NSMutableDictionary alloc] init];
 	}
