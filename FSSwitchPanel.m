@@ -98,7 +98,7 @@ static void WillOpenURLCallback(CFNotificationCenterRef center, void *observer, 
 		_pageSize = sysconf(_SC_PAGESIZE);
 		_fileDescriptors = [[NSMutableDictionary alloc] init];
 		if (objc_getClass("SpringBoard")) {
-			dlopen("/Library/Flipswitch/FlipswitchSpringBoard.dylib", RTLD_LAZY);
+			dlopen("/Library/Flipswitch/libFlipswitchSpringBoard.dylib", RTLD_LAZY);
 			FSSwitchMainPanel *mainPanel = [[objc_getClass("FSSwitchMainPanel") alloc] init];
 			_switchManager = mainPanel;
 			[mainPanel _loadBuiltInSwitches];

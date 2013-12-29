@@ -6,6 +6,8 @@
 	<string>English</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.a3tweaks.switch.location</string>
+	<key>CFBundleExecutable</key>
+	<string>Location</string>
 	<key>CFBundleDisplayName</key>
 	<string>Location Services</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -23,7 +25,7 @@
 	<key>MinimumOSVersion</key>
 	<string>3.0</string>
 	<key>NSPrincipalClass</key>
-	<string>FSPreferenceSwitchDataSource</string>
+	<string>LocationSwitch</string>
 	<key>alternate-action-url</key>
 	<string>prefs:root=LOCATION_SERVICES</string>
 	<key>defaults</key>
