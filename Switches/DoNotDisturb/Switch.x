@@ -220,8 +220,21 @@ static FSSwitchState state;
 	return state;
 }
 
-- (void)applyMode:(unsigned)mode
+- (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
 {
+	int mode;
+	switch (newState) {
+		case FSSwitchStateOn:
+			state = FSSwitchStateOn;
+			mode = 1;
+			break;
+		case FSSwitchStateOff:
+			state = FSSwitchStateOff;
+			mode = 2;
+			break;
+		default:
+			return;
+	}
 	[gateway setBehaviorOverrideStatus:mode];
 	// Now tell everyone about it. Bugs in SpringBoard if we don't :()
 	if ([%c(SBBulletinSystemStateAdapter) respondsToSelector:@selector(sharedInstanceIfExists)] && [%c(SBBulletinSystemStateAdapter) instancesRespondToSelector:@selector(_activeBehaviorOverrideTypesChanged:)]) {
@@ -240,30 +253,6 @@ static FSSwitchState state;
 	}
 }
 
-- (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
-{
-	switch (newState) {
-		case FSSwitchStateIndeterminate:
-			break;
-		case FSSwitchStateOn:
-			state = FSSwitchStateOn;
-			[self applyMode:1];
-			break;
-		case FSSwitchStateOff:
-			state = FSSwitchStateOff;
-			[self applyMode:0];
-			/*[gateway getBehaviorOverridesWithCompletion:^(NSArray *overrides) {
-				if ([overrides count]) {
-					BBBehaviorOverride *override = [overrides objectAtIndex:0];
-					[self applyMode:override.mode ? 2 : 0];
-				} else {
-					[self applyMode:0];
-				}
-			}];*/
-			break;
-	}
-}
-
 @end
 
 %ctor
@@ -274,11 +263,11 @@ static FSSwitchState state;
 			gateway = [[BBSettingsGateway alloc] initWithQueue:dispatch_get_main_queue()];
 		else
 			gateway = [[BBSettingsGateway alloc] init];
-		[gateway getBehaviorOverridesWithCompletion:^(NSArray *overrides) {
-		}];
-		[gateway setActiveBehaviorOverrideTypesChangeHandler:^(int value){
+		[gateway setActiveBehaviorOverrideTypesChangeHandler:^(int value) {
 			state = value & 1;
 			[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[DoNotDisturbSwitch class]].bundleIdentifier];
+		}];
+		[gateway setBehaviorOverrideStatusChangeHandler:^(int value){
 		}];
 		BKSTerminateApplicationForReasonAndReportWithDescription = dlsym(RTLD_DEFAULT, "BKSTerminateApplicationForReasonAndReportWithDescription");
 	});
