@@ -380,8 +380,7 @@ static inline NSString *MD5OfString(NSString *string)
 				[image drawInRect:CGRectMake(position.x - blur, position.y - blur, glyphSize + blur + blur, glyphSize + blur + blur) blendMode:kCGBlendModeNormal alpha:alpha];
 			} else {
 				// Fast path for a solid color
-				CGContextSetAlpha(context, alpha);
-				CGColorRef color = (ColorWithHexString([layer objectForKey:@"color"]) ?: [UIColor blackColor]).CGColor;
+				CGColorRef color = [(ColorWithHexString([layer objectForKey:@"color"]) ?: [UIColor blackColor]) colorWithAlphaComponent:alpha].CGColor;
 				[self drawGlyphImageDescriptor:descriptor toSize:glyphSize atPosition:position color:color blur:blur inContext:context ofSize:size scale:scale];
 			}
 		}
