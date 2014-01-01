@@ -28,6 +28,8 @@
 	<string>VPNSwitch</string>
 	<key>alternate-action-url</key>
 	<string>prefs:root=VPN</string>
+	<key>alternate-action-url-7</key>
+	<string>prefs:root=General&amp;path=VPN</string>
 	<key>lazy-load</key>
 	<true/>
 </dict>

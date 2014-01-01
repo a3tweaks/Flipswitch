@@ -28,6 +28,8 @@
 	<string>BluetoothSwitch</string>
 	<key>alternate-action-url</key>
 	<string>prefs:root=General&amp;path=Bluetooth</string>
+	<key>alternate-action-url-7</key>
+	<string>prefs:root=Bluetooth</string>
 	<key>lazy-load</key>
 	<true/>
 	<key>required-capabilities</key>

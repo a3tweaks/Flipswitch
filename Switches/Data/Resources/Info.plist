@@ -28,6 +28,8 @@
 	<string>DataSwitch</string>
 	<key>alternate-action-url</key>
 	<string>prefs:root=General&amp;path=MOBILE_DATA_SETTINGS_ID</string>
+	<key>alternate-action-url-7</key>
+	<string>prefs:root=MOBILE_DATA_SETTINGS_ID</string>
 	<key>required-capabilities</key>
 	<array>
 		<string>cellular-data</string>

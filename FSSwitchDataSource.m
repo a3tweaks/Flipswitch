@@ -89,7 +89,8 @@
 
 - (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	id urlValue = [[self bundleForSwitchIdentifier:switchIdentifier] objectForInfoDictionaryKey:@"alternate-action-url"];
+	id urlValue = (kCFCoreFoundationVersionNumber >= 800.0 ? [[self bundleForSwitchIdentifier:switchIdentifier] objectForInfoDictionaryKey:@"alternate-action-url-7"] : nil)
+		?: [[self bundleForSwitchIdentifier:switchIdentifier] objectForInfoDictionaryKey:@"alternate-action-url"];
 	if (urlValue) {
 		NSURL *url = [NSURL URLWithString:[urlValue description]];
 		if (url) {
