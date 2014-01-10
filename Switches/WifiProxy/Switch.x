@@ -122,9 +122,8 @@ static void PreferencesCallBack(SCPreferencesRef _prefs, SCPreferencesNotificati
 	}
 }
 
-- (id)init
++ (void)delayedLoad
 {
-	[self release];
 	SCPreferencesRef prefs = SCPreferencesCreateWithAuthorization(NULL, CFSTR("com.apple.settings.wi-fi"), NULL, NULL);
 	if (prefs) {
 		if ([%c(NSNetworkSettings) respondsToSelector:@selector(sharedNetworkSettings)]) {
@@ -140,8 +139,14 @@ static void PreferencesCallBack(SCPreferencesRef _prefs, SCPreferencesNotificati
 		SCPreferencesSetCallback(prefs, PreferencesCallBack, &context);
 		SCPreferencesScheduleWithRunLoop(prefs, CFRunLoopGetMain(), kCFRunLoopCommonModes);
 		wiFiEnabled = [[%c(SBWiFiManager) sharedInstance] wiFiEnabled];
-		[WifiProxySwitch stateDidChange];
+		[self stateDidChange];
 	}
+}
+
+- (id)init
+{
+	[self release];
+	[WifiProxySwitch performSelector:@selector(delayedLoad) withObject:nil afterDelay:0.0];
 	return nil;
 }
 
