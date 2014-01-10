@@ -92,6 +92,14 @@ static void WillOpenURLCallback(CFNotificationCenterRef center, void *observer, 
 	[[NSNotificationCenter defaultCenter] postNotificationName:FSSwitchPanelSwitchWillOpenURLNotification object:_switchManager userInfo:newUserInfo];
 }
 
+__attribute__((constructor))
+static void constructor(void)
+{
+	if (objc_getClass("SpringBoard")) {
+		dlopen("/Library/Flipswitch/libFlipswitchSpringBoard.dylib", RTLD_LAZY);
+	}
+}
+
 + (void)initialize
 {
 	if (self == [FSSwitchPanel class]) {
@@ -100,10 +108,13 @@ static void WillOpenURLCallback(CFNotificationCenterRef center, void *observer, 
 		_pageSize = sysconf(_SC_PAGESIZE);
 		_fileDescriptors = [[NSMutableDictionary alloc] init];
 		if (objc_getClass("SpringBoard")) {
-			dlopen("/Library/Flipswitch/libFlipswitchSpringBoard.dylib", RTLD_LAZY);
 			FSSwitchMainPanel *mainPanel = [[objc_getClass("FSSwitchMainPanel") alloc] init];
 			_switchManager = mainPanel;
-			[mainPanel _loadBuiltInSwitches];
+			if ([NSThread isMainThread]) {
+				[mainPanel _loadBuiltInSwitches];
+			} else {
+				[mainPanel performSelectorOnMainThread:@selector(_loadBuiltInSwitches) withObject:nil waitUntilDone:NO];
+			}
 		} else {
 			_switchManager = [[self alloc] init];
 			CFNotificationCenterRef darwin = CFNotificationCenterGetDarwinNotifyCenter();

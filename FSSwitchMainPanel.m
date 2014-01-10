@@ -321,7 +321,7 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 	size_t length = LMMessageGetDataLength(request);
 	mach_port_t replyPort = request->head.msgh_remote_port;
 	CFDataRef cfdata = CFDataCreateWithBytesNoCopy(kCFAllocatorDefault, data ?: &data, length, kCFAllocatorNull);
-	processMessage(info, request->head.msgh_id, replyPort, cfdata);
+	processMessage((FSSwitchMainPanel *)[FSSwitchPanel sharedPanel], request->head.msgh_id, replyPort, cfdata);
 	if (cfdata)
 		CFRelease(cfdata);
 	LMResponseBufferFree(bytes);
@@ -390,8 +390,6 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 {
 	if ((self = [super init]))
 	{
-		kern_return_t err = LMStartServiceWithUserInfo(kFSSwitchServiceName, CFRunLoopGetCurrent(), machPortCallback, self);
-		if (err) NSLog(@"FS Switch API: Connection Creation failed with Error: %x", err);
 		_switchImplementations = [[NSMutableDictionary alloc] init];
 	}
 	return self;
@@ -420,18 +418,16 @@ __attribute__((constructor))
 static void constructor(void)
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	// Initialize in SpringBoard automatically so that the bootstrap service gets registered
-	if ([[NSBundle mainBundle].bundleIdentifier isEqualToString:@"com.apple.springboard"]) {
-		// Clear the cache if a new WinterBoard theme has been applied
-		struct timespec cacheModified = GetFileModifiedTime("/tmp/FlipswitchCache");
-		if (cacheModified.tv_sec != 0) {
-			struct timespec winterboardModified = GetFileModifiedTime("/var/mobile/Library/Preferences/com.saurik.WinterBoard.plist");
-			if ((cacheModified.tv_sec < winterboardModified.tv_sec) || (cacheModified.tv_sec == winterboardModified.tv_sec && cacheModified.tv_nsec < winterboardModified.tv_nsec)) {
-				NSLog(@"Flipswitch: Clearing image cache!");
-				[[NSFileManager defaultManager] removeItemAtPath:@"/tmp/FlipswitchCache" error:NULL];
-			}
+	// Clear the cache if a new WinterBoard theme has been applied
+	struct timespec cacheModified = GetFileModifiedTime("/tmp/FlipswitchCache");
+	if (cacheModified.tv_sec != 0) {
+		struct timespec winterboardModified = GetFileModifiedTime("/var/mobile/Library/Preferences/com.saurik.WinterBoard.plist");
+		if ((cacheModified.tv_sec < winterboardModified.tv_sec) || (cacheModified.tv_sec == winterboardModified.tv_sec && cacheModified.tv_nsec < winterboardModified.tv_nsec)) {
+			NSLog(@"Flipswitch: Clearing image cache!");
+			[[NSFileManager defaultManager] removeItemAtPath:@"/tmp/FlipswitchCache" error:NULL];
 		}
-		[FSSwitchPanel sharedPanel];
 	}
+	kern_return_t err = LMStartService(kFSSwitchServiceName, CFRunLoopGetCurrent(), machPortCallback);
+	if (err) NSLog(@"Flipswitch: Unable to bootstrap service with error: %x", err);
 	[pool drain];
 }
