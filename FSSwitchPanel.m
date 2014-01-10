@@ -218,28 +218,11 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 
 - (id)_layersKeyForSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState usingTemplate:(NSBundle *)template layers:(NSArray **)outLayers
 {
-	NSString *stateName = [@"layers-" stringByAppendingString:NSStringFromFSSwitchState(state)];
-	for (size_t i = 0; i < sizeof(ControlStateVariantMasks) / sizeof(*ControlStateVariantMasks); i++) {
-		UIControlState newState = controlState & ControlStateVariantMasks[i];
-		NSString *key = ControlStateVariantApply(stateName, newState);
-		NSArray *layers = [template objectForInfoDictionaryKey:key];
-		if (layers) {
-			if (outLayers)
-				*outLayers = layers;
-			return key;
-		}
-	}
-	for (size_t i = 0; i < sizeof(ControlStateVariantMasks) / sizeof(*ControlStateVariantMasks); i++) {
-		UIControlState newState = controlState & ControlStateVariantMasks[i];
-		NSString *key = ControlStateVariantApply(@"layers", newState);
-		NSArray *layers = [template objectForInfoDictionaryKey:key];
-		if (layers) {
-			if (outLayers)
-				*outLayers = layers;
-			return key;
-		}
-	}
-	return nil;
+	NSString *keyName = nil;
+	id layers = [template objectForResolvedInfoDictionaryKey:@"layers" withSwitchState:state controlState:controlState resolvedKeyName:&keyName];
+	if (outLayers)
+		*outLayers = layers;
+	return keyName;
 }
 
 - (NSString *)_glyphImageDescriptorOfState:(FSSwitchState)switchState size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template

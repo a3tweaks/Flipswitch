@@ -1,5 +1,6 @@
 #import "NSBundle+Flipswitch.h"
 #import "ControlStateVariants.h"
+#import "FSSwitchState.h"
 
 @implementation NSBundle (Flipswitch)
 
@@ -77,6 +78,34 @@
 - (NSString *)imagePathForFlipswitchImageName:(NSString *)imageName imageSize:(NSUInteger)imageSize preferredScale:(CGFloat)preferredScale controlState:(UIControlState)controlState inDirectory:(NSString *)directory
 {
 	return [self imagePathForFlipswitchImageName:imageName imageSize:imageSize preferredScale:preferredScale controlState:controlState inDirectory:directory loadedControlState:NULL];
+}
+
+- (id)objectForResolvedInfoDictionaryKey:(NSString *)name withSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState resolvedKeyName:(NSString **)outKeyName
+{
+	NSString *stateName = [NSString stringWithFormat:@"%@-%@", name, NSStringFromFSSwitchState(state)];
+	for (size_t i = 0; i < sizeof(ControlStateVariantMasks) / sizeof(*ControlStateVariantMasks); i++) {
+		UIControlState newState = controlState & ControlStateVariantMasks[i];
+		NSString *key = ControlStateVariantApply(stateName, newState);
+		id value = [self objectForInfoDictionaryKey:key];
+		if (value) {
+			if (outKeyName)
+				*outKeyName = key;
+			return value;
+		}
+	}
+	for (size_t i = 0; i < sizeof(ControlStateVariantMasks) / sizeof(*ControlStateVariantMasks); i++) {
+		UIControlState newState = controlState & ControlStateVariantMasks[i];
+		NSString *key = ControlStateVariantApply(name, newState);
+		id value = [self objectForInfoDictionaryKey:key];
+		if (value) {
+			if (outKeyName)
+				*outKeyName = key;
+			return value;
+		}
+	}
+	if (outKeyName)
+		*outKeyName = nil;
+	return nil;
 }
 
 @end
