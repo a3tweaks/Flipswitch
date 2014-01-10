@@ -42,10 +42,10 @@
 // Returns YES if the switch is enabled (1.0.1 or later)
 
 - (void)beginPrewarmingForSwitchIdentifier:(NSString *)switchIdentifier;
-// Prepares switch for state changes (1.0.2 or later)
+// Prepares switch for state changes (1.0.3 or later)
 
 - (void)cancelPrewarmingForSwitchIdentifier:(NSString *)switchIdentifier;
-// Cancels previously requested prewarm (1.0.2 or later)
+// Cancels previously requested prewarm (1.0.3 or later)
 
 @end
 
