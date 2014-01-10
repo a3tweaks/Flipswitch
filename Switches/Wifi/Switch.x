@@ -20,7 +20,7 @@ static BOOL wiFiEnabled;
 - (void)_powerStateDidChange
 {
 	%orig();
-	wiFiEnabled = [[%c(SBWiFiManager) sharedInstance] wiFiEnabled];
+	wiFiEnabled = [self wiFiEnabled];
 	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[WifiSwitch class]].bundleIdentifier];
 }
 
