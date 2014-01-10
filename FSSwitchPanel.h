@@ -60,3 +60,7 @@ extern NSString * const FSSwitchPanelSwitchStateChangedNotification;
 extern NSString * const FSSwitchPanelSwitchIdentifierKey;
 
 extern NSString * const FSSwitchPanelSwitchWillOpenURLNotification;
+
+@interface FSSwitchPanel (LayerEffects)
+- (void)applyEffectsToLayer:(CALayer *)layer forSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState usingTemplate:(NSBundle *)templateBundle;
+@end

@@ -56,8 +56,11 @@
 - (void)displayLayer:(CALayer *)layer
 {
 	FSSwitchPanel *sharedPanel = [FSSwitchPanel sharedPanel];
-	UIImage *image = [sharedPanel imageOfSwitchState:[sharedPanel stateForSwitchIdentifier:switchIdentifier] controlState:self.state forSwitchIdentifier:switchIdentifier usingTemplate:template];
+	FSSwitchState switchState = [sharedPanel stateForSwitchIdentifier:switchIdentifier];
+	UIControlState controlState = self.state;
+	UIImage *image = [sharedPanel imageOfSwitchState:switchState controlState:controlState forSwitchIdentifier:switchIdentifier usingTemplate:template];
 	[self setImage:image forState:UIControlStateNormal];
+	[sharedPanel applyEffectsToLayer:self.layer forSwitchState:switchState controlState:controlState usingTemplate:template];
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event

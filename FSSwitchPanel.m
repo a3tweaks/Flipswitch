@@ -14,6 +14,7 @@
 #import <objc/message.h>
 #import <UIKit/UIKit2.h>
 #import <libkern/OSAtomic.h>
+#import <QuartzCore/QuartzCore.h>
 #import <CommonCrypto/CommonDigest.h>
 
 #define ROCKETBOOTSTRAP_LOAD_DYNAMIC
@@ -652,3 +653,15 @@ cache_and_return_result:
 
 @end
 
+@implementation FSSwitchPanel (LayerEffects)
+
+- (void)applyEffectsToLayer:(CALayer *)layer forSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState usingTemplate:(NSBundle *)templateBundle
+{
+	templateBundle = [templateBundle flipswitchThemedBundle];
+	NSString *compositingFilter = [templateBundle objectForResolvedInfoDictionaryKey:@"compositingFilter" withSwitchState:state controlState:controlState resolvedKeyName:NULL];
+	if (![compositingFilter length])
+		compositingFilter = nil;
+	layer.compositingFilter = compositingFilter;
+}
+
+@end
