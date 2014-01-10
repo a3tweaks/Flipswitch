@@ -117,18 +117,25 @@ static void (*setEnabled)(BOOL newState);
 @interface RotationSwitch : NSObject <FSSwitchDataSource>
 @end
 
+@interface RotationLockSwitch : RotationSwitch
+@end
+
 %hook SBOrientationLockManager
 
 - (void)unlock
 {
 	%orig();
-	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[RotationSwitch class]].bundleIdentifier];
+	FSSwitchPanel *panel = [FSSwitchPanel sharedPanel];
+	[panel stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.rotation"];
+	[panel stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.rotation-lock"];
 }
 
 - (void)lock:(UIUserInterfaceIdiom)lock
 {
 	%orig();
-	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[RotationSwitch class]].bundleIdentifier];
+	FSSwitchPanel *panel = [FSSwitchPanel sharedPanel];
+	[panel stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.rotation"];
+	[panel stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.rotation-lock"];
 }
 
 %end
@@ -210,6 +217,35 @@ static void (*setEnabled)(BOOL newState);
 	} else {
 		[lockManager lock:UIInterfaceOrientationPortrait];
 	}
+}
+
+@end
+
+@implementation RotationLockSwitch
+
+- (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	return [super stateForSwitchIdentifier:switchIdentifier] ? FSSwitchStateOff : FSSwitchStateOn;
+}
+
+- (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
+{
+	switch (newState) {
+		case FSSwitchStateOn:
+			newState = FSSwitchStateOff;
+			break;
+		case FSSwitchStateOff:
+			newState = FSSwitchStateOn;
+			break;
+		default:
+			break;
+	}
+	[super applyState:newState forSwitchIdentifier:switchIdentifier];
+}
+
+- (NSBundle *)bundleForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	return [NSBundle bundleWithPath:@"/Library/Switches/RotationLock.bundle"];
 }
 
 @end
