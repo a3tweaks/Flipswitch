@@ -220,6 +220,24 @@ static volatile int32_t stateChangeCount;
 	return [switchImplementation switchWithIdentifierIsEnabled:switchIdentifier];
 }
 
+- (void)beginPrewarmingForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	if (![NSThread isMainThread]) {
+		return [super beginPrewarmingForSwitchIdentifier:switchIdentifier];
+	}
+	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
+	return [switchImplementation beginPrewarmingForSwitchIdentifier:switchIdentifier];
+}
+
+- (void)cancelPrewarmingForSwitchIdentifier:(NSString *)switchIdentifier;
+{
+	if (![NSThread isMainThread]) {
+		return [super cancelPrewarmingForSwitchIdentifier:switchIdentifier];
+	}
+	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
+	return [switchImplementation cancelPrewarmingForSwitchIdentifier:switchIdentifier];
+}
+
 static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_t replyPort, CFDataRef data)
 {
 	switch ((FSSwitchServiceMessage)messageId) {
@@ -300,6 +318,22 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
 				LMSendIntegerReply(replyPort, [self switchWithIdentifierIsEnabled:identifier]);
+				return;
+			}
+			break;
+		}
+		case FSSwitchServiceMessageBeginPrewarmingForIdentifier: {
+			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			if ([identifier isKindOfClass:[NSString class]]) {
+				[self beginPrewarmingForSwitchIdentifier:identifier];
+				return;
+			}
+			break;
+		}
+		case FSSwitchServiceMessageCancelPrewarmingForIdentifier: {
+			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			if ([identifier isKindOfClass:[NSString class]]) {
+				[self cancelPrewarmingForSwitchIdentifier:identifier];
 				return;
 			}
 			break;

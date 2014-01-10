@@ -104,4 +104,12 @@
 	return YES;
 }
 
+- (void)beginPrewarmingForSwitchIdentifier:(NSString *)switchIdentifier
+{
+}
+
+- (void)cancelPrewarmingForSwitchIdentifier:(NSString *)switchIdentifier
+{
+}
+
 @end

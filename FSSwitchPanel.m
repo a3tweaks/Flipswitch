@@ -632,6 +632,16 @@ cache_and_return_result:
 	return LMResponseConsumeInteger(&responseBuffer);
 }
 
+- (void)beginPrewarmingForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	LMConnectionSendOneWayData(&connection, FSSwitchServiceMessageBeginPrewarmingForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:switchIdentifier format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
+}
+
+- (void)cancelPrewarmingForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	LMConnectionSendOneWayData(&connection, FSSwitchServiceMessageCancelPrewarmingForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:switchIdentifier format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
+}
+
 @end
 
 @implementation FSSwitchPanel (SpringBoard)

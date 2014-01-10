@@ -41,6 +41,12 @@
 - (BOOL)switchWithIdentifierIsEnabled:(NSString *)switchIdentifier;
 // Returns YES if the switch is enabled (1.0.1 or later)
 
+- (void)beginPrewarmingForSwitchIdentifier:(NSString *)switchIdentifier;
+// Prepares switch for state changes (1.0.2 or later)
+
+- (void)cancelPrewarmingForSwitchIdentifier:(NSString *)switchIdentifier;
+// Cancels previously requested prewarm (1.0.2 or later)
+
 @end
 
 @protocol FSSwitchDataSource;

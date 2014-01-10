@@ -51,4 +51,10 @@
 // Must override if switch can be disabled
 // By default returns YES
 
+- (void)beginPrewarmingForSwitchIdentifier:(NSString *)switchIdentifier;
+// Prepares switch for state changes (1.0.2 or later)
+
+- (void)cancelPrewarmingForSwitchIdentifier:(NSString *)switchIdentifier;
+// Cancels previously requested prewarm (1.0.2 or later)
+
 @end

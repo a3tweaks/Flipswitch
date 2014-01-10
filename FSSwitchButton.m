@@ -118,4 +118,13 @@
 	}
 }
 
+- (void)didMoveToWindow
+{
+	[super didMoveToWindow];
+	if (self.window)
+		[[FSSwitchPanel sharedPanel] beginPrewarmingForSwitchIdentifier:switchIdentifier];
+	else
+		[[FSSwitchPanel sharedPanel] cancelPrewarmingForSwitchIdentifier:switchIdentifier];
+}
+
 @end
