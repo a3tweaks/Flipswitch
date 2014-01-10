@@ -35,6 +35,7 @@ static FSSwitchState state;
 
 - (void)_bluetoothStateDidChange:(NSNotification *)notification
 {
+    state = [[%c(BluetoothManager) sharedInstance] powered];
     [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[self class]].bundleIdentifier];
 }
 
