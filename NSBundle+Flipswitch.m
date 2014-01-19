@@ -63,7 +63,7 @@
 			NSString *name = [ControlStateVariantApply(imageName, newState) stringByAppendingString:suffix];
 			NSString *filePath = scaleSuffix ? [self pathForResource:[name stringByAppendingString:scaleSuffix] ofType:fileType inDirectory:directory] : nil;
 			if (!filePath)
-				filePath = [self pathForResource:name ofType:fileType inDirectory:directory];
+				filePath = directory ? [self pathForResource:name ofType:fileType inDirectory:directory] : [self pathForResource:name ofType:fileType];
 			if (filePath) {
 				if (outImageControlState) {
 					*outImageControlState = newState;
