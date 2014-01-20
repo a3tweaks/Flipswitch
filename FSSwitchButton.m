@@ -36,6 +36,14 @@
 	[super dealloc];
 }
 
+- (NSString *)description
+{
+	NSString *addedContent = [NSString stringWithFormat:@" switchIdentifier=%@ template=%@", switchIdentifier, template.bundleIdentifier ?: template.bundlePath];
+	NSMutableString *result = [[[super description] mutableCopy] autorelease];
+	[result insertString:addedContent atIndex:[result length] - 1];
+	return result;
+}
+
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
 	if (context != template)
