@@ -345,7 +345,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void *info)
 {
 	LMMessage *request = bytes;
-	if (size < sizeof(LMMessage)) {
+	if (!LMDataWithSizeIsValidMessage(bytes, size)) {
 		LMSendReply(request->head.msgh_remote_port, NULL, 0);
 		LMResponseBufferFree(bytes);
 		return;
