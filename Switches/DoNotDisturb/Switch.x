@@ -269,6 +269,9 @@ static FSSwitchState state;
 		}];
 		[gateway setBehaviorOverrideStatusChangeHandler:^(int value){
 		}];
-		BKSTerminateApplicationForReasonAndReportWithDescription = dlsym(RTLD_DEFAULT, "BKSTerminateApplicationForReasonAndReportWithDescription");
+		if (kCFCoreFoundationVersionNumber < 800.0) {
+			// Don't force terminate the Settings app on iOS 7. Usual toggle doesn't terminate and leaves the state inconsistent, so we may as well follow suit
+			BKSTerminateApplicationForReasonAndReportWithDescription = dlsym(RTLD_DEFAULT, "BKSTerminateApplicationForReasonAndReportWithDescription");
+		}
 	});
 }
