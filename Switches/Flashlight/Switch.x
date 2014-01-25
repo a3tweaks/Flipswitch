@@ -46,7 +46,7 @@ static AVCaptureDevice *currentDevice;
 
 static AVFlashlight *flashlight;
 static BOOL prewarming;
-static BOOL intendedState;
+static FSSwitchState intendedState;
 
 static Class FlashlightClass(void)
 {
@@ -137,13 +137,10 @@ retain:
 
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
 {
-	if (newState == FSSwitchStateIndeterminate)
-		return;
-
 	intendedState = newState;
 	if (newState) {
 		StealFlashlight();
-		[flashlight setFlashlightLevel:1.0 withError:NULL];
+		[flashlight setFlashlightLevel:(newState == FSSwitchStateIndeterminate) ? 0.1 : 1.0 withError:NULL];
 		if (flashlight)
 			return;
 	} else if (flashlight) {
@@ -182,6 +179,16 @@ retain:
 	}
 }
 
+- (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	[[FSSwitchPanel sharedPanel] setState:FSSwitchStateIndeterminate forSwitchIdentifier:switchIdentifier];
+}
+
+- (BOOL)hasAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	return (kCFCoreFoundationVersionNumber >= 800.0);
+}
+
 - (void)beginPrewarmingForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	prewarming = YES;
@@ -204,7 +211,7 @@ retain:
 {
 	dispatch_async(dispatch_get_main_queue(), ^{
 		if (intendedState) {
-			[flashlight setFlashlightLevel:1.0 withError:NULL];
+			[flashlight setFlashlightLevel:(intendedState == FSSwitchStateIndeterminate) ? 0.1 : 1.0 withError:NULL];
 		}
 	});
 }
