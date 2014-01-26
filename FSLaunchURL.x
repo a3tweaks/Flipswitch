@@ -56,6 +56,7 @@ void FSLaunchURL(NSURL *url)
 			[controller setCustomUnlockActionContext:context];
 			[controller setPasscodeLockVisible:YES animated:YES completion:nil];
 			[context release];
+			return;
 		}
 	}
 	FSLaunchURLDirect(url);
