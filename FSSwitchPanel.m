@@ -527,8 +527,18 @@ in_memory_fallback:
 	CGImageRelease(cgResult);
 cache_and_return_result:
 	if (result) {
-		if ([result respondsToSelector:@selector(imageWithRenderingMode:)])
-			result = [result imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+		if ([result respondsToSelector:@selector(imageWithRenderingMode:)]) {
+			NSString *compositingFilter = [template objectForResolvedInfoDictionaryKey:@"renderingMode" withSwitchState:state controlState:controlState resolvedKeyName:NULL];
+			UIImageRenderingMode renderingMode;
+			if ([compositingFilter isEqualToString:@"auto"]) {
+				renderingMode = UIImageRenderingModeAutomatic;
+			} else if ([compositingFilter isEqualToString:@"template"]) {
+				renderingMode = UIImageRenderingModeAlwaysTemplate;
+			} else {
+				renderingMode = UIImageRenderingModeAlwaysOriginal;
+			}
+			result = [result imageWithRenderingMode:renderingMode];
+		}
 		OSSpinLockLock(&_lock);
 		if (!_cachedSwitchImages)
 			_cachedSwitchImages = [[NSMutableDictionary alloc] init];
@@ -668,7 +678,6 @@ cache_and_return_result:
 
 - (void)applyEffectsToLayer:(CALayer *)layer forSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState usingTemplate:(NSBundle *)templateBundle
 {
-	templateBundle = [templateBundle flipswitchThemedBundle];
 	NSString *compositingFilter = [templateBundle objectForResolvedInfoDictionaryKey:@"compositingFilter" withSwitchState:state controlState:controlState resolvedKeyName:NULL];
 	if (![compositingFilter length])
 		compositingFilter = nil;
