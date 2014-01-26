@@ -11,6 +11,8 @@
 }
 - (id)vpnActiveForSpecifier:(PSSpecifier *)specifier;
 - (void)_setVPNActive:(BOOL)active;
+- (NSArray *)specifiersWithSpecifier:(PSSpecifier *)specifier;
+- (void)initSC;
 @end
 
 static VPNBundleController *controller;
@@ -57,4 +59,8 @@ static VPNBundleController *controller;
 		[controller setRootController:rootController];
 	if ([controller respondsToSelector:@selector(setParentController:)])
 		[controller setParentController:rootController];
+	if ([controller respondsToSelector:@selector(specifiersWithSpecifier:)])
+		[controller specifiersWithSpecifier:nil];
+	if ([controller respondsToSelector:@selector(initSC)])
+		[controller initSC];
 }
