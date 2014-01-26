@@ -76,6 +76,11 @@
 @property (nonatomic, retain) PSSpecifier *specifier;
 @end
 
+typedef enum {
+	FSSettingsControllerReorderingMode = 0,
+	FSSettingsControllerEnablingMode = 1,
+} FSSettingsControllerMode;
+
 @interface FSSettingsController : PSViewController <UITableViewDataSource, UITableViewDelegate> {
 @private
 	NSString *settingsFile;
@@ -86,6 +91,8 @@
 	NSString *notificationName;
 	NSBundle *templateBundle;
 	CGFloat rowHeight;
+	FSSettingsControllerMode mode;
+	NSArray *allSwitches;
 }
 @end
 
@@ -93,6 +100,7 @@
 
 - (void)dealloc
 {
+	[allSwitches release];
 	[enabledIdentifiers release];
 	[disabledIdentifiers release];
 	[enabledKey release];
@@ -109,7 +117,7 @@
 	tableView.dataSource = self;
 	tableView.delegate = self;
 	tableView.rowHeight = rowHeight;
-	[tableView setEditing:YES animated:NO];
+	[tableView setEditing:mode == FSSettingsControllerReorderingMode animated:NO];
 	self.view = tableView;
 	[tableView release];
 }
@@ -126,6 +134,14 @@
 	enabledKey = [[specifier propertyForKey:@"flipswitchEnabledKey"] copy];
 	[disabledKey release];
 	disabledKey = [[specifier propertyForKey:@"flipswitchDisabledKey"] copy];
+	NSString *stringMode = [specifier propertyForKey:@"flipswitchSettingsMode"];
+	if ([stringMode isEqual:@"enabling"]) {
+		mode = FSSettingsControllerEnablingMode;
+	} else if ([stringMode isEqual:@"reordering"]) {
+		mode = FSSettingsControllerReorderingMode;
+	} else {
+		mode = FSSettingsControllerReorderingMode;
+	}
 	// Reading Settings file
 	NSDictionary *settings = settingsFile ? [NSDictionary dictionaryWithContentsOfFile:settingsFile] : nil;
 	NSArray *originalEnabled = [settings objectForKey:enabledKey] ?: [specifier propertyForKey:@"flipswitchDefaultEnabled"] ?: [NSArray array];
@@ -134,7 +150,9 @@
 	NSArray *originalDisabled = [settings objectForKey:disabledKey] ?: [specifier propertyForKey:@"flipswitchDefaultDisabled"] ?: [NSArray array];
 	[disabledIdentifiers release];
 	disabledIdentifiers = [originalDisabled mutableCopy];
-	NSMutableArray *allIdentifiers = [[[FSSwitchPanel sharedPanel].switchIdentifiers mutableCopy] autorelease];
+	[allSwitches release];
+	allSwitches = [[FSSwitchPanel sharedPanel].sortedSwitchIdentifiers retain];
+	NSMutableArray *allIdentifiers = [[allSwitches mutableCopy] autorelease];
 	for (NSString *identifier in originalEnabled) {
 		if ([allIdentifiers containsObject:identifier]) {
 			[allIdentifiers removeObject:identifier];
@@ -166,43 +184,104 @@
 	}
 	if ([self isViewLoaded]) {
 		[(UITableView *)self.view setRowHeight:rowHeight];
+		[(UITableView *)self.view setEditing:mode == FSSettingsControllerReorderingMode animated:NO];
 		[(UITableView *)self.view reloadData];
+	}
+}
+
+- (void)_flushSettings
+{
+	if (settingsFile) {
+		NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithContentsOfFile:settingsFile] ?: [NSMutableDictionary dictionary];
+		if (enabledKey) {
+			[dict setObject:enabledIdentifiers forKey:enabledKey];
+		}
+		if (disabledKey) {
+			[dict setObject:disabledIdentifiers forKey:disabledKey];
+		}
+		NSData *data = [NSPropertyListSerialization dataFromPropertyList:dict format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL];
+		[data writeToFile:settingsFile atomically:YES];
+	}
+	if (notificationName) {
+		notify_post([notificationName UTF8String]);
 	}
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)table
 {
-	return 2;
+	return (mode == FSSettingsControllerReorderingMode) ? 2 : 1;
 }
 
 - (NSString *)tableView:(UITableView *)table titleForHeaderInSection:(NSInteger)section
 {
-	return section ? @"Disabled" : @"Enabled";
+	switch (mode) {
+		case FSSettingsControllerEnablingMode:
+			return nil;
+		case FSSettingsControllerReorderingMode:
+		default:
+			return section ? @"Disabled" : @"Enabled";
+	}
 }
 
 - (NSString *)tableView:(UITableView *)table titleForFooterInSection:(NSInteger)section
 {
-	return @" ";
+	switch (mode) {
+		case FSSettingsControllerEnablingMode:
+			return nil;
+		case FSSettingsControllerReorderingMode:
+		default:
+			return @" ";
+	}
+}
+
+- (NSArray *)arrayForSection:(NSInteger)section
+{
+	switch (mode) {
+		case FSSettingsControllerEnablingMode:
+			return allSwitches;
+		case FSSettingsControllerReorderingMode:
+		default:
+			return section ? disabledIdentifiers : enabledIdentifiers;
+	}
 }
 
 - (NSInteger)tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section
 {
-	return section ? [disabledIdentifiers count] : [enabledIdentifiers count];;
+	return [[self arrayForSection:section] count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
 	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"] ?: [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"cell"] autorelease];
 	FSSwitchPanel *panel = [FSSwitchPanel sharedPanel];
-	NSString *switchIdentifier = [indexPath.section ? disabledIdentifiers : enabledIdentifiers objectAtIndex:indexPath.row];
+	NSString *switchIdentifier = [[self arrayForSection:indexPath.section] objectAtIndex:indexPath.row];
 	cell.textLabel.text = [panel titleForSwitchIdentifier:switchIdentifier];
 	cell.imageView.image = [panel imageOfSwitchState:FSSwitchStateIndeterminate controlState:UIControlStateNormal forSwitchIdentifier:switchIdentifier usingTemplate:templateBundle];
+	if (mode == FSSettingsControllerEnablingMode) {
+		cell.accessoryType = [enabledIdentifiers containsObject:switchIdentifier] ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+	}
 	return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
+	if (mode == FSSettingsControllerEnablingMode) {
+		UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+		UITableViewCellAccessoryType accessoryType;
+		NSString *switchIdentifier = [[self arrayForSection:indexPath.section] objectAtIndex:indexPath.row];
+		if ([enabledIdentifiers containsObject:switchIdentifier]) {
+			[disabledIdentifiers addObject:switchIdentifier];
+			[enabledIdentifiers removeObject:switchIdentifier];
+			accessoryType = UITableViewCellAccessoryNone;
+		} else {
+			[enabledIdentifiers addObject:switchIdentifier];
+			[disabledIdentifiers removeObject:switchIdentifier];
+			accessoryType = UITableViewCellAccessoryCheckmark;
+		}
+		cell.accessoryType = accessoryType;
+		[self _flushSettings];
+	}
 }
 
 - (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -223,20 +302,7 @@
 	[fromArray removeObjectAtIndex:fromIndexPath.row];
 	[toArray insertObject:identifier atIndex:toIndexPath.row];
 	[identifier release];
-	if (settingsFile) {
-		NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithContentsOfFile:settingsFile] ?: [NSMutableDictionary dictionary];
-		if (enabledKey) {
-			[dict setObject:enabledIdentifiers forKey:enabledKey];
-		}
-		if (disabledKey) {
-			[dict setObject:disabledIdentifiers forKey:disabledKey];
-		}
-		NSData *data = [NSPropertyListSerialization dataFromPropertyList:dict format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL];
-		[data writeToFile:settingsFile atomically:YES];
-	}
-	if (notificationName) {
-		notify_post([notificationName UTF8String]);
-	}
+	[self _flushSettings];
 }
 
 @end
