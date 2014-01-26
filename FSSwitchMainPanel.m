@@ -5,6 +5,7 @@
 #import "FSPreferenceSwitchDataSource.h"
 #import "FSLazySwitch.h"
 #import "FSCapability.h"
+#import "FSLaunchURL.h"
 
 #define ROCKETBOOTSTRAP_LOAD_DYNAMIC
 #import "LightMessaging/LightMessaging.h"
@@ -15,11 +16,6 @@
 #import <libkern/OSAtomic.h>
 
 #define kSwitchesPath @"/Library/Switches/"
-
-@interface UIApplication (Private)
-- (void)applicationOpenURL:(NSURL *)url;
-- (void)applicationOpenURL:(NSURL *)url publicURLsOnly:(BOOL)publicURLsOnly;
-@end
 
 static volatile int32_t stateChangeCount;
 
@@ -204,11 +200,7 @@ static volatile int32_t stateChangeCount;
 	}
 	NSDictionary *userInfo = url ? [NSDictionary dictionaryWithObject:[url absoluteString] forKey:@"url"] : nil;
 	[self postNotificationName:FSSwitchPanelSwitchWillOpenURLNotification userInfo:userInfo];
-	UIApplication *app = [UIApplication sharedApplication];
-	if ([app respondsToSelector:@selector(applicationOpenURL:publicURLsOnly:)])
-		[app applicationOpenURL:url publicURLsOnly:NO];
-	else
-		[app applicationOpenURL:url];
+	FSLaunchURL(url);
 }
 
 - (BOOL)switchWithIdentifierIsEnabled:(NSString *)switchIdentifier

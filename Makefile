@@ -4,7 +4,7 @@ libflipswitch_FILES = FSSwitchPanel.m NSBundle+Flipswitch.m FSSwitchButton.m FSS
 libflipswitch_FRAMEWORKS = UIKit CoreGraphics
 libflipswitch_ARCHS = armv6 armv7 armv7s arm64
 
-libFlipswitchSpringBoard_FILES = FSSwitchMainPanel.m FSSwitchDataSource.m FSSwitchMainPanel.m FSPreferenceSwitchDataSource.m FSLazySwitch.m FSCapability.m
+libFlipswitchSpringBoard_FILES = FSSwitchMainPanel.m FSSwitchDataSource.m FSSwitchMainPanel.m FSPreferenceSwitchDataSource.m FSLazySwitch.m FSCapability.m FSLaunchURL.x
 libFlipswitchSpringBoard_LIBRARIES = flipswitch
 libFlipswitchSpringBoard_FRAMEWORKS = UIKit
 libFlipswitchSpringBoard_PRIVATE_FRAMEWORKS = GraphicsServices
