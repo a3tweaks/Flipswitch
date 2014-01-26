@@ -7,19 +7,29 @@
 - (void)applicationOpenURL:(NSURL *)url publicURLsOnly:(BOOL)publicURLsOnly;
 @end
 
+@interface SBUnlockActionContext : NSObject
+- (id)initWithLockLabel:(NSString *)lockLabel shortLockLabel:(NSString *)label unlockAction:(void (^)())action identifier:(NSString *)id;
+- (void)setDeactivateAwayController:(BOOL)deactivate;
+@end
+
+@interface SBAlert : UIViewController
+@end
+
+@interface SBLockScreenViewControllerBase : SBAlert
+- (void)setCustomUnlockActionContext:(SBUnlockActionContext *)context;
+- (void)setPasscodeLockVisible:(BOOL)visibile animated:(BOOL)animated completion:(void (^)())completion;
+@end
+
 @interface SBLockScreenManager : NSObject
 + (SBLockScreenManager *)sharedInstance;
 @property (nonatomic, readonly) BOOL isUILocked;
-- (void)applicationRequestedDeviceUnlock;
-- (void)cancelApplicationRequestedDeviceLockEntry;
+@property (nonatomic, readonly) SBLockScreenViewControllerBase *lockScreenViewController;
 @end
 
 @interface SBDeviceLockController : NSObject
 + (SBDeviceLockController *)sharedController;
 - (BOOL)isPasscodeLocked;
 @end
-
-static NSURL *pendingURL;
 
 static void FSLaunchURLDirect(NSURL *url)
 {
@@ -30,29 +40,6 @@ static void FSLaunchURLDirect(NSURL *url)
 		[app applicationOpenURL:url];
 }
 
-%hook SBLockScreenManager
-
-- (void)_sendUILockStateChangedNotification
-{
-	%orig();
-	NSURL *url = pendingURL;
-	if (url) {
-		pendingURL = nil;
-		if (!self.isUILocked)
-			FSLaunchURLDirect(url);
-		[url release];
-	}
-}
-
-- (void)cancelApplicationRequestedDeviceLockEntry
-{
-	[pendingURL release];
-	pendingURL = nil;
-	%orig();
-}
-
-%end
-
 void FSLaunchURL(NSURL *url)
 {
 	if (!url)
@@ -60,11 +47,15 @@ void FSLaunchURL(NSURL *url)
 	if ([%c(SBDeviceLockController) sharedController].isPasscodeLocked) {
 		SBLockScreenManager *manager = (SBLockScreenManager *)[%c(SBLockScreenManager) sharedInstance];
 		if (manager.isUILocked) {
-			url = [url retain];
-			[pendingURL release];
-			pendingURL = url;
-			[manager applicationRequestedDeviceUnlock];
-			return;
+			void (^action)() = ^() {
+				FSLaunchURLDirect(url);
+			};
+			SBLockScreenViewControllerBase *controller = [(SBLockScreenManager *)[%c(SBLockScreenManager) sharedInstance] lockScreenViewController];
+			SBUnlockActionContext *context = [[%c(SBUnlockActionContext) alloc] initWithLockLabel:nil shortLockLabel:nil unlockAction:action identifier:nil];
+			[context setDeactivateAwayController:YES];
+			[controller setCustomUnlockActionContext:context];
+			[controller setPasscodeLockVisible:YES animated:YES completion:nil];
+			[context release];
 		}
 	}
 	FSLaunchURLDirect(url);
