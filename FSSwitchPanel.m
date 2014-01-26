@@ -149,6 +149,22 @@ static void constructor(void)
 	return LMResponseConsumePropertyList(&responseBuffer);
 }
 
+static NSInteger DictionaryTextComparator(id a, id b, void *context)
+{
+	return [[(NSDictionary *)context objectForKey:a] localizedCaseInsensitiveCompare:[(NSDictionary *)context objectForKey:b]];
+}
+
+- (NSArray *)sortedSwitchIdentifiers
+{
+	NSMutableArray *switchIdentifiers = [[self.switchIdentifiers mutableCopy] autorelease];
+	NSMutableDictionary *titles = [NSMutableDictionary dictionary];
+	for (NSString *identifier in switchIdentifiers) {
+		[titles setObject:[self titleForSwitchIdentifier:identifier] forKey:identifier];
+	}
+	[switchIdentifiers sortUsingFunction:DictionaryTextComparator context:titles];
+	return switchIdentifiers;
+}
+
 - (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	LMResponseBuffer responseBuffer;

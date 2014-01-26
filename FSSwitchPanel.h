@@ -8,6 +8,9 @@
 @property (nonatomic, readonly, copy) NSArray *switchIdentifiers;
 // Returns a list of identifying all switches installed on the device
 
+@property (nonatomic, readonly, copy) NSArray *sortedSwitchIdentifiers;
+// Returns a list of identifying all switches installed on the device sorted by localized title (1.0.3 or later)
+
 - (NSString *)titleForSwitchIdentifier:(NSString *)switchIdentifier;
 // Returns the localized title for a specific switch
 
