@@ -404,12 +404,13 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 
 - (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
 {
+	NSDictionary *infoDictionary = template.flipswitchThemedInfoDictionary;
 	template = [template flipswitchThemedBundle];
 	CGSize size;
-	size.width = [[template objectForInfoDictionaryKey:@"width"] floatValue];
+	size.width = [[infoDictionary objectForKey:@"width"] floatValue];
 	if (size.width == 0.0f)
 		return nil;
-	size.height = [[template objectForInfoDictionaryKey:@"height"] floatValue];
+	size.height = [[infoDictionary objectForKey:@"height"] floatValue];
 	if (size.height == 0.0f)
 		return nil;
 	NSArray *layers;

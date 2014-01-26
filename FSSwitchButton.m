@@ -1,12 +1,14 @@
 #import "FSSwitchButton.h"
 #import "FSSwitchPanel.h"
+#import "NSBundle+Flipswitch.h"
 
 @implementation FSSwitchButton
 
 - (id)initWithSwitchIdentifier:(NSString *)switchIdentifier_ template:(NSBundle *)template_
 {
-	CGFloat width = [[template_ objectForInfoDictionaryKey:@"width"] floatValue];
-	CGFloat height = [[template_ objectForInfoDictionaryKey:@"height"] floatValue];
+	NSDictionary *infoDictionary = template_.flipswitchThemedInfoDictionary;
+	CGFloat width = [[infoDictionary objectForKey:@"width"] floatValue];
+	CGFloat height = [[infoDictionary objectForKey:@"height"] floatValue];
 	if ((self = [super initWithFrame:CGRectMake(0.0f, 0.0f, width, height)])) {
 		switchIdentifier = [switchIdentifier_ copy];
 		template = [template_ retain];

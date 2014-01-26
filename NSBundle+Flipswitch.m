@@ -6,8 +6,19 @@
 
 - (NSBundle *)flipswitchThemedBundle
 {
-	NSString *path = [[self pathForResource:@"Info" ofType:@"plist"] stringByDeletingLastPathComponent];
-	return [path isEqualToString:[self bundlePath]] ? self : [NSBundle bundleWithPath:path];
+	NSString *path = [[self pathForResource:@"Theme" ofType:@"plist"] stringByDeletingLastPathComponent];
+	return (!path || [path isEqualToString:[self bundlePath]]) ? self : [NSBundle bundleWithPath:path];
+}
+
+- (NSDictionary *)flipswitchThemedInfoDictionary
+{
+	NSString *path = [self pathForResource:@"Theme" ofType:@"plist"];
+	if (path) {
+		NSDictionary *result = [NSDictionary dictionaryWithContentsOfFile:path];
+		if (result)
+			return result;
+	}
+	return self.infoDictionary;
 }
 
 - (NSArray *)FSImageImageFileTypes
@@ -82,11 +93,12 @@
 
 - (id)objectForResolvedInfoDictionaryKey:(NSString *)name withSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState resolvedKeyName:(NSString **)outKeyName
 {
+	NSDictionary *themedInfoDictionary = self.flipswitchThemedInfoDictionary;
 	NSString *stateName = [NSString stringWithFormat:@"%@-%@", name, NSStringFromFSSwitchState(state)];
 	for (size_t i = 0; i < sizeof(ControlStateVariantMasks) / sizeof(*ControlStateVariantMasks); i++) {
 		UIControlState newState = controlState & ControlStateVariantMasks[i];
 		NSString *key = ControlStateVariantApply(stateName, newState);
-		id value = [self objectForInfoDictionaryKey:key];
+		id value = [themedInfoDictionary objectForKey:key];
 		if (value) {
 			if (outKeyName)
 				*outKeyName = key;
@@ -96,7 +108,7 @@
 	for (size_t i = 0; i < sizeof(ControlStateVariantMasks) / sizeof(*ControlStateVariantMasks); i++) {
 		UIControlState newState = controlState & ControlStateVariantMasks[i];
 		NSString *key = ControlStateVariantApply(name, newState);
-		id value = [self objectForInfoDictionaryKey:key];
+		id value = [themedInfoDictionary objectForKey:key];
 		if (value) {
 			if (outKeyName)
 				*outKeyName = key;
