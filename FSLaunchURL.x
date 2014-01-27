@@ -50,7 +50,7 @@ void FSLaunchURL(NSURL *url)
 			void (^action)() = ^() {
 				FSLaunchURLDirect(url);
 			};
-			SBLockScreenViewControllerBase *controller = [(SBLockScreenManager *)[%c(SBLockScreenManager) sharedInstance] lockScreenViewController];
+			SBLockScreenViewControllerBase *controller = [manager lockScreenViewController];
 			SBUnlockActionContext *context = [[%c(SBUnlockActionContext) alloc] initWithLockLabel:nil shortLockLabel:nil unlockAction:action identifier:nil];
 			[context setDeactivateAwayController:YES];
 			[controller setCustomUnlockActionContext:context];
