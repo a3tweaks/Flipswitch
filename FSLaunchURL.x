@@ -44,19 +44,22 @@ void FSLaunchURL(NSURL *url)
 {
 	if (!url)
 		return;
-	if ([%c(SBDeviceLockController) sharedController].isPasscodeLocked) {
-		SBLockScreenManager *manager = (SBLockScreenManager *)[%c(SBLockScreenManager) sharedInstance];
-		if (manager.isUILocked) {
-			void (^action)() = ^() {
-				FSLaunchURLDirect(url);
-			};
-			SBLockScreenViewControllerBase *controller = [manager lockScreenViewController];
-			SBUnlockActionContext *context = [[%c(SBUnlockActionContext) alloc] initWithLockLabel:nil shortLockLabel:nil unlockAction:action identifier:nil];
-			[context setDeactivateAwayController:YES];
-			[controller setCustomUnlockActionContext:context];
-			[controller setPasscodeLockVisible:YES animated:YES completion:nil];
-			[context release];
-			return;
+	SBDeviceLockController *lockController = [%c(SBDeviceLockController) sharedController];
+	if ([lockController respondsToSelector:@selector(isPasscodeLocked)]) {
+		if (lockController.isPasscodeLocked) {
+			SBLockScreenManager *manager = (SBLockScreenManager *)[%c(SBLockScreenManager) sharedInstance];
+			if (manager.isUILocked) {
+				void (^action)() = ^() {
+					FSLaunchURLDirect(url);
+				};
+				SBLockScreenViewControllerBase *controller = [manager lockScreenViewController];
+				SBUnlockActionContext *context = [[%c(SBUnlockActionContext) alloc] initWithLockLabel:nil shortLockLabel:nil unlockAction:action identifier:nil];
+				[context setDeactivateAwayController:YES];
+				[controller setCustomUnlockActionContext:context];
+				[controller setPasscodeLockVisible:YES animated:YES completion:nil];
+				[context release];
+				return;
+			}
 		}
 	}
 	FSLaunchURLDirect(url);
