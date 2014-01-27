@@ -646,8 +646,7 @@ cache_and_return_result:
 
 - (void)openURLAsAlternateAction:(NSURL *)url
 {
-	REQUIRE_MAIN_THREAD(FSSwitchPanel);
-	[[UIApplication sharedApplication] openURL:url];
+	LMConnectionSendOneWayData(&connection, FSSwitchServiceMessageOpenURLAsAlternateAction, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:[url absoluteString] format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
 
 - (BOOL)switchWithIdentifierIsEnabled:(NSString *)switchIdentifier

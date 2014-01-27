@@ -195,7 +195,7 @@ static volatile int32_t stateChangeCount;
 - (void)openURLAsAlternateAction:(NSURL *)url
 {
 	if (![NSThread isMainThread]) {
-		[self performSelectorOnMainThread:_cmd withObject:url waitUntilDone:YES];
+		[self performSelectorOnMainThread:_cmd withObject:url waitUntilDone:NO];
 		return;
 	}
 	NSDictionary *userInfo = url ? [NSDictionary dictionaryWithObject:[url absoluteString] forKey:@"url"] : nil;
@@ -326,6 +326,14 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
 				[self cancelPrewarmingForSwitchIdentifier:identifier];
+				return;
+			}
+			break;
+		}
+		case FSSwitchServiceMessageOpenURLAsAlternateAction: {
+			NSString *url = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			if ([url isKindOfClass:[NSString class]]) {
+				[self openURLAsAlternateAction:[NSURL URLWithString:url]];
 				return;
 			}
 			break;
