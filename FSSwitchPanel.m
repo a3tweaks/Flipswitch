@@ -668,6 +668,11 @@ cache_and_return_result:
 	LMConnectionSendOneWayData(&connection, FSSwitchServiceMessageCancelPrewarmingForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:switchIdentifier format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
 
+- (NSString *)description
+{
+	return [NSString stringWithFormat:@"<FSSwitchPanel: %p switchIdentifierCount=%ld>", self, (long)[self.switchIdentifiers count]];
+}
+
 @end
 
 @implementation FSSwitchPanel (SpringBoard)
