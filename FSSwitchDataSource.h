@@ -1,5 +1,6 @@
 #import <UIKit/UIKit.h>
 #import "FSSwitchState.h"
+#import "FSSwitchSettingsViewController.h"
 
 @protocol FSSwitchDataSource <NSObject>
 @optional
@@ -56,5 +57,8 @@
 
 - (void)cancelPrewarmingForSwitchIdentifier:(NSString *)switchIdentifier;
 // Cancels previously requested prewarm (1.0.3 or later)
+
+- (Class <FSSwitchSettingsViewController>)settingsViewControllerClassForSwitchIdentifier:(NSString *)switchIdentifier;
+// Requests the class to handle configuration for the specified switch (1.0.3)
 
 @end

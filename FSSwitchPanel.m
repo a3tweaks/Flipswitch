@@ -668,6 +668,56 @@ cache_and_return_result:
 	LMConnectionSendOneWayData(&connection, FSSwitchServiceMessageCancelPrewarmingForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:switchIdentifier format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
 
+- (Class <FSSwitchSettingsViewController>)settingsViewControllerClassForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	LMResponseBuffer responseBuffer;
+	if (LMConnectionSendTwoWayPropertyList(&connection, FSSwitchServiceMessageSettingsViewControllerForIdentifier, switchIdentifier, &responseBuffer)) {
+		return Nil;
+	}
+	NSArray *result = LMResponseConsumePropertyList(&responseBuffer);
+	if ([result isKindOfClass:[NSArray class]]) {
+		switch ([result count]) {
+			case 1: {
+				NSString *className = [result objectAtIndex:0];
+				if ([className isKindOfClass:[NSString class]]) {
+					return NSClassFromString(className);
+				}
+				break;
+			}
+			case 2: {
+				NSString *className = [result objectAtIndex:0];
+				if ([className isKindOfClass:[NSString class]]) {
+					NSString *imageName = [result objectAtIndex:1];
+					if ([imageName isKindOfClass:[NSString class]]) {
+						dlopen([imageName UTF8String], RTLD_LAZY);
+						return NSClassFromString(className);
+					}
+				}
+				break;
+			}
+		}
+	}
+	return Nil;
+}
+
+- (UIViewController <FSSwitchSettingsViewController> *)settingsViewControllerForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	Class _class = [self settingsViewControllerClassForSwitchIdentifier:switchIdentifier];
+	if (!_class)
+		return nil;
+	UIViewController <FSSwitchSettingsViewController> *result;
+	if ([_class instancesRespondToSelector:@selector(initWithSwitchIdentifier:)])
+		result = [[_class alloc] initWithSwitchIdentifier:switchIdentifier];
+	else
+		result = [[_class alloc] init];
+	if (!result)
+		return nil;
+	UINavigationItem *item = result.navigationItem;
+	if (![item.title length])
+		item.title = [self titleForSwitchIdentifier:switchIdentifier];
+	return [result autorelease];
+}
+
 - (NSString *)description
 {
 	return [NSString stringWithFormat:@"<FSSwitchPanel: %p switchIdentifierCount=%ld>", self, (long)[self.switchIdentifiers count]];

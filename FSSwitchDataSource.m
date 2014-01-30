@@ -112,4 +112,10 @@
 {
 }
 
+- (Class <FSSwitchSettingsViewController>)settingsViewControllerClassForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	NSString *className = [[self bundleForSwitchIdentifier:switchIdentifier] objectForInfoDictionaryKey:@"settings-view-controller-class"];
+	return NSClassFromString(className);
+}
+
 @end

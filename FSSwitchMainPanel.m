@@ -14,6 +14,7 @@
 #import <notify.h>
 #import <sys/stat.h>
 #import <libkern/OSAtomic.h>
+#import <objc/runtime.h>
 
 #define kSwitchesPath @"/Library/Switches/"
 
@@ -230,6 +231,26 @@ static volatile int32_t stateChangeCount;
 	return [switchImplementation cancelPrewarmingForSwitchIdentifier:switchIdentifier];
 }
 
+- (Class <FSSwitchSettingsViewController>)settingsViewControllerClassForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	if (![NSThread isMainThread]) {
+		return [super settingsViewControllerClassForSwitchIdentifier:switchIdentifier];
+	}
+	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
+	Class _class = [switchImplementation settingsViewControllerClassForSwitchIdentifier:switchIdentifier];
+	if (!_class)
+		return nil;
+	if (![_class isSubclassOfClass:[UIViewController class]]) {
+		NSLog(@"Flipswitch: %@ is not a UIViewController (for switch %@)", _class, switchIdentifier);
+		return nil;
+	}
+	if (![_class conformsToProtocol:@protocol(FSSwitchSettingsViewController)]) {
+		NSLog(@"Flipswitch: %@ does not conform to FSSwitchSettingsViewController (for switch %@)", _class, switchIdentifier);
+		return nil;
+	}
+	return _class;
+}
+
 static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_t replyPort, CFDataRef data)
 {
 	switch ((FSSwitchServiceMessage)messageId) {
@@ -318,7 +339,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
 				[self beginPrewarmingForSwitchIdentifier:identifier];
-				return;
+				break;
 			}
 			break;
 		}
@@ -326,7 +347,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
 				[self cancelPrewarmingForSwitchIdentifier:identifier];
-				return;
+				break;
 			}
 			break;
 		}
@@ -334,7 +355,19 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			NSString *url = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([url isKindOfClass:[NSString class]]) {
 				[self openURLAsAlternateAction:[NSURL URLWithString:url]];
-				return;
+				break;
+			}
+			break;
+		}
+		case FSSwitchServiceMessageSettingsViewControllerForIdentifier: {
+			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			if ([identifier isKindOfClass:[NSString class]]) {
+				Class _class = [self settingsViewControllerClassForSwitchIdentifier:identifier];
+				if (_class) {
+					const char *imageName = class_getImageName(_class);
+					NSArray *response = [NSArray arrayWithObjects:NSStringFromClass(_class), imageName ? [NSString stringWithUTF8String:imageName] : nil, nil];
+					LMSendPropertyListReply(replyPort, response);
+				}
 			}
 			break;
 		}

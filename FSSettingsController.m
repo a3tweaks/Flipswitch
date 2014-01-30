@@ -117,6 +117,7 @@ typedef enum {
 	tableView.dataSource = self;
 	tableView.delegate = self;
 	tableView.rowHeight = rowHeight;
+	tableView.allowsSelectionDuringEditing = YES;
 	[tableView setEditing:mode == FSSettingsControllerReorderingMode animated:NO];
 	self.view = tableView;
 	[tableView release];
@@ -259,6 +260,10 @@ typedef enum {
 	cell.imageView.image = [panel imageOfSwitchState:FSSwitchStateIndeterminate controlState:UIControlStateNormal forSwitchIdentifier:switchIdentifier usingTemplate:templateBundle];
 	if (mode == FSSettingsControllerEnablingMode) {
 		cell.accessoryType = [enabledIdentifiers containsObject:switchIdentifier] ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+	} else {
+		Class _class = [panel settingsViewControllerClassForSwitchIdentifier:switchIdentifier];
+		cell.editingAccessoryType = _class ? UITableViewCellAccessoryDisclosureIndicator : UITableViewCellAccessoryNone;
+		cell.selectionStyle = _class ? UITableViewCellSelectionStyleBlue : UITableViewCellSelectionStyleNone;
 	}
 	return cell;
 }
@@ -266,10 +271,10 @@ typedef enum {
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
+	NSString *switchIdentifier = [[self arrayForSection:indexPath.section] objectAtIndex:indexPath.row];
 	if (mode == FSSettingsControllerEnablingMode) {
 		UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
 		UITableViewCellAccessoryType accessoryType;
-		NSString *switchIdentifier = [[self arrayForSection:indexPath.section] objectAtIndex:indexPath.row];
 		if ([enabledIdentifiers containsObject:switchIdentifier]) {
 			[disabledIdentifiers addObject:switchIdentifier];
 			[enabledIdentifiers removeObject:switchIdentifier];
@@ -281,6 +286,11 @@ typedef enum {
 		}
 		cell.accessoryType = accessoryType;
 		[self _flushSettings];
+	} else {
+		UIViewController <FSSwitchSettingsViewController> *_controller = [[FSSwitchPanel sharedPanel] settingsViewControllerForSwitchIdentifier:switchIdentifier];
+		if (_controller) {
+			[self.navigationController pushViewController:_controller animated:YES];
+		}
 	}
 }
 
@@ -303,6 +313,11 @@ typedef enum {
 	[toArray insertObject:identifier atIndex:toIndexPath.row];
 	[identifier release];
 	[self _flushSettings];
+}
+
+- (id)table
+{
+	return nil;
 }
 
 @end
