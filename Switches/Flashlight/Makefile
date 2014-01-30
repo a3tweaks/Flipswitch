@@ -1,6 +1,6 @@
 BUNDLE_NAME = Flashlight
 Flashlight_FILES = Switch.x
-Flashlight_FRAMEWORKS = AVFoundation
+Flashlight_FRAMEWORKS = AVFoundation UIKit
 Flashlight_LIBRARIES = flipswitch
 Flashlight_INSTALL_PATH = /Library/Switches
 

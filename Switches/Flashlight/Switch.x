@@ -1,11 +1,24 @@
 #import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
+#import <FSSwitchSettingsViewController.h>
 
 #import <AVFoundation/AVFoundation.h>
 #import <objc/runtime.h>
 #import <CaptainHook/CaptainHook.h>
 
+typedef enum {
+	FlashlightSwitchActionOn,
+	FlashlightSwitchActionLowPower,
+	FlashlightSwitchActionStrobe,
+} FlashlightSwitchAction;
+
 @interface FlashlightSwitch : NSObject <FSSwitchDataSource>
+@end
+
+@interface FlashlightSwitchSettingsViewController : UITableViewController <FSSwitchSettingsViewController> {
+	FlashlightSwitchAction defaultAction;
+	FlashlightSwitchAction alternateAction;
+}
 @end
 
 @interface AVFlashlight : NSObject
@@ -52,6 +65,28 @@ static Class FlashlightClass(void)
 {
 	Class result = %c(AVFlashlight);
 	return ([result instancesRespondToSelector:@selector(setFlashlightLevel:withError:)] && [result instancesRespondToSelector:@selector(turnPowerOff)]) ? result : nil;
+}
+
+static NSString *TitleForAction(FlashlightSwitchAction action)
+{
+	switch (action) {
+		case FlashlightSwitchActionOn:
+			return @"On";
+		case FlashlightSwitchActionLowPower:
+			return @"Low Power";
+		case FlashlightSwitchActionStrobe:
+			return @"Strobe";
+		default:
+			return nil;
+	}
+}
+
+static FlashlightSwitchAction ActionForKey(CFStringRef key, FlashlightSwitchAction defaultValue)
+{
+	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.flashlight"));
+	Boolean valid;
+	CFIndex value = CFPreferencesGetAppIntegerValue(key, CFSTR("com.a3tweaks.switch.flashlight"), &valid);
+	return valid ? value : defaultValue;
 }
 
 %hook AVFlashlight
@@ -135,11 +170,34 @@ retain:
 	flashlight = newFlashlight;
 }
 
+static float theJam;
+
+- (void)pumpTheJam
+{
+	theJam = 1.0f - theJam;
+	[flashlight setFlashlightLevel:theJam withError:NULL];
+	[self performSelector:@selector(pumpTheJam) withObject:nil afterDelay:1.0/12.0];
+}
+
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
 {
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(pumpTheJam) object:nil];
 	intendedState = newState;
 	if (newState) {
 		StealFlashlight();
+		FlashlightSwitchAction action = (newState == FSSwitchStateIndeterminate) ? ActionForKey(CFSTR("AlternateAction"), 1) : ActionForKey(CFSTR("DefaultAction"), 0);
+		switch (action) {
+			case FlashlightSwitchActionOn:
+				[flashlight setFlashlightLevel:1.0 withError:NULL];
+				break;
+			case FlashlightSwitchActionLowPower:
+				[flashlight setFlashlightLevel:nextafterf(0.0f, 1.0f) withError:NULL];
+				break;
+			case FlashlightSwitchActionStrobe:
+				theJam = 0.0;
+				[self pumpTheJam];
+				break;
+		}
 		[flashlight setFlashlightLevel:(newState == FSSwitchStateIndeterminate) ? 0.1 : 1.0 withError:NULL];
 		if (flashlight)
 			return;
@@ -223,23 +281,102 @@ retain:
 {
 	switch (state) {
 		case FSSwitchStateOn:
-			return @"On";
+			return TitleForAction(ActionForKey(CFSTR("DefaultAction"), 0));
 		case FSSwitchStateOff:
 			return @"Off";
 		case FSSwitchStateIndeterminate:
-			return @"Low";
+			return TitleForAction(ActionForKey(CFSTR("AlternateAction"), 1));
 		default:
 			return nil;
 	}
+}
+
+- (Class <FSSwitchSettingsViewController>)settingsViewControllerClassForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	return (kCFCoreFoundationVersionNumber >= 800) ? [FlashlightSwitchSettingsViewController class] : nil;
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
 	dispatch_async(dispatch_get_main_queue(), ^{
 		if (intendedState) {
-			[flashlight setFlashlightLevel:(intendedState == FSSwitchStateIndeterminate) ? 0.1 : 1.0 withError:NULL];
+			FlashlightSwitchAction action = (intendedState == FSSwitchStateIndeterminate) ? ActionForKey(CFSTR("AlternateAction"), 1) : ActionForKey(CFSTR("DefaultAction"), 0);
+			switch (action) {
+				case FlashlightSwitchActionOn:
+					[flashlight setFlashlightLevel:1.0 withError:NULL];
+					break;
+				case FlashlightSwitchActionLowPower:
+					[flashlight setFlashlightLevel:nextafterf(0.0f, 1.0f) withError:NULL];
+					break;
+				case FlashlightSwitchActionStrobe:
+					break;
+			}
 		}
 	});
+}
+
+@end
+
+@implementation FlashlightSwitchSettingsViewController
+
+- (id)init
+{
+	if ((self = [super initWithStyle:UITableViewStyleGrouped])) {
+		defaultAction = ActionForKey(CFSTR("DefaultAction"), 0);
+		alternateAction = ActionForKey(CFSTR("AlternateAction"), 1);
+	}
+	return self;
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)table
+{
+	return 2;
+}
+
+- (NSString *)tableView:(UITableView *)table titleForHeaderInSection:(NSInteger)section
+{
+	switch (section) {
+		case 0:
+			return @"Tap Action";
+		case 1:
+			return @"Hold Action";
+		default:
+			return nil;
+	}
+}
+
+- (NSInteger)tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section
+{
+	return 3;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"] ?: [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"cell"] autorelease];
+	cell.textLabel.text = TitleForAction(indexPath.row);
+	CFIndex value = indexPath.section ? alternateAction : defaultAction;
+	cell.accessoryType = (value == indexPath.row) ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+	return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+	[tableView deselectRowAtIndexPath:indexPath animated:YES];
+	NSInteger section = indexPath.section;
+	NSInteger value = indexPath.row;
+	CFStringRef key;
+	if (section) {
+		key = CFSTR("AlternateAction");
+		alternateAction = value;
+	} else {
+		key = CFSTR("DefaultAction");
+		defaultAction = value;
+	}
+	for (NSInteger i = 0; i < 3; i++) {
+		[tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:i inSection:section]].accessoryType = (value == i) ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+	}
+	CFPreferencesSetAppValue(key, (CFTypeRef)[NSNumber numberWithInteger:value], CFSTR("com.a3tweaks.switch.flashlight"));
+	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.flashlight"));
 }
 
 @end
