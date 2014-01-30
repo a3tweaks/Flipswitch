@@ -113,7 +113,7 @@ typedef enum {
 
 - (void)loadView
 {
-	UITableView *tableView = [[[UITableView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 0.0f, 0.0f) style:UITableViewStyleGrouped] autorelease];
+	UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 0.0f, 0.0f) style:UITableViewStyleGrouped];
 	tableView.dataSource = self;
 	tableView.delegate = self;
 	tableView.rowHeight = rowHeight;
