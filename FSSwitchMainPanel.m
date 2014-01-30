@@ -231,6 +231,15 @@ static volatile int32_t stateChangeCount;
 	return [switchImplementation cancelPrewarmingForSwitchIdentifier:switchIdentifier];
 }
 
+- (NSString *)descriptionOfState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier
+{
+	if (![NSThread isMainThread]) {
+		return [super descriptionOfState:state forSwitchIdentifier:switchIdentifier];
+	}
+	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
+	return [switchImplementation descriptionOfState:state forSwitchIdentifier:switchIdentifier];
+}
+
 - (Class <FSSwitchSettingsViewController>)settingsViewControllerClassForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	if (![NSThread isMainThread]) {
@@ -367,6 +376,22 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 					const char *imageName = class_getImageName(_class);
 					NSArray *response = [NSArray arrayWithObjects:NSStringFromClass(_class), imageName ? [NSString stringWithUTF8String:imageName] : nil, nil];
 					LMSendPropertyListReply(replyPort, response);
+				}
+			}
+			break;
+		}
+		case FSSwitchServiceMessageDescriptionOfStateForIdentifier: {
+			NSArray *args = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			if ([args isKindOfClass:[NSArray class]] && [args count] == 2) {
+				NSString *identifier = [args objectAtIndex:0];
+				if ([identifier isKindOfClass:[NSString class]]) {
+					NSNumber *state = [args objectAtIndex:1];
+					if ([state isKindOfClass:[NSNumber class]]) {
+						NSString *description = [self descriptionOfState:[state intValue] forSwitchIdentifier:identifier];
+						if (description) {
+							LMSendPropertyListReply(replyPort, description);
+						}
+					}
 				}
 			}
 			break;

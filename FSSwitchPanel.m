@@ -668,6 +668,18 @@ cache_and_return_result:
 	LMConnectionSendOneWayData(&connection, FSSwitchServiceMessageCancelPrewarmingForIdentifier, (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:switchIdentifier format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 }
 
+- (NSString *)descriptionOfState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier
+{
+	if (!switchIdentifier)
+		return nil;
+	NSArray *request = [NSArray arrayWithObjects:switchIdentifier, [NSNumber numberWithInt:state], nil];
+	LMResponseBuffer responseBuffer;
+	if (LMConnectionSendTwoWayPropertyList(&connection, FSSwitchServiceMessageDescriptionOfStateForIdentifier, request, &responseBuffer)) {
+		return nil;
+	}
+	return LMResponseConsumePropertyList(&responseBuffer);
+}
+
 - (Class <FSSwitchSettingsViewController>)settingsViewControllerClassForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	LMResponseBuffer responseBuffer;

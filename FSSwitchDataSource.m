@@ -112,6 +112,18 @@
 {
 }
 
+- (NSString *)descriptionOfState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier
+{
+	switch (state) {
+		case FSSwitchStateOn:
+			return @"On";
+		case FSSwitchStateOff:
+			return @"Off";
+		default:
+			return nil;
+	}
+}
+
 - (Class <FSSwitchSettingsViewController>)settingsViewControllerClassForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	NSString *className = [[self bundleForSwitchIdentifier:switchIdentifier] objectForInfoDictionaryKey:@"settings-view-controller-class"];

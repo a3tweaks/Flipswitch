@@ -101,7 +101,7 @@ static Class FlashlightClass(void)
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	return (currentDevice || intendedState) ? FSSwitchStateOn : FSSwitchStateOff;
+	return intendedState ?: (currentDevice ? FSSwitchStateOn : FSSwitchStateOff);
 }
 
 static void StealFlashlight(void)
@@ -179,6 +179,18 @@ retain:
 	}
 }
 
+- (void)applyActionForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	switch ([self stateForSwitchIdentifier:switchIdentifier]) {
+		case FSSwitchStateOff:
+			[self applyState:FSSwitchStateOn forSwitchIdentifier:switchIdentifier];
+			break;
+		default:
+			[self applyState:FSSwitchStateOff forSwitchIdentifier:switchIdentifier];
+			break;
+	}
+}
+
 - (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	[[FSSwitchPanel sharedPanel] setState:FSSwitchStateIndeterminate forSwitchIdentifier:switchIdentifier];
@@ -204,6 +216,20 @@ retain:
 		[flashlight removeObserver:self forKeyPath:@"available" context:NULL];
 		[flashlight release];
 		flashlight = nil;
+	}
+}
+
+- (NSString *)descriptionOfState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier
+{
+	switch (state) {
+		case FSSwitchStateOn:
+			return @"On";
+		case FSSwitchStateOff:
+			return @"Off";
+		case FSSwitchStateIndeterminate:
+			return @"Low";
+		default:
+			return nil;
 	}
 }
 
