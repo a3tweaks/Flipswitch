@@ -233,9 +233,37 @@ static void (*setEnabled)(BOOL newState);
 	}
 }
 
+static NSString *LockedOrientationName(void)
+{
+	SBOrientationLockManager *lockManager = [%c(SBOrientationLockManager) sharedInstance];
+	if ([lockManager isLocked]) {
+		switch ([lockManager respondsToSelector:@selector(userLockOrientation)] ? [lockManager userLockOrientation] : [lockManager lockOrientation]) {
+			case UIInterfaceOrientationPortrait:
+			case UIInterfaceOrientationPortraitUpsideDown:
+				return @"Portrait";
+			case UIInterfaceOrientationLandscapeLeft:
+			case UIInterfaceOrientationLandscapeRight:
+				return @"Landscape";
+		}
+	}
+	return nil;
+}
+
 - (Class <FSSwitchSettingsViewController>)settingsViewControllerClassForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	return (UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPad) ? [RotationSwitchSettingsViewController class] : nil;
+}
+
+- (NSString *)descriptionOfState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier
+{
+	switch (state) {
+		case FSSwitchStateOn:
+			return @"On";
+		case FSSwitchStateOff:
+			return LockedOrientationName() ?: @"Off";
+		default:
+			return nil;
+	}
 }
 
 @end
@@ -265,6 +293,18 @@ static void (*setEnabled)(BOOL newState);
 - (NSBundle *)bundleForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	return [NSBundle bundleWithPath:@"/Library/Switches/RotationLock.bundle"];
+}
+
+- (NSString *)descriptionOfState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier
+{
+	switch (state) {
+		case FSSwitchStateOn:
+			return LockedOrientationName() ?: @"On";
+		case FSSwitchStateOff:
+			return @"Off";
+		default:
+			return nil;
+	}
 }
 
 @end
