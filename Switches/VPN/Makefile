@@ -5,7 +5,7 @@ VPN_PRIVATE_FRAMEWORKS = Preferences
 VPN_LIBRARIES = flipswitch
 VPN_INSTALL_PATH = /Library/Switches
 
-ADDITIONAL_CFLAGS = -I../../
+ADDITIONAL_CFLAGS = -I../../public
 ADDITIONAL_LDFLAGS = -L../../$(THEOS_OBJ_DIR_NAME)
 
 include $(THEOS)/makefiles/common.mk

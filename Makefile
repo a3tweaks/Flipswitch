@@ -22,6 +22,8 @@ FlipswitchSettings_LIBRARIES = flipswitch
 FlipswitchSettings_LDFLAGS = -L$(THEOS_OBJ_DIR_NAME)
 FlipswitchSettings_INSTALL_PATH = /Library/PreferenceBundles
 
+ADDITIONAL_CFLAGS = -Ipublic
+
 export THEOS_PLATFORM_SDK_ROOT_armv6 = /Applications/Xcode_Legacy.app/Contents/Developer
 export SDKVERSION_armv6 = 5.1
 export TARGET_IPHONEOS_DEPLOYMENT_VERSION = 3.0
