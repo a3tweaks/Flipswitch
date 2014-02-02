@@ -7,6 +7,7 @@
 
 #import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
+#import <FSSwitchSettingsViewController.h>
 
 #include <notify.h>
 #include <dlfcn.h>
@@ -120,6 +121,9 @@ static void (*setEnabled)(BOOL newState);
 @interface RotationLockSwitch : RotationSwitch
 @end
 
+@interface RotationSwitchSettingsViewController : UITableViewController <FSSwitchSettingsViewController>
+@end
+
 %hook SBOrientationLockManager
 
 - (void)unlock
@@ -160,6 +164,12 @@ static void (*setEnabled)(BOOL newState);
 		return isEnabled ? isEnabled() : YES;
 }
 
+- (BOOL)hasAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.rotation"));
+	return !CFPreferencesGetAppBooleanValue(CFSTR("DisableLandsapeLock"), CFSTR("com.a3tweaks.switch.rotation"), NULL);
+}
+
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
 {
 	if (newState == FSSwitchStateIndeterminate)
@@ -171,7 +181,9 @@ static void (*setEnabled)(BOOL newState);
 			if ([lockManager respondsToSelector:@selector(lockOverrideEnabled)] ? [lockManager lockOverrideEnabled] : [lockManager lockOverride])
 				[lockManager updateLockOverrideForCurrentDeviceOrientation];
 		} else {
-			[lockManager lock:[(SpringBoard *)[UIApplication sharedApplication] activeInterfaceOrientation]];
+			BOOL supportLandscapeLock = [self hasAlternateActionForSwitchIdentifier:switchIdentifier];
+			UIInterfaceOrientation desiredOrientation = supportLandscapeLock ? [(SpringBoard *)[UIApplication sharedApplication] activeInterfaceOrientation] : UIInterfaceOrientationPortrait;
+			[lockManager lock:desiredOrientation];
 			if ([lockManager respondsToSelector:@selector(lockOverrideEnabled)] ? [lockManager lockOverrideEnabled] : [lockManager lockOverride]) {
 				if ([lockManager respondsToSelector:@selector(setLockOverrideEnabled:forReason:)]) {
 					for (id reason in [[CHIvar(lockManager, _lockOverrideReasons, NSMutableSet *) copy] autorelease])
@@ -198,6 +210,8 @@ static void (*setEnabled)(BOOL newState);
 
 - (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
+	if (![self hasAlternateActionForSwitchIdentifier:switchIdentifier])
+		return;
 	SBOrientationLockManager *lockManager = [%c(SBOrientationLockManager) sharedInstance];
 	if ([lockManager isLocked]) {
 		switch ([lockManager respondsToSelector:@selector(userLockOrientation)] ? [lockManager userLockOrientation] : [lockManager lockOrientation]) {
@@ -217,6 +231,11 @@ static void (*setEnabled)(BOOL newState);
 	} else {
 		[lockManager lock:UIInterfaceOrientationPortrait];
 	}
+}
+
+- (Class <FSSwitchSettingsViewController>)settingsViewControllerClassForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	return (UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPad) ? [RotationSwitchSettingsViewController class] : nil;
 }
 
 @end
@@ -249,6 +268,40 @@ static void (*setEnabled)(BOOL newState);
 }
 
 @end
+
+@implementation RotationSwitchSettingsViewController
+
+- (id)init
+{
+	return [super initWithStyle:UITableViewStyleGrouped];
+}
+
+- (NSInteger)tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section
+{
+	return 1;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"] ?: [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"cell"] autorelease];
+	cell.textLabel.text = @"Support Landscape Lock";
+	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.rotation"));
+	cell.accessoryType = CFPreferencesGetAppBooleanValue(CFSTR("DisableLandsapeLock"), CFSTR("com.a3tweaks.switch.rotation"), NULL) ? UITableViewCellAccessoryNone : UITableViewCellAccessoryCheckmark;
+	return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+	[tableView deselectRowAtIndexPath:indexPath animated:YES];
+	UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+	BOOL newValue = (cell.accessoryType == UITableViewCellAccessoryCheckmark);
+	cell.accessoryType = newValue ? UITableViewCellAccessoryNone : UITableViewCellAccessoryCheckmark;
+	CFPreferencesSetAppValue(CFSTR("DisableLandsapeLock"), (CFTypeRef)[NSNumber numberWithBool:newValue], CFSTR("com.a3tweaks.switch.rotation"));
+	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.rotation"));
+}
+
+@end
+
 
 CHConstructor
 {
