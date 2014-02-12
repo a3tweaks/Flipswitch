@@ -25,6 +25,7 @@ static WirelessModemController *controller;
 static MISManager *manager;
 static PSSpecifier *specifier;
 static NSInteger insideSwitch;
+static FSSwitchState pendingState;
 
 %hook UIAlertView
 
@@ -62,6 +63,7 @@ static NSInteger insideSwitch;
 - (void)noteWirelessModemChanged
 {
 	%orig();
+	pendingState = FSSwitchStateIndeterminate;
 	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[HotspotSwitch class]].bundleIdentifier];
 }
 
@@ -71,6 +73,8 @@ static NSInteger insideSwitch;
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
+	if (pendingState != FSSwitchStateIndeterminate)
+		return pendingState;
 	if (manager) {
 		NETRB_SVC_STATE state = 0;
 		[manager getState:&state andReason:NULL];
@@ -91,6 +95,7 @@ static NSInteger insideSwitch;
 	if (newState == FSSwitchStateIndeterminate)
 		return;
 	if (manager) {
+		pendingState = newState;
 		[manager setState:(newState == FSSwitchStateOn) ? NETRB_SVC_STATE_ON : NETRB_SVC_STATE_OFF];
 		return;
 	}
@@ -102,6 +107,7 @@ static NSInteger insideSwitch;
 @end
 
 %ctor {
+	pendingState = FSSwitchStateIndeterminate;
 	// Load WirelessModemSettings
 	dlopen("/System/Library/PreferenceBundles/WirelessModemSettings.bundle/WirelessModemSettings", RTLD_LAZY);
 	%init();
