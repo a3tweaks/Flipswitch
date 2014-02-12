@@ -509,7 +509,11 @@ unlock_and_in_memory_fallback:
 		UIGraphicsPopContext();
 		CGContextFlush(context);
 		// Sync
-		msync(buffer, mappingEnd - mappingStart, MS_SYNC);
+		do {
+			err = msync(buffer, mappingEnd - mappingStart, MS_SYNC);
+		} while(err == EINTR);
+		if (err)
+			goto unlock_and_in_memory_fallback;
 		// Write new metadata
 		NSMutableDictionary *newMetadata = [metadata mutableCopy] ?: [[NSMutableDictionary alloc] init];
 		[newMetadata setObject:newOffset forKey:cacheKey];
