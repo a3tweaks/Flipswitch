@@ -6,6 +6,8 @@
 #import <objc/runtime.h>
 #import <CaptainHook/CaptainHook.h>
 
+#import "../../NSObject+FSSwitchDataSource.h"
+
 typedef enum {
 	FlashlightSwitchActionOn,
 	FlashlightSwitchActionLowPower,
@@ -282,12 +284,11 @@ static float theJam;
 	switch (state) {
 		case FSSwitchStateOn:
 			return TitleForAction(ActionForKey(CFSTR("DefaultAction"), 0));
-		case FSSwitchStateOff:
-			return @"Off";
 		case FSSwitchStateIndeterminate:
 			return TitleForAction(ActionForKey(CFSTR("AlternateAction"), 1));
+		case FSSwitchStateOff:
 		default:
-			return nil;
+			return [super descriptionOfState:state forSwitchIdentifier:switchIdentifier];
 	}
 }
 

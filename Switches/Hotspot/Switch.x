@@ -4,6 +4,14 @@
 #import <Preferences/Preferences.h>
 #import <dlfcn.h>
 
+#import <CaptainHook/CaptainHook.h>
+
+#import "../../NSObject+FSSwitchDataSource.h"
+
+@interface SBTelephonyManager : NSObject
++ (SBTelephonyManager *)sharedTelephonyManager;
+@end
+
 @interface WirelessModemController : PSListController {
 }
 - (id)internetTethering:(PSSpecifier *)specifier;
@@ -102,6 +110,30 @@ static FSSwitchState pendingState;
 	insideSwitch++;
 	[controller setInternetTethering:[NSNumber numberWithBool:newState] specifier:specifier];
 	insideSwitch--;
+}
+
+- (NSString *)descriptionOfState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier
+{
+	switch (state) {
+		case FSSwitchStateOn:
+			if ([%c(SBTelephonyManager) respondsToSelector:@selector(sharedTelephonyManager)]) {
+				SBTelephonyManager *manager = [%c(SBTelephonyManager) sharedTelephonyManager];
+				int *_numberOfNetworkTetheredDevices = CHIvarRef(manager, _numberOfNetworkTetheredDevices, int);
+				if (_numberOfNetworkTetheredDevices) {
+					int deviceCount = *_numberOfNetworkTetheredDevices;
+					switch (deviceCount) {
+						case 0:
+							break;
+						case 1:
+							return @"1 Connection";
+						default:
+							return [NSString stringWithFormat:@"%d Connections", deviceCount];
+					}
+				}
+			}
+		default:
+			return [super descriptionOfState:state forSwitchIdentifier:switchIdentifier];
+	}
 }
 
 @end
