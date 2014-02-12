@@ -15,7 +15,6 @@
 #import <UIKit/UIKit2.h>
 #import <libkern/OSAtomic.h>
 #import <QuartzCore/QuartzCore.h>
-#import <CommonCrypto/CommonDigest.h>
 
 #define ROCKETBOOTSTRAP_LOAD_DYNAMIC
 #import "LightMessaging/LightMessaging.h"
@@ -256,7 +255,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	return [self glyphImageDescriptorOfState:switchState size:size scale:scale forSwitchIdentifier:switchIdentifier];
 }
 
-- (id)_cacheKeyForSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template layers:(NSArray **)outLayers prerenderedFileName:(NSString **)outImageFileName
+- (NSString *)_cacheKeyForSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template layers:(NSArray **)outLayers prerenderedFileName:(NSString **)outImageFileName
 {
 	NSString *imagePath = [template imagePathForFlipswitchImageName:[switchIdentifier stringByAppendingFormat:@"-prerendered-%@", NSStringFromFSSwitchState(state)] imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
 	if (!imagePath)
@@ -297,27 +296,9 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 		*outLayers = layers;
 	if (outImageFileName)
 		*outImageFileName = nil;
-	NSArray *result = [keys copy];
+	NSString *result = MD5OfData([NSPropertyListSerialization dataFromPropertyList:keys format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]);
 	[keys release];
-	return [result autorelease];
-}
-
-
-static inline NSString *MD5OfData(NSData *data)
-{
-	unsigned char digest[16];
-	CC_MD5((unsigned char *)data.bytes, data.length, digest);
-	return [NSString stringWithFormat:@"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-		digest[0], digest[1], digest[2], digest[3],
-		digest[4], digest[5], digest[6], digest[7],
-		digest[8], digest[9], digest[10], digest[11],
-		digest[12], digest[13], digest[14], digest[15]
-	];
-}
-
-static inline NSString *MD5OfString(NSString *string)
-{
-    return MD5OfData([string dataUsingEncoding:NSUTF8StringEncoding] ?: [NSData data]);
+	return result;
 }
 
 - (void)_renderImageOfLayers:(NSArray *)layers switchState:(FSSwitchState)state controlState:(UIControlState)controlState size:(CGSize)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
@@ -431,7 +412,7 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 		return nil;
 	NSArray *layers;
 	NSString *prerenderedImageName;
-	id cacheKey = [self _cacheKeyForSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template layers:&layers prerenderedFileName:&prerenderedImageName];
+	NSString *cacheKey = [self _cacheKeyForSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template layers:&layers prerenderedFileName:&prerenderedImageName];
 	if (!cacheKey)
 		return nil;
 	OSSpinLockLock(&_lock);
@@ -448,7 +429,7 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 	size_t rawHeight = _scaleIsSupported ? (size.height * scale) : size.height;
 	size_t rawSize = rawWidth * 4 * rawHeight;
 	char *buffer;
-	NSString *basePath = [@"/tmp/FlipswitchCache/" stringByAppendingString:MD5OfString([template bundlePath])];
+	NSString *basePath = template.flipswitchImageCacheBasePath;
 	NSString *metadataPath = [basePath stringByAppendingString:@".plist"];
 	NSString *binaryPath = [basePath stringByAppendingString:@".bin"];
 	int fd;
@@ -477,7 +458,6 @@ in_memory_fallback:
 		OSSpinLockUnlock(&_lock);
 		fchmod(fd, S_IRWXU | S_IRGRP | S_IROTH);		
 	}
-	NSString *keyName = MD5OfData([NSPropertyListSerialization dataFromPropertyList:cacheKey format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]); 
 	int err;
 	do {
 		err = flock(fd, LOCK_EX);
@@ -485,7 +465,7 @@ in_memory_fallback:
 	if (err)
 		goto in_memory_fallback;
 	NSDictionary *metadata = [NSDictionary dictionaryWithContentsOfFile:metadataPath];
-	NSNumber *position = [metadata objectForKey:keyName];
+	NSNumber *position = [metadata objectForKey:cacheKey];
 	uintptr_t positionOffset;
 	uintptr_t mappingStart;
 	uintptr_t mappingEnd;
@@ -532,7 +512,7 @@ unlock_and_in_memory_fallback:
 		msync(buffer, mappingEnd - mappingStart, MS_SYNC);
 		// Write new metadata
 		NSMutableDictionary *newMetadata = [metadata mutableCopy] ?: [[NSMutableDictionary alloc] init];
-		[newMetadata setObject:newOffset forKey:keyName];
+		[newMetadata setObject:newOffset forKey:cacheKey];
 		[newMetadata setObject:[NSNumber numberWithUnsignedInteger:positionOffset + rawSize] forKey:@"end"];
 		NSData *metadataData = [NSPropertyListSerialization dataFromPropertyList:newMetadata format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL];
 		[newMetadata release];
@@ -601,11 +581,10 @@ cache_and_return_result:
 	OSSpinLockUnlock(&_lock);
 	if (result)
 		return YES;
-	NSString *basePath = [@"/tmp/FlipswitchCache/" stringByAppendingString:MD5OfString([templateBundle bundlePath])];
+	NSString *basePath = templateBundle.flipswitchImageCacheBasePath;
 	NSString *metadataPath = [basePath stringByAppendingString:@".plist"];
 	NSDictionary *metadata = [NSDictionary dictionaryWithContentsOfFile:metadataPath];
-	NSString *keyName = MD5OfData([NSPropertyListSerialization dataFromPropertyList:cacheKey format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]); 
-	NSNumber *position = [metadata objectForKey:keyName];
+	NSNumber *position = [metadata objectForKey:cacheKey];
 	return position != nil;
 }
 

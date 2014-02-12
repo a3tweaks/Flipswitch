@@ -21,6 +21,16 @@
 	return self.infoDictionary;
 }
 
+static inline NSString *MD5OfString(NSString *string)
+{
+    return MD5OfData([string dataUsingEncoding:NSUTF8StringEncoding] ?: [NSData data]);
+}
+
+- (NSString *)flipswitchImageCacheBasePath
+{
+	return [@"/tmp/FlipswitchCache/" stringByAppendingString:MD5OfString([self bundlePath])];
+}
+
 - (NSArray *)FSImageImageFileTypes
 {
 	return [NSArray arrayWithObjects:@"pdf", @"png", nil];
