@@ -10,7 +10,19 @@
 - (void)setInternetTethering:(id)value specifier:(PSSpecifier *)specifier;
 @end
 
+typedef enum {
+	NETRB_SVC_STATE_ON = 1023,
+	NETRB_SVC_STATE_OFF = 1022,
+} NETRB_SVC_STATE;
+
+@interface MISManager : NSObject
++ (MISManager *)sharedManager;
+- (void)setState:(NETRB_SVC_STATE)state;
+- (void)getState:(NETRB_SVC_STATE *)outState andReason:(int *)reason;
+@end
+
 static WirelessModemController *controller;
+static MISManager *manager;
 static PSSpecifier *specifier;
 static NSInteger insideSwitch;
 
@@ -59,6 +71,18 @@ static NSInteger insideSwitch;
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
+	if (manager) {
+		NETRB_SVC_STATE state = 0;
+		[manager getState:&state andReason:NULL];
+		switch (state) {
+			case NETRB_SVC_STATE_ON:
+				return FSSwitchStateOn;
+			case NETRB_SVC_STATE_OFF:
+				return FSSwitchStateOff;
+			default:
+				return FSSwitchStateIndeterminate;
+		}
+	}
 	return [[controller internetTethering:specifier] boolValue];
 }
 
@@ -66,6 +90,10 @@ static NSInteger insideSwitch;
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
+	if (manager) {
+		[manager setState:(newState == FSSwitchStateOn) ? NETRB_SVC_STATE_ON : NETRB_SVC_STATE_OFF];
+		return;
+	}
 	insideSwitch++;
 	[controller setInternetTethering:[NSNumber numberWithBool:newState] specifier:specifier];
 	insideSwitch--;
@@ -77,6 +105,8 @@ static NSInteger insideSwitch;
 	// Load WirelessModemSettings
 	dlopen("/System/Library/PreferenceBundles/WirelessModemSettings.bundle/WirelessModemSettings", RTLD_LAZY);
 	%init();
+	if ((manager = [objc_getClass("MISManager") sharedManager]))
+		return;
 	// Create root controller
 	PSRootController *rootController = [[PSRootController alloc] initWithTitle:@"Preferences" identifier:@"com.apple.Preferences"];
 	// Create controller
