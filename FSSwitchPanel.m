@@ -478,7 +478,12 @@ in_memory_fallback:
 		fchmod(fd, S_IRWXU | S_IRGRP | S_IROTH);		
 	}
 	NSString *keyName = MD5OfData([NSPropertyListSerialization dataFromPropertyList:cacheKey format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL]); 
-	flock(fd, LOCK_EX);
+	int err;
+	do {
+		err = flock(fd, LOCK_EX);
+	} while(err == EINTR);
+	if (err)
+		goto in_memory_fallback;
 	NSDictionary *metadata = [NSDictionary dictionaryWithContentsOfFile:metadataPath];
 	NSNumber *position = [metadata objectForKey:keyName];
 	uintptr_t positionOffset;
@@ -495,17 +500,22 @@ in_memory_fallback:
 		mappingStart = floor_to_page(positionOffset);
 		mappingEnd = ceil_to_page(positionOffset + rawSize);
 		// Make file larger to accomodate new buffer
-		if (lseek(fd, mappingEnd, SEEK_SET) == -1)
+		if (lseek(fd, mappingEnd, SEEK_SET) == -1) {
+unlock_and_in_memory_fallback:
+			do {
+				err = flock(fd, LOCK_UN);
+			} while(err == EINTR);
 			goto in_memory_fallback;
+		}
 		char zero = 0;
 		if (write(fd, &zero, 1) == -1)
-			goto in_memory_fallback;
+			goto unlock_and_in_memory_fallback;
 		if (lseek(fd, 0, SEEK_SET) == -1)
-			goto in_memory_fallback;
+			goto unlock_and_in_memory_fallback;
 		// Map it in
 		buffer = mmap(NULL, mappingEnd - mappingStart, PROT_READ | PROT_WRITE, MAP_SHARED, fd, mappingStart);
 		if (buffer == MAP_FAILED)
-			goto in_memory_fallback;
+			goto unlock_and_in_memory_fallback;
 		// Clear buffer
 		memset(&buffer[positionOffset - mappingStart], 0, rawSize);
 		// Draw image
@@ -528,7 +538,9 @@ in_memory_fallback:
 		[newMetadata release];
 		[metadataData writeToFile:metadataPath atomically:YES];
 	}
-	flock(fd, LOCK_UN);
+	do {
+		err = flock(fd, LOCK_UN);
+	} while(err == EINTR);
 	// Map it in
 	buffer = mmap(NULL, mappingEnd - mappingStart, PROT_READ, MAP_SHARED, fd, mappingStart);
 	if (buffer == MAP_FAILED)
