@@ -37,7 +37,7 @@ static void PerformAction(CFIndex actionIndex)
 {
 	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.respring"));
 	CFIndex value = CFPreferencesGetAppIntegerValue(CFSTR("DefaultAction"), CFSTR("com.a3tweaks.switch.respring"), NULL);
-	PerformAction(value);
+	[self tryPerformActionWithValue:value];
 }
 
 - (BOOL)hasAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
@@ -54,7 +54,7 @@ static void PerformAction(CFIndex actionIndex)
 	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.respring"));
 	CFIndex value = CFPreferencesGetAppIntegerValue(CFSTR("AlternateAction"), CFSTR("com.a3tweaks.switch.respring"), &valid);
 	if (valid) {
-		PerformAction(value);
+		[self tryPerformActionWithValue:value];
 	}
 }
 
