@@ -33,6 +33,32 @@ static void PerformAction(CFIndex actionIndex)
 	}
 }
 
+static NSString *userStringFromAction(CFIndex value)
+{
+	NSString *title;
+	switch (value) {
+		case 0:
+			title = @"Respring";
+			break;
+		case 1:
+			title = @"Restart";
+			break;
+		case 2:
+			title = @"Power Off";
+			break;
+		case 3:
+			title = @"Safe Mode";
+			break;
+		case 4:
+			title = @"Do Nothing";
+			break;
+		default:
+			title = nil;
+			break;
+	}
+	return title;
+}
+
 - (void)applyActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.respring"));
@@ -61,13 +87,14 @@ static void PerformAction(CFIndex actionIndex)
 - (void)tryPerformActionWithValue:(CFIndex)value
 {
 	Boolean valid;
-	Boolean confirmationValue = CFPreferencesGetAppIntegerValue(CFSTR("RequireConfirmation"), CFSTR("com.a3tweaks.switch.respring"), &valid);
-	BOOL confirmationIsNeeded = valid ? confirmationValue : NO;
-	if (!confirmationIsNeeded)
+	Boolean confirmationValue = CFPreferencesGetAppBooleanValue(CFSTR("RequireConfirmation"), CFSTR("com.a3tweaks.switch.respring"), &valid);
+	BOOL confirmationIsNeeded = valid ? (confirmationValue == TRUE ? YES : NO) : NO;
+	if (!confirmationIsNeeded || value == 4) //Don't ask for confirmation if action == do nothing.
 		PerformAction(value);
 	else {
 		lastChosenAction = value;
-		[[[[UIAlertView alloc] initWithTitle:nil message:@"Confirm action" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:nil] autorelease] show];
+		NSString *message = [NSString stringWithFormat:@"Confirm %@",userStringFromAction(value)];
+		[[[[UIAlertView alloc] initWithTitle:nil message:message delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Confirm",nil] autorelease] show];
 	}
 }
 
@@ -97,7 +124,7 @@ static void PerformAction(CFIndex actionIndex)
 		CFIndex value = CFPreferencesGetAppIntegerValue(CFSTR("AlternateAction"), CFSTR("com.a3tweaks.switch.respring"), &valid);
 		alternateAction = valid ? value : 4;
 		valid = NO;
-		Boolean confirmationValue = CFPreferencesGetAppIntegerValue(CFSTR("RequireConfirmation"), CFSTR("com.a3tweaks.switch.respring"), &valid);
+		Boolean confirmationValue = CFPreferencesGetAppBooleanValue(CFSTR("RequireConfirmation"), CFSTR("com.a3tweaks.switch.respring"), &valid);
 		confirmationCellChecked = valid ? confirmationValue : NO;
 	}
 	return self;
@@ -134,26 +161,7 @@ static void PerformAction(CFIndex actionIndex)
 	if (indexPath.section == 2)
 		title = @"Confirmation";
 	else {
-		switch (indexPath.row) {
-			case 0:
-				title = @"Respring";
-				break;
-			case 1:
-				title = @"Restart";
-				break;
-			case 2:
-				title = @"Power Off";
-				break;
-			case 3:
-				title = @"Safe Mode";
-				break;
-			case 4:
-				title = @"Do Nothing";
-				break;
-			default:
-				title = nil;
-				break;
-		}
+		title = userStringFromAction(indexPath.row);
 	}
 	cell.textLabel.text = title;
 	if (indexPath.section == 2) {
