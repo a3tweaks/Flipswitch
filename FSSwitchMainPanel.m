@@ -157,13 +157,13 @@ static volatile int32_t stateChangeCount;
 	}
 }
 
-- (id)glyphImageDescriptorOfState:(FSSwitchState)switchState size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier;
+- (id)glyphImageDescriptorOfState:(FSSwitchState)switchState variant:(NSString *)variant size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier;
 {
 	if (![NSThread isMainThread]) {
-		return [super glyphImageDescriptorOfState:switchState size:size scale:scale forSwitchIdentifier:switchIdentifier];
+		return [super glyphImageDescriptorOfState:switchState variant:variant size:size scale:scale forSwitchIdentifier:switchIdentifier];
 	}
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
-	return [switchImplementation glyphImageDescriptorOfState:switchState size:size scale:scale forSwitchIdentifier:switchIdentifier];
+	return [switchImplementation glyphImageDescriptorOfState:switchState variant:variant size:size scale:scale forSwitchIdentifier:switchIdentifier];
 }
 
 - (BOOL)hasAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
@@ -301,7 +301,8 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 				CGFloat size = [[args objectForKey:@"size"] floatValue];
 				CGFloat scale = [[args objectForKey:@"scale"] floatValue];
 				FSSwitchState switchState = [[args objectForKey:@"switchState"] intValue];
-				id imageDescriptor = [self glyphImageDescriptorOfState:switchState size:size scale:scale forSwitchIdentifier:switchIdentifier];
+				NSString *variant = [args objectForKey:@"variant"];
+				id imageDescriptor = [self glyphImageDescriptorOfState:switchState variant:variant size:size scale:scale forSwitchIdentifier:switchIdentifier];
 				if (imageDescriptor) {
 					// TODO: Allow responding with a string representing file path, data containing image bytes, or UImage
 					LMSendPropertyListReply(replyPort, imageDescriptor);

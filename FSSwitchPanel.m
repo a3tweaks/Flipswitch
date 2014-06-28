@@ -173,9 +173,9 @@ static NSInteger DictionaryTextComparator(id a, id b, void *context)
 	return LMResponseConsumePropertyList(&responseBuffer);
 }
 
-- (id)glyphImageDescriptorOfState:(FSSwitchState)switchState size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier
+- (id)glyphImageDescriptorOfState:(FSSwitchState)switchState variant:(NSString *)variant size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier
 {
- 	NSDictionary *args = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:switchIdentifier, [NSNumber numberWithFloat:size], [NSNumber numberWithFloat:scale], [NSNumber numberWithInteger:switchState], nil] forKeys:[NSArray arrayWithObjects:@"switchIdentifier", @"size", @"scale", @"switchState", nil]];
+ 	NSDictionary *args = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:switchIdentifier, [NSNumber numberWithFloat:size], [NSNumber numberWithFloat:scale], [NSNumber numberWithInteger:switchState], variant, nil] forKeys:[NSArray arrayWithObjects:@"switchIdentifier", @"size", @"scale", @"switchState", variant ? @"variant" : nil, nil]];
 
 	LMResponseBuffer responseBuffer;
 	if (LMConnectionSendTwoWayPropertyList(&connection, FSSwitchServiceMessageGetImageDescriptorForSwitch, args, &responseBuffer)) {
@@ -241,18 +241,22 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	return keyName;
 }
 
-- (NSString *)_glyphImageDescriptorOfState:(FSSwitchState)switchState size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
+- (NSString *)_glyphImageDescriptorOfState:(FSSwitchState)switchState variant:(NSString *)variant size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
 {
-	NSString *imageName = [switchIdentifier stringByAppendingFormat:@"-glyph-%@", NSStringFromFSSwitchState(switchState)];
+	NSString *imageName;
+	// Try {switch}-glyph-{state}
+	imageName = [switchIdentifier stringByAppendingFormat:@"-glyph-%@", NSStringFromFSSwitchState(switchState)];
 	NSUInteger closestSize;
 	closestSize = [template imageSizeForFlipswitchImageName:imageName closestToSize:size inDirectory:nil];
 	if (closestSize != NSNotFound)
 		return [template imagePathForFlipswitchImageName:imageName imageSize:closestSize preferredScale:scale controlState:UIControlStateNormal inDirectory:nil];
+	// Try {switch}-glyph
 	imageName = [switchIdentifier stringByAppendingString:@"-glyph"];
 	closestSize = [template imageSizeForFlipswitchImageName:imageName closestToSize:size inDirectory:nil];
 	if (closestSize != NSNotFound)
 		return [template imagePathForFlipswitchImageName:imageName imageSize:closestSize preferredScale:scale controlState:UIControlStateNormal inDirectory:nil];
-	return [self glyphImageDescriptorOfState:switchState size:size scale:scale forSwitchIdentifier:switchIdentifier];
+	// Fallback from bundle
+	return [self glyphImageDescriptorOfState:switchState variant:variant size:size scale:scale forSwitchIdentifier:switchIdentifier];
 }
 
 - (NSString *)_cacheKeyForSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template layers:(NSArray **)outLayers prerenderedFileName:(NSString **)outImageFileName
@@ -283,7 +287,8 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 		} else if ([type isEqualToString:@"glyph"]) {
 			CGFloat glyphSize = [[layer objectForKey:@"size"] floatValue];
 			NSString *toggleState = [layer objectForKey:@"state"];
-			id descriptor = [self _glyphImageDescriptorOfState:toggleState ? FSSwitchStateFromNSString(toggleState) : state size:glyphSize scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
+			NSString *variant = [layer objectForKey:@"variant"];
+			id descriptor = [self _glyphImageDescriptorOfState:toggleState ? FSSwitchStateFromNSString(toggleState) : state variant:variant size:glyphSize scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
 			[keys addObject:descriptor ?: @""];
 			NSString *fileName = [layer objectForKey:@"fileName"];
 			if (fileName) {
@@ -325,7 +330,8 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 			CGFloat blur = [[layer objectForKey:@"blur"] floatValue];
 			CGFloat glyphSize = [[layer objectForKey:@"size"] floatValue];
 			NSString *toggleState = [layer objectForKey:@"state"];
-			id descriptor = [self _glyphImageDescriptorOfState:toggleState ? FSSwitchStateFromNSString(toggleState) : state size:glyphSize scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
+			NSString *variant = [layer objectForKey:@"variant"];
+			id descriptor = [self _glyphImageDescriptorOfState:toggleState ? FSSwitchStateFromNSString(toggleState) : state variant:variant size:glyphSize scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
 			NSString *fileName = [layer objectForKey:@"fileName"];
 			BOOL hasCutout = [[layer objectForKey:@"cutout"] boolValue];
 			if (hasCutout) {

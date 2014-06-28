@@ -1,0 +1,53 @@
+#!/bin/sh
+# 3G
+cp SketchImport/3G.pdf Switches/3G/Resources/glyph-modern.pdf
+cp SketchImportSlashed/3G.pdf Switches/3G/Resources/glyph-modern-off.pdf
+# Airplane Mode
+cp SketchImport/Airplane\ Mode.pdf Switches/AirplaneMode/Resources/glyph-modern.pdf
+cp SketchImportSlashed/Airplane\ Mode*.pdf Switches/AirplaneMode/Resources/glyph-modern-off.pdf
+# Auto-Brightness
+cp SketchImport/Auto\ Brightness.pdf Switches/AutoBrightness/Resources/glyph-modern.pdf
+cp SketchImport/Auto\ Brightness\ Off.pdf Switches/AutoBrightness/Resources/glyph-modern-off.pdf
+# Autolock
+cp SketchImport/Autolock\ On.pdf Switches/Autolock/Resources/glyph-modern.pdf
+cp SketchImport/Autolock.pdf Switches/Autolock/Resources/glyph-modern-off.pdf
+# Bluetooth
+cp SketchImport/Bluetooth.pdf Switches/Bluetooth/Resources/glyph-modern.pdf
+cp SketchImportSlashed/Bluetooth*.pdf Switches/Bluetooth/Resources/glyph-modern-off.pdf
+# Data
+cp SketchImport/Cellular\ Data.pdf Switches/Data/Resources/glyph-modern.pdf
+cp SketchImportSlashed/Cellular\ Data*.pdf Switches/Data/Resources/glyph-modern-off.pdf
+# Do Not Disturb
+cp SketchImport/Do\ Not\ Disturb.pdf Switches/DoNotDisturb/Resources/glyph-modern.pdf
+cp SketchImportSlashed/Do\ Not\ Disturb*.pdf Switches/DoNotDisturb/Resources/glyph-modern-off.pdf
+# Flashlight
+cp SketchImport/Flashlight.pdf Switches/Flashlight/Resources/glyph-modern.pdf
+cp SketchImportSlashed/Flashlight\ 2.pdf Switches/Flashlight/Resources/glyph-modern-off.pdf
+# Hotspot
+cp SketchImport/Location.pdf Switches/Hotspot/Resources/glyph-modern.pdf
+cp SketchImportSlashed/Location*.pdf Switches/Hotspot/Resources/glyph-modern-off.pdf
+# Hotspot
+cp SketchImport/LTE.pdf layout/Library/Switches/LTE.bundle/glyph-modern.pdf
+cp SketchImportSlashed/LTE*.pdf layout/Library/Switches/LTE.bundle/glyph-modern-off.pdf
+# Respring
+cp SketchImport/Respring.pdf Switches/Respring/Resources/glyph-modern.pdf
+# Ringer
+cp SketchImport/Ringer.pdf Switches/Ringer/Resources/glyph-modern.pdf
+cp SketchImportSlashed/Ringer*.pdf Switches/Ringer/Resources/glyph-modern-off.pdf
+# Rotation
+cp SketchImport/Orientation\ Lock.pdf Switches/Rotation/Resources/glyph-modern.pdf
+cp SketchImport/Orientation\ Lock\ On.pdf Switches/Rotation/Resources/glyph-modern-off.pdf
+# Settings
+cp SketchImport/Settings.pdf Switches/Settings/Resources/glyph-modern.pdf
+# Vibration
+cp SketchImport/Vibration.pdf Switches/Vibration/Resources/glyph-modern.pdf
+cp SketchImportSlashed/Vibration*.pdf Switches/Vibration/Resources/glyph-modern-off.pdf
+# VPN
+cp SketchImport/VPN.pdf Switches/VPN/Resources/glyph-modern.pdf
+cp SketchImportSlashed/VPN*.pdf Switches/VPN/Resources/glyph-modern-off.pdf
+# Wifi
+cp SketchImport/Wifi.pdf Switches/Wifi/Resources/glyph-modern.pdf
+cp SketchImportSlashed/Wifi\ 2.pdf Switches/Wifi/Resources/glyph-modern-off.pdf
+# Wifi Proxy
+cp SketchImport/Wifi\ Proxy.pdf Switches/WifiProxy/Resources/glyph-modern.pdf
+cp SketchImportSlashed/Wifi\ Proxy.pdf Switches/WifiProxy/Resources/glyph-modern-off.pdf

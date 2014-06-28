@@ -57,6 +57,24 @@
 	return nil;
 }
 
+- (id)glyphImageDescriptorOfState:(FSSwitchState)switchState variant:(NSString *)variant size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier
+{
+	if (variant) {
+		NSBundle *bundle = [self bundleForSwitchIdentifier:switchIdentifier];
+		if (!bundle)
+			return nil;
+		NSString *stateName = [@"glyph-modern-" stringByAppendingString:NSStringFromFSSwitchState(switchState)];
+		NSUInteger closestSize;
+		closestSize = [bundle imageSizeForFlipswitchImageName:stateName closestToSize:size inDirectory:nil];
+		if (closestSize != NSNotFound)
+			return [bundle imagePathForFlipswitchImageName:stateName imageSize:closestSize preferredScale:scale controlState:UIControlStateNormal inDirectory:nil];
+		closestSize = [bundle imageSizeForFlipswitchImageName:@"glyph-modern" closestToSize:size inDirectory:nil];
+		if (closestSize != NSNotFound)
+			return [bundle imagePathForFlipswitchImageName:@"glyph-modern" imageSize:closestSize preferredScale:scale controlState:UIControlStateNormal inDirectory:nil];
+	}
+	return [self glyphImageDescriptorOfState:switchState size:size scale:scale forSwitchIdentifier:switchIdentifier];
+}
+
 - (void)switchWasRegisteredForIdentifier:(NSString *)switchIdentifier
 {
 }

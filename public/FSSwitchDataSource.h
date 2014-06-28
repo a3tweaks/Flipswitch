@@ -29,6 +29,10 @@
 // Provide an image descriptor that best displays at the requested size and scale
 // By default looks through the bundle to find a glyph image
 
+- (id)glyphImageDescriptorOfState:(FSSwitchState)switchState variant:(NSString *)variant size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier;
+// Provide a modern image descriptor that best displays at the requested size and scale (1.0.4)
+// By default looks through the bundle to find a modern glyph image, falling back to using the standard glyph image descriptor
+
 - (NSBundle *)bundleForSwitchIdentifier:(NSString *)switchIdentifier;
 // Provides a bundle to look for localizations/images in
 // By default returns the bundle for the current class
