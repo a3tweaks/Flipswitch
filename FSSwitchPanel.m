@@ -306,6 +306,8 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	return result;
 }
 
+#define ALWAYS_USE_SLOW_PATH 1
+
 - (void)_renderImageOfLayers:(NSArray *)layers switchState:(FSSwitchState)state controlState:(UIControlState)controlState size:(CGSize)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
 {
 	size_t maskWidth = size.width * scale;
@@ -352,8 +354,11 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 				CGContextClipToMask(context, CGRectMake(0.0f, 0.0f, size.width, size.height + size.height), maskImage);
 				CGImageRelease(maskImage);
 			}
-			UIImage *image;
+			UIImage *image = nil;
 			if (fileName && (image = FlipSwitchUnmappedImageWithContentsOfFile([template imagePathForFlipswitchImageName:fileName imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil], scale))) {
+#if ALWAYS_USE_SLOW_PATH
+			}
+#endif
 				// Slow path to draw an image
 				void *localMaskData;
 				if (hasCutout) {
@@ -375,11 +380,22 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 				CGContextRelease(maskContext);
 				CGContextClipToMask(context, CGRectMake(0.0f, 0.0f, size.width, size.height + size.height), maskImage);
 				CGImageRelease(maskImage);
-				[image drawInRect:CGRectMake(position.x - blur, position.y - blur, glyphSize + blur + blur, glyphSize + blur + blur) blendMode:kCGBlendModeNormal alpha:alpha];
+				CGRect drawRect = CGRectMake(position.x - blur, position.y - blur, glyphSize + blur + blur, glyphSize + blur + blur);
+#if ALWAYS_USE_SLOW_PATH
+			if (image) {
+#endif
+				[image drawInRect:drawRect blendMode:kCGBlendModeNormal alpha:alpha];
+#if ALWAYS_USE_SLOW_PATH
+			} else {
+				UIColor *color = [(ColorWithHexString([layer objectForKey:@"color"]) ?: [UIColor blackColor]) colorWithAlphaComponent:alpha];
+				[color setFill];
+				UIRectFill(drawRect);
+#else
 			} else {
 				// Fast path for a solid color
 				CGColorRef color = [(ColorWithHexString([layer objectForKey:@"color"]) ?: [UIColor blackColor]) colorWithAlphaComponent:alpha].CGColor;
 				[self drawGlyphImageDescriptor:descriptor toSize:glyphSize atPosition:position color:color blur:blur inContext:context ofSize:size scale:scale];
+#endif
 			}
 		}
 		CGContextRestoreGState(context);
