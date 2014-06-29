@@ -68,4 +68,15 @@
 	[[FSSwitchPanel sharedPanel] applyAlternateActionForSwitchIdentifier:switchIdentifier];
 }
 
+- (Class <FSSwitchSettingsViewController>)settingsViewControllerClassForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	NSString *className = [[self bundleForSwitchIdentifier:switchIdentifier] objectForInfoDictionaryKey:@"settings-view-controller-class"];
+	if (className) {
+		[self lazyLoadWithSwitchIdentifier:switchIdentifier];
+		return [[FSSwitchPanel sharedPanel] settingsViewControllerClassForSwitchIdentifier:switchIdentifier];
+	} else {
+		return nil;
+	}
+}
+
 @end
