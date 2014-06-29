@@ -10,6 +10,7 @@
 @interface RespringSwitch : NSObject <FSSwitchDataSource, UIAlertViewDelegate> {
 	CFIndex lastChosenAction;
 }
+- (void)tryPerformActionWithValue:(CFIndex)value;
 @end
 
 @implementation RespringSwitch
