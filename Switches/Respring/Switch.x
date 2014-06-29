@@ -160,7 +160,7 @@ static NSString *userStringFromAction(CFIndex value)
 	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"] ?: [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"cell"] autorelease];
 	NSString *title;
 	if (indexPath.section == 2)
-		title = @"Confirmation";
+		title = @"Require Confirmation";
 	else {
 		title = userStringFromAction(indexPath.row);
 	}
