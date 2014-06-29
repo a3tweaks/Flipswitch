@@ -7,7 +7,9 @@
 - (void)powerDown;
 @end
 
-@interface RespringSwitch : NSObject <FSSwitchDataSource>
+@interface RespringSwitch : NSObject <FSSwitchDataSource, UIAlertViewDelegate> {
+	CFIndex lastChosenAction;
+}
 @end
 
 @implementation RespringSwitch
@@ -31,79 +33,10 @@ static void PerformAction(CFIndex actionIndex)
 	}
 }
 
-- (void)applyActionForSwitchIdentifier:(NSString *)switchIdentifier
+static NSString *userStringFromAction(CFIndex value)
 {
-	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.respring"));
-	CFIndex value = CFPreferencesGetAppIntegerValue(CFSTR("DefaultAction"), CFSTR("com.a3tweaks.switch.respring"), NULL);
-	PerformAction(value);
-}
-
-- (BOOL)hasAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
-{
-	Boolean valid;
-	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.respring"));
-	CFIndex value = CFPreferencesGetAppIntegerValue(CFSTR("AlternateAction"), CFSTR("com.a3tweaks.switch.respring"), &valid);
-	return valid && (value != 4);
-}
-
-- (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
-{
-	Boolean valid;
-	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.respring"));
-	CFIndex value = CFPreferencesGetAppIntegerValue(CFSTR("AlternateAction"), CFSTR("com.a3tweaks.switch.respring"), &valid);
-	if (valid) {
-		PerformAction(value);
-	}
-}
-
-@end
-
-@interface RespringSwitchSettingsViewController : UITableViewController <FSSwitchSettingsViewController> {
-	CFIndex defaultAction;
-	CFIndex alternateAction;
-}
-@end
-
-@implementation RespringSwitchSettingsViewController
-
-- (id)init
-{
-	if ((self = [super initWithStyle:UITableViewStyleGrouped])) {
-		defaultAction = CFPreferencesGetAppIntegerValue(CFSTR("DefaultAction"), CFSTR("com.a3tweaks.switch.respring"), NULL);
-		Boolean valid;
-		CFIndex value = CFPreferencesGetAppIntegerValue(CFSTR("AlternateAction"), CFSTR("com.a3tweaks.switch.respring"), &valid);
-		alternateAction = valid ? value : 4;
-	}
-	return self;
-}
-
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)table
-{
-	return 2;
-}
-
-- (NSString *)tableView:(UITableView *)table titleForHeaderInSection:(NSInteger)section
-{
-	switch (section) {
-		case 0:
-			return @"Tap Action";
-		case 1:
-			return @"Hold Action";
-		default:
-			return nil;
-	}
-}
-
-- (NSInteger)tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section
-{
-	return 5;
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"] ?: [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"cell"] autorelease];
 	NSString *title;
-	switch (indexPath.row) {
+	switch (value) {
 		case 0:
 			title = @"Respring";
 			break;
@@ -123,9 +56,121 @@ static void PerformAction(CFIndex actionIndex)
 			title = nil;
 			break;
 	}
+	return title;
+}
+
+- (void)applyActionForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.respring"));
+	CFIndex value = CFPreferencesGetAppIntegerValue(CFSTR("DefaultAction"), CFSTR("com.a3tweaks.switch.respring"), NULL);
+	[self tryPerformActionWithValue:value];
+}
+
+- (BOOL)hasAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	Boolean valid;
+	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.respring"));
+	CFIndex value = CFPreferencesGetAppIntegerValue(CFSTR("AlternateAction"), CFSTR("com.a3tweaks.switch.respring"), &valid);
+	return valid && (value != 4);
+}
+
+- (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	Boolean valid;
+	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.respring"));
+	CFIndex value = CFPreferencesGetAppIntegerValue(CFSTR("AlternateAction"), CFSTR("com.a3tweaks.switch.respring"), &valid);
+	if (valid) {
+		[self tryPerformActionWithValue:value];
+	}
+}
+
+- (void)tryPerformActionWithValue:(CFIndex)value
+{
+	Boolean valid;
+	Boolean confirmationValue = CFPreferencesGetAppBooleanValue(CFSTR("RequireConfirmation"), CFSTR("com.a3tweaks.switch.respring"), &valid);
+	BOOL confirmationIsNeeded = valid ? (confirmationValue == TRUE ? YES : NO) : NO;
+	if (!confirmationIsNeeded || value == 4) //Don't ask for confirmation if action == do nothing.
+		PerformAction(value);
+	else {
+		lastChosenAction = value;
+		NSString *message = [NSString stringWithFormat:@"Confirm %@",userStringFromAction(value)];
+		[[[[UIAlertView alloc] initWithTitle:nil message:message delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Confirm",nil] autorelease] show];
+	}
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+	if (buttonIndex != [alertView cancelButtonIndex]) {
+		PerformAction(lastChosenAction);
+	}
+}
+
+@end
+
+@interface RespringSwitchSettingsViewController : UITableViewController <FSSwitchSettingsViewController> {
+	CFIndex defaultAction;
+	CFIndex alternateAction;
+	BOOL confirmationCellChecked;
+}
+@end
+
+@implementation RespringSwitchSettingsViewController
+
+- (id)init
+{
+	if ((self = [super initWithStyle:UITableViewStyleGrouped])) {
+		defaultAction = CFPreferencesGetAppIntegerValue(CFSTR("DefaultAction"), CFSTR("com.a3tweaks.switch.respring"), NULL);
+		Boolean valid;
+		CFIndex value = CFPreferencesGetAppIntegerValue(CFSTR("AlternateAction"), CFSTR("com.a3tweaks.switch.respring"), &valid);
+		alternateAction = valid ? value : 4;
+		valid = NO;
+		Boolean confirmationValue = CFPreferencesGetAppBooleanValue(CFSTR("RequireConfirmation"), CFSTR("com.a3tweaks.switch.respring"), &valid);
+		confirmationCellChecked = valid ? confirmationValue : NO;
+	}
+	return self;
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)table
+{
+	return 3;
+}
+
+- (NSString *)tableView:(UITableView *)table titleForHeaderInSection:(NSInteger)section
+{
+	switch (section) {
+		case 0:
+			return @"Tap Action";
+		case 1:
+			return @"Hold Action";
+		case 2:
+			return @"Options";
+		default:
+			return nil;
+	}
+}
+
+- (NSInteger)tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section
+{
+	return section == 2 ? 1 : 5;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"] ?: [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"cell"] autorelease];
+	NSString *title;
+	if (indexPath.section == 2)
+		title = @"Confirmation";
+	else {
+		title = userStringFromAction(indexPath.row);
+	}
 	cell.textLabel.text = title;
-	CFIndex value = indexPath.section ? alternateAction : defaultAction;
-	cell.accessoryType = (value == indexPath.row) ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+	if (indexPath.section == 2) {
+		cell.accessoryType = confirmationCellChecked ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+	}
+	else {
+		CFIndex value = indexPath.section ? alternateAction : defaultAction;
+		cell.accessoryType = (value == indexPath.row) ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+	}
 	return cell;
 }
 
@@ -135,15 +180,24 @@ static void PerformAction(CFIndex actionIndex)
 	NSInteger section = indexPath.section;
 	NSInteger value = indexPath.row;
 	CFStringRef key;
-	if (section) {
-		key = CFSTR("AlternateAction");
-		alternateAction = value;
-	} else {
-		key = CFSTR("DefaultAction");
-		defaultAction = value;
+	if (section == 2) {
+		key = CFSTR("RequireConfirmation");
+		//Toggle cell checkmark
+		[tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:section]].accessoryType = confirmationCellChecked ? UITableViewCellAccessoryNone : UITableViewCellAccessoryCheckmark;
+		value = confirmationCellChecked ? 0 : 1;
+		confirmationCellChecked = ! confirmationCellChecked;
 	}
-	for (NSInteger i = 0; i < 5; i++) {
-		[tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:i inSection:section]].accessoryType = (value == i) ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+	else {
+		if (section == 1) {
+			key = CFSTR("AlternateAction");
+			alternateAction = value;
+		} else {
+			key = CFSTR("DefaultAction");
+			defaultAction = value;
+		}
+		for (NSInteger i = 0; i < 5; i++) {
+			[tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:i inSection:section]].accessoryType = (value == i) ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+		}
 	}
 	CFPreferencesSetAppValue(key, (CFTypeRef)[NSNumber numberWithInteger:value], CFSTR("com.a3tweaks.switch.respring"));
 	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.respring"));
