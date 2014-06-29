@@ -140,11 +140,14 @@ static FSSwitchState pendingState;
 
 %ctor {
 	pendingState = FSSwitchStateIndeterminate;
+	Class _MISManager = objc_getClass("MISManager");
+	if ([_MISManager instancesRespondToSelector:@selector(getState:andReason:)] && [_MISManager instancesRespondToSelector:@selector(setState:)] && [_MISManager respondsToSelector:@selector(sharedManager)] && (manager = [_MISManager sharedManager])) {
+		%init();
+		return;
+	}
 	// Load WirelessModemSettings
 	dlopen("/System/Library/PreferenceBundles/WirelessModemSettings.bundle/WirelessModemSettings", RTLD_LAZY);
 	%init();
-	if ((manager = [objc_getClass("MISManager") sharedManager]))
-		return;
 	// Create root controller
 	PSRootController *rootController = [[PSRootController alloc] initWithTitle:@"Preferences" identifier:@"com.apple.Preferences"];
 	// Create controller
