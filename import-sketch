@@ -24,9 +24,9 @@ cp SketchImportSlashed/Do\ Not\ Disturb*.pdf Switches/DoNotDisturb/Resources/gly
 cp SketchImport/Flashlight.pdf Switches/Flashlight/Resources/glyph-modern.pdf
 cp SketchImportSlashed/Flashlight\ 2.pdf Switches/Flashlight/Resources/glyph-modern-off.pdf
 # Hotspot
-cp SketchImport/Location.pdf Switches/Hotspot/Resources/glyph-modern.pdf
-cp SketchImportSlashed/Location*.pdf Switches/Hotspot/Resources/glyph-modern-off.pdf
-# Hotspot
+cp SketchImport/*Hotspot.pdf Switches/Hotspot/Resources/glyph-modern.pdf
+cp SketchImportSlashed/*Hotspot*.pdf Switches/Hotspot/Resources/glyph-modern-off.pdf
+# LTE
 cp SketchImport/LTE.pdf layout/Library/Switches/LTE.bundle/glyph-modern.pdf
 cp SketchImportSlashed/LTE*.pdf layout/Library/Switches/LTE.bundle/glyph-modern-off.pdf
 # Respring
