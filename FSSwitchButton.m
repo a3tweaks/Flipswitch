@@ -70,6 +70,7 @@
 	UIControlState controlState = self.state;
 	UIImage *image = [sharedPanel imageOfSwitchState:switchState controlState:controlState forSwitchIdentifier:switchIdentifier usingTemplate:template];
 	[self setImage:image forState:UIControlStateNormal];
+	[self setImage:image forState:UIControlStateHighlighted];
 	[sharedPanel applyEffectsToLayer:self.layer forSwitchState:switchState controlState:controlState usingTemplate:template];
 }
 
