@@ -228,7 +228,9 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 		CGSize shadowOffset = CGSizeApplyAffineTransform(CGSizeMake(0.0f, contextSize.height), CGContextGetCTM(context));
 		CGContextSetShadowWithColor(context, shadowOffset, blur, color);
 		CGContextTranslateCTM(context, 0.0f, -contextSize.height);
+		UIGraphicsPushContext(context);
 		[descriptor drawInRect:CGRectMake(0.0f, 0.0f, glyphSize, glyphSize)];
+		UIGraphicsPopContext();
 	}
 }
 
