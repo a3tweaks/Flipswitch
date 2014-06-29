@@ -35,6 +35,8 @@ static PSSpecifier *specifier;
 static NSInteger insideSwitch;
 static FSSwitchState pendingState;
 
+%group WirelessModemSettings
+
 %hook UIAlertView
 
 - (void)show
@@ -60,6 +62,8 @@ static FSSwitchState pendingState;
 {
 	// Just eat it!
 }
+
+%end
 
 %end
 
@@ -141,13 +145,12 @@ static FSSwitchState pendingState;
 %ctor {
 	pendingState = FSSwitchStateIndeterminate;
 	Class _MISManager = objc_getClass("MISManager");
-	if ([_MISManager instancesRespondToSelector:@selector(getState:andReason:)] && [_MISManager instancesRespondToSelector:@selector(setState:)] && [_MISManager respondsToSelector:@selector(sharedManager)] && (manager = [_MISManager sharedManager])) {
-		%init();
+	%init();
+	if ([_MISManager instancesRespondToSelector:@selector(getState:andReason:)] && [_MISManager instancesRespondToSelector:@selector(setState:)] && [_MISManager respondsToSelector:@selector(sharedManager)] && (manager = [_MISManager sharedManager]))
 		return;
-	}
 	// Load WirelessModemSettings
 	dlopen("/System/Library/PreferenceBundles/WirelessModemSettings.bundle/WirelessModemSettings", RTLD_LAZY);
-	%init();
+	%init(WirelessModemSettings);
 	// Create root controller
 	PSRootController *rootController = [[PSRootController alloc] initWithTitle:@"Preferences" identifier:@"com.apple.Preferences"];
 	// Create controller
