@@ -63,14 +63,15 @@
 		NSBundle *bundle = [self bundleForSwitchIdentifier:switchIdentifier];
 		if (!bundle)
 			return nil;
-		NSString *stateName = [@"glyph-modern-" stringByAppendingString:NSStringFromFSSwitchState(switchState)];
+		NSString *stateName = [NSString stringWithFormat:@"glyph-%@-%@", variant, NSStringFromFSSwitchState(switchState)];
 		NSUInteger closestSize;
 		closestSize = [bundle imageSizeForFlipswitchImageName:stateName closestToSize:size inDirectory:nil];
 		if (closestSize != NSNotFound)
 			return [bundle imagePathForFlipswitchImageName:stateName imageSize:closestSize preferredScale:scale controlState:UIControlStateNormal inDirectory:nil];
-		closestSize = [bundle imageSizeForFlipswitchImageName:@"glyph-modern" closestToSize:size inDirectory:nil];
+		NSString *glyphVariant = [NSString stringWithFormat:@"glyph-%@", variant];
+		closestSize = [bundle imageSizeForFlipswitchImageName:glyphVariant closestToSize:size inDirectory:nil];
 		if (closestSize != NSNotFound)
-			return [bundle imagePathForFlipswitchImageName:@"glyph-modern" imageSize:closestSize preferredScale:scale controlState:UIControlStateNormal inDirectory:nil];
+			return [bundle imagePathForFlipswitchImageName:glyphVariant imageSize:closestSize preferredScale:scale controlState:UIControlStateNormal inDirectory:nil];
 	}
 	return [self glyphImageDescriptorOfState:switchState size:size scale:scale forSwitchIdentifier:switchIdentifier];
 }
