@@ -163,7 +163,13 @@ static volatile int32_t stateChangeCount;
 		return [super glyphImageDescriptorOfState:switchState variant:variant size:size scale:scale forSwitchIdentifier:switchIdentifier];
 	}
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
-	return [switchImplementation glyphImageDescriptorOfState:switchState variant:variant size:size scale:scale forSwitchIdentifier:switchIdentifier];
+	if (switchImplementation) {
+		return [switchImplementation glyphImageDescriptorOfState:switchState variant:variant size:size scale:scale forSwitchIdentifier:switchIdentifier];
+	} else if ([[NSFileManager defaultManager] fileExistsAtPath:switchIdentifier]) {
+		return [switchIdentifier stringByResolvingSymlinksInPath];
+	} else {
+		return nil;
+	}
 }
 
 - (BOOL)hasAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
