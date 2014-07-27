@@ -308,6 +308,67 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	return result;
 }
 
+static CGBlendMode CGBlendModeForString(NSString *blendMode)
+{
+	if (!blendMode || [blendMode isEqual:@"normal"])
+		return kCGBlendModeNormal;
+	if ([blendMode isEqual:@"multiply"])
+		return kCGBlendModeMultiply;
+	if ([blendMode isEqual:@"screen"])
+		return kCGBlendModeScreen;
+	if ([blendMode isEqual:@"overlay"])
+		return kCGBlendModeOverlay;
+	if ([blendMode isEqual:@"darken"])
+		return kCGBlendModeDarken;
+	if ([blendMode isEqual:@"lighten"])
+		return kCGBlendModeLighten;
+	if ([blendMode isEqual:@"color-dodge"])
+		return kCGBlendModeColorDodge;
+	if ([blendMode isEqual:@"color-burn"])
+		return kCGBlendModeColorBurn;
+	if ([blendMode isEqual:@"soft-light"])
+		return kCGBlendModeSoftLight;
+	if ([blendMode isEqual:@"hard-light"])
+		return kCGBlendModeHardLight;
+	if ([blendMode isEqual:@"difference"])
+		return kCGBlendModeDifference;
+	if ([blendMode isEqual:@"exclusion"])
+		return kCGBlendModeExclusion;
+	if ([blendMode isEqual:@"hue"])
+		return kCGBlendModeHue;
+	if ([blendMode isEqual:@"saturation"])
+		return kCGBlendModeSaturation;
+	if ([blendMode isEqual:@"color"])
+		return kCGBlendModeColor;
+	if ([blendMode isEqual:@"luminosity"])
+		return kCGBlendModeLuminosity;
+	if ([blendMode isEqual:@"clear"])
+		return kCGBlendModeClear;
+	if ([blendMode isEqual:@"copy"])
+		return kCGBlendModeCopy;
+	if ([blendMode isEqual:@"source-in"])
+		return kCGBlendModeSourceIn;
+	if ([blendMode isEqual:@"source-out"])
+		return kCGBlendModeSourceOut;
+	if ([blendMode isEqual:@"source-atop"])
+		return kCGBlendModeSourceAtop;
+	if ([blendMode isEqual:@"destination-over"])
+		return kCGBlendModeDestinationOver;
+	if ([blendMode isEqual:@"destination-in"])
+		return kCGBlendModeDestinationIn;
+	if ([blendMode isEqual:@"destination-out"])
+		return kCGBlendModeDestinationOut;
+	if ([blendMode isEqual:@"destination-atop"])
+		return kCGBlendModeDestinationAtop;
+	if ([blendMode isEqual:@"xor"])
+		return kCGBlendModeXOR;
+	if ([blendMode isEqual:@"plus-darker"])
+		return kCGBlendModePlusDarker;
+	if ([blendMode isEqual:@"plus-lighter"])
+		return kCGBlendModePlusLighter;
+	return kCGBlendModeNormal;
+}
+
 #define ALWAYS_USE_SLOW_PATH 1
 
 - (void)_renderImageOfLayers:(NSArray *)layers switchState:(FSSwitchState)state controlState:(UIControlState)controlState size:(CGSize)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
@@ -323,12 +384,13 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 		CGFloat alpha = temp ? [temp floatValue] : 1.0f;
 		CGPoint position = CGPointMake([[layer objectForKey:@"x"] floatValue], [[layer objectForKey:@"y"] floatValue]);
 		NSString *type = [layer objectForKey:@"type"];
+		CGBlendMode blendMode = CGBlendModeForString([layer objectForKey:@"blendMode"]);
 		if (!type || [type isEqualToString:@"image"]) {
 			NSString *fileName = [layer objectForKey:@"fileName"];
 			if (fileName) {
 				NSString *fullPath = [template imagePathForFlipswitchImageName:fileName imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
 				UIImage *image = FlipSwitchUnmappedImageWithContentsOfFile(fullPath, scale);
-				[image drawAtPoint:position blendMode:kCGBlendModeNormal alpha:alpha];
+				[image drawAtPoint:position blendMode:blendMode alpha:alpha];
 			}
 		} else if ([type isEqualToString:@"glyph"]) {
 			CGFloat blur = [[layer objectForKey:@"blur"] floatValue];
@@ -386,12 +448,12 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 #if ALWAYS_USE_SLOW_PATH
 			if (image) {
 #endif
-				[image drawInRect:drawRect blendMode:kCGBlendModeNormal alpha:alpha];
+				[image drawInRect:drawRect blendMode:blendMode alpha:alpha];
 #if ALWAYS_USE_SLOW_PATH
 			} else {
 				UIColor *color = [(ColorWithHexString([layer objectForKey:@"color"]) ?: [UIColor blackColor]) colorWithAlphaComponent:alpha];
 				[color setFill];
-				UIRectFillUsingBlendMode(drawRect, kCGBlendModeNormal);
+				UIRectFillUsingBlendMode(drawRect, blendMode);
 #else
 			} else {
 				// Fast path for a solid color
