@@ -16,4 +16,5 @@ typedef enum {
 	FSSwitchServiceMessageOpenURLAsAlternateAction = 12,
 	FSSwitchServiceMessageSettingsViewControllerForIdentifier = 13,
 	FSSwitchServiceMessageDescriptionOfStateForIdentifier = 14,
+	FSSwitchServiceMessageGetIsSimpleActionForIdentifier = 15,
 } FSSwitchServiceMessage;

@@ -60,6 +60,9 @@
 - (UIViewController <FSSwitchSettingsViewController> *)settingsViewControllerForSwitchIdentifier:(NSString *)switchIdentifier;
 // Retrieves a settings view controller for a specific switch identifier (1.0.3 or later)
 
+- (BOOL)switchWithIdentifierIsSimpleAction:(NSString *)switchIdentifier;
+// Gets whether or not the switch is a simple "button" (1.0.4 or later)
+
 @end
 
 @protocol FSSwitchDataSource;

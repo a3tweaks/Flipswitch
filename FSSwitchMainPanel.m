@@ -266,6 +266,15 @@ static volatile int32_t stateChangeCount;
 	return _class;
 }
 
+- (BOOL)switchWithIdentifierIsSimpleAction:(NSString *)switchIdentifier
+{
+	if (![NSThread isMainThread]) {
+		return [super switchWithIdentifierIsSimpleAction:switchIdentifier];
+	}
+	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
+	return [switchImplementation switchWithIdentifierIsSimpleAction:switchIdentifier];
+}
+
 static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_t replyPort, CFDataRef data)
 {
 	switch ((FSSwitchServiceMessage)messageId) {
@@ -402,6 +411,14 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 						}
 					}
 				}
+			}
+			break;
+		}
+		case FSSwitchServiceMessageGetIsSimpleActionForIdentifier: {
+			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			if ([identifier isKindOfClass:[NSString class]]) {
+				LMSendIntegerReply(replyPort, [self switchWithIdentifierIsSimpleAction:identifier]);
+				return;
 			}
 			break;
 		}

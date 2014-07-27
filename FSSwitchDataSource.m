@@ -149,4 +149,10 @@
 	return NSClassFromString(className);
 }
 
+- (BOOL)switchWithIdentifierIsSimpleAction:(NSString *)switchIdentifier
+{
+	id result = [[self bundleForSwitchIdentifier:switchIdentifier] objectForInfoDictionaryKey:@"is-simple-action"];
+	return [result boolValue];
+}
+
 @end

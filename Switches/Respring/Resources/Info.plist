@@ -28,6 +28,8 @@
 	<string>RespringSwitch</string>
 	<key>lazy-load</key>
 	<true/>
+	<key>is-simple-action</key>
+	<true/>
 	<key>settings-view-controller-class</key>
 	<string>RespringSwitchSettingsViewController</string>
 </dict>

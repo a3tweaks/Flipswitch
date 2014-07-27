@@ -68,4 +68,7 @@
 - (Class <FSSwitchSettingsViewController>)settingsViewControllerClassForSwitchIdentifier:(NSString *)switchIdentifier;
 // Requests the class to handle configuration for the specified switch (1.0.3)
 
+- (BOOL)switchWithIdentifierIsSimpleAction:(NSString *)switchIdentifier;
+// Gets whether or not the switch is a simple "button" (1.0.4)
+
 @end

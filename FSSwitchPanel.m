@@ -754,6 +754,15 @@ cache_and_return_result:
 	return [NSString stringWithFormat:@"<FSSwitchPanel: %p switchIdentifierCount=%ld>", self, (long)[self.switchIdentifiers count]];
 }
 
+- (BOOL)switchWithIdentifierIsSimpleAction:(NSString *)switchIdentifier
+{
+	LMResponseBuffer responseBuffer;
+	if (LMConnectionSendTwoWayPropertyList(&connection, FSSwitchServiceMessageGetIsSimpleActionForIdentifier, switchIdentifier, &responseBuffer)) {
+		return NO;
+	}
+	return LMResponseConsumeInteger(&responseBuffer);
+}
+
 @end
 
 @implementation FSSwitchPanel (SpringBoard)

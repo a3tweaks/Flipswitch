@@ -28,5 +28,7 @@
 	<string>SettingsSwitch</string>
 	<key>lazy-load</key>
 	<true/>
+	<key>is-simple-action</key>
+	<true/>
 </dict>
 </plist>
