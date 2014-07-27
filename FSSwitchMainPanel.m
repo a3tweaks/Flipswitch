@@ -383,6 +383,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 					const char *imageName = class_getImageName(_class);
 					NSArray *response = [NSArray arrayWithObjects:NSStringFromClass(_class), imageName ? [NSString stringWithUTF8String:imageName] : nil, nil];
 					LMSendPropertyListReply(replyPort, response);
+					return;
 				}
 			}
 			break;
@@ -397,6 +398,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 						NSString *description = [self descriptionOfState:[state intValue] forSwitchIdentifier:identifier];
 						if (description) {
 							LMSendPropertyListReply(replyPort, description);
+							return;
 						}
 					}
 				}
