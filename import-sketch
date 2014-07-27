@@ -23,6 +23,8 @@ cp SketchImportSlashed/Do\ Not\ Disturb*.pdf Switches/DoNotDisturb/Resources/gly
 # Flashlight
 cp SketchImport/Flashlight.pdf Switches/Flashlight/Resources/glyph-modern.pdf
 cp SketchImportSlashed/Flashlight\ 2.pdf Switches/Flashlight/Resources/glyph-modern-off.pdf
+cp SketchImport/Flashlight\ On.pdf Switches/Flashlight/Resources/glyph-subtle.pdf
+cp SketchImport/Flashlight.pdf Switches/Flashlight/Resources/glyph-subtle-off.pdf
 # Hotspot
 cp SketchImport/*Hotspot.pdf Switches/Hotspot/Resources/glyph-modern.pdf
 cp SketchImportSlashed/*Hotspot*.pdf Switches/Hotspot/Resources/glyph-modern-off.pdf
