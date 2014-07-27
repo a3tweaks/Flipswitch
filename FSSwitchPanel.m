@@ -391,7 +391,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 			} else {
 				UIColor *color = [(ColorWithHexString([layer objectForKey:@"color"]) ?: [UIColor blackColor]) colorWithAlphaComponent:alpha];
 				[color setFill];
-				UIRectFill(drawRect);
+				UIRectFillUsingBlendMode(drawRect, kCGBlendModeNormal);
 #else
 			} else {
 				// Fast path for a solid color
