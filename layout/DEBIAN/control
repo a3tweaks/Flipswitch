@@ -9,7 +9,7 @@ Architecture: iphoneos-arm
 Description: Centralized toggle system for iOS
 Homepage: http://rpetri.ch/cydia/flipswitch/
 Depiction: http://rpetri.ch/cydia/flipswitch/
-Author: Ryan Petrich & A3Tweaks <rpetrich+flipswitch@gmail.com>
+Author: rpetrich & A3Tweaks <rpetrich+flipswitch@gmail.com>
 Section: System
 Tag: purpose::extension, role::developer
 Icon: file:///Applications/Preferences.app/icon-table.png
