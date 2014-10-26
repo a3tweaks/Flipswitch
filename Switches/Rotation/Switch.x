@@ -106,6 +106,11 @@ static void (*setEnabled)(BOOL newState);
 + (id)sharedInstanceIfAvailable;
 @end
 
+@interface SBUIController : NSObject
++ (id)sharedInstance;
+- (SBAppSwitcherController *)switcherController;
+@end
+
 @interface SBNowPlayingBarView (iOS43)
 @property (assign, nonatomic) NSInteger switchType;
 @property (readonly, assign, nonatomic) UIButton *switchButton;
@@ -193,7 +198,8 @@ static void (*setEnabled)(BOOL newState);
 				}
 			}
 		}
-		SBNowPlayingBar **nowPlayingBar = CHIvarRef([%c(SBAppSwitcherController) sharedInstanceIfAvailable], _nowPlaying, SBNowPlayingBar *);
+		id appSwitcherController = [%c(SBAppSwitcherController) respondsToSelector:@selector(sharedInstanceIfAvailable)] ? [%c(SBAppSwitcherController) sharedInstanceIfAvailable] : [(SBUIController *)[%c(SBUIController) sharedInstance] switcherController];
+		SBNowPlayingBar **nowPlayingBar = CHIvarRef(appSwitcherController, _nowPlaying, SBNowPlayingBar *);
 		if (nowPlayingBar) {
 			UIButton **_orientationLockButton = CHIvarRef(*nowPlayingBar, _orientationLockButton, UIButton *);
 			if (_orientationLockButton) {
