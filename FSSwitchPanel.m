@@ -586,10 +586,10 @@ unlock_and_in_memory_fallback:
 		memset(&buffer[positionOffset - mappingStart], 0, rawSize);
 		// Draw image
 		CGContextRef context = CGBitmapContextCreate(&buffer[positionOffset - mappingStart], rawWidth, rawHeight, 8, rawWidth * 4, _sharedColorSpace, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little);
-		if (_scaleIsSupported) {
+		//if (_scaleIsSupported) {
 			CGContextScaleCTM(context, scale, -scale);
 			CGContextTranslateCTM(context, 0.0f, -size.height);
-		}
+		//}
 		UIGraphicsPushContext(context);
 		[self _renderImageOfLayers:layers switchState:state controlState:controlState size:size scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
 		UIGraphicsPopContext();
