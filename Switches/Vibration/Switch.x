@@ -27,7 +27,12 @@ static void VibrationSettingsChanged(CFNotificationCenterRef center, void *obser
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:kSpringBoardPlist];
+    NSDictionary *dict;
+    if (kCFCoreFoundationVersionNumber >= 1000) {
+        dict = [NSDictionary dictionaryWithContentsOfFile:kSpringBoardPlist];
+    } else {
+        dict = [[NSUserDefaults standardUserDefaults] persistentDomainForName:@"com.apple.springboard"];
+    }
     BOOL enabled = ([[dict valueForKey:@"ring-vibrate"] boolValue] && [[dict valueForKey:@"silent-vibrate"] boolValue]);
 
 	return enabled;
@@ -37,11 +42,21 @@ static void VibrationSettingsChanged(CFNotificationCenterRef center, void *obser
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
-    NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithContentsOfFile:kSpringBoardPlist] ?: [[NSMutableDictionary alloc] init];
-    NSNumber *value = [NSNumber numberWithBool:newState];
-    [dict setValue:value forKey:@"ring-vibrate"];
-    [dict setValue:value forKey:@"silent-vibrate"];
-    [dict writeToFile:kSpringBoardPlist atomically:YES];
+
+    NSMutableDictionary *dict;
+    if (kCFCoreFoundationVersionNumber >= 1000) {
+        dict = [[NSMutableDictionary alloc] init];
+        NSNumber *value = [NSNumber numberWithBool:newState];
+        [dict setValue:value forKey:@"ring-vibrate"];
+        [dict setValue:value forKey:@"silent-vibrate"];
+        [[NSUserDefaults standardUserDefaults] setPersistentDomain:dict forName:@"com.apple.springboard"];
+    } else {
+        dict = [[NSMutableDictionary alloc] initWithContentsOfFile:kSpringBoardPlist] ?: [[NSMutableDictionary alloc] init];
+        NSNumber *value = [NSNumber numberWithBool:newState];
+        [dict setValue:value forKey:@"ring-vibrate"];
+        [dict setValue:value forKey:@"silent-vibrate"];
+        [dict writeToFile:kSpringBoardPlist atomically:YES];
+    }
     [dict release];
 
     notify_post("com.apple.springboard.ring-vibrate.changed");
