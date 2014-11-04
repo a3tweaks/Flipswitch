@@ -1,5 +1,4 @@
-#import "FSSwitchDataSource.h"
-#import "FSSwitchPanel.h"
+#import <Flipswitch/Flipswitch.h>
 
 @interface @@PROJECTNAME@@Switch : NSObject <FSSwitchDataSource>
 @end

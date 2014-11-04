@@ -84,19 +84,6 @@
 {
 }
 
-- (BOOL)shouldShowSwitchIdentifier:(NSString *)switchIdentifier
-{
-	NSBundle *bundle = [self bundleForSwitchIdentifier:switchIdentifier];
-	NSArray *capabilities = [bundle objectForInfoDictionaryKey:@"required-capabilities"];
-	if ([capabilities isKindOfClass:[NSArray class]])
-		for (NSString *capability in capabilities)
-			if ([capability isKindOfClass:[NSString class]])
-				if (!FSSystemHasCapability(capability))
-					return NO;
-
-	return YES;
-}
-
 - (BOOL)hasAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	if ([self methodForSelector:@selector(applyAlternateActionForSwitchIdentifier:)] != [NSObject instanceMethodForSelector:@selector(applyAlternateActionForSwitchIdentifier:)])
