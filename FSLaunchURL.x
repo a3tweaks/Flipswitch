@@ -20,6 +20,15 @@
 - (void)setPasscodeLockVisible:(BOOL)visibile animated:(BOOL)animated completion:(void (^)())completion;
 @end
 
+@interface SBLockScreenActionContext : NSObject
+- (id)initWithLockLabel:(NSString *)lockLabel shortLockLabel:(NSString *)label action:(void (^)())action identifier:(NSString *)id;
+- (void)setDeactivateAwayController:(BOOL)deactivate;
+@end
+
+@interface SBLockScreenViewControllerBase (iOS8)
+- (void)setCustomLockScreenActionContext:(SBLockScreenActionContext *)context;
+@end
+
 @interface SBLockScreenManager : NSObject
 + (SBLockScreenManager *)sharedInstance;
 @property (nonatomic, readonly) BOOL isUILocked;
@@ -53,9 +62,15 @@ void FSLaunchURL(NSURL *url)
 					FSLaunchURLDirect(url);
 				};
 				SBLockScreenViewControllerBase *controller = [manager lockScreenViewController];
-				SBUnlockActionContext *context = [[%c(SBUnlockActionContext) alloc] initWithLockLabel:nil shortLockLabel:nil unlockAction:action identifier:nil];
+				id context;
+				if ([controller respondsToSelector:@selector(setCustomUnlockActionContext:)]) {
+					context = [[%c(SBUnlockActionContext) alloc] initWithLockLabel:nil shortLockLabel:nil unlockAction:action identifier:nil];
+					[controller setCustomUnlockActionContext:context];
+				} else {
+					context = [[%c(SBLockScreenActionContext) alloc] initWithLockLabel:nil shortLockLabel:nil action:action identifier:nil];
+					[controller setCustomLockScreenActionContext:context];
+				}
 				[context setDeactivateAwayController:YES];
-				[controller setCustomUnlockActionContext:context];
 				[controller setPasscodeLockVisible:YES animated:YES completion:nil];
 				[context release];
 				return;
