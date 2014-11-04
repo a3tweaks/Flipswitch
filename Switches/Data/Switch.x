@@ -25,45 +25,52 @@ static void FSDataSwitchStatusDidChange(void);
 
 - (id)init
 {
-    self = [super init];
+	self = [super init];
 
-    if ((self = [super init])) {
-        CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataSwitchStatusDidChange, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
-    }
+	if ((self = [super init])) {
+		CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataSwitchStatusDidChange, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
+	}
 
-    return self;
+	return self;
 }
 
 - (void)dealloc
 {
-    CTTelephonyCenterRemoveObserver(CTTelephonyCenterGetDefault(), (CFNotificationCallback)FSDataSwitchStatusDidChange, NULL, NULL);
+	CTTelephonyCenterRemoveObserver(CTTelephonyCenterGetDefault(), (CFNotificationCallback)FSDataSwitchStatusDidChange, NULL, NULL);
 
-    [super dealloc];
+	[super dealloc];
 }
 
 #pragma mark - FSSwitchDataSource
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
-    return CTCellularDataPlanGetIsEnabled();
+	return CTCellularDataPlanGetIsEnabled();
 }
 
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
-    CTCellularDataPlanSetIsEnabled(newState);
+	CTCellularDataPlanSetIsEnabled(newState);
 }
 
 - (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	NSURL *url = [NSURL URLWithString:(kCFCoreFoundationVersionNumber > 700 ? @"prefs:root=General&path=MOBILE_DATA_SETTINGS_ID" : @"prefs:root=General&path=Network")];
-	[[FSSwitchPanel sharedPanel] openURLAsAlternateAction:url];
+	NSString *urlString;
+	if (kCFCoreFoundationVersionNumber >= 1000) {
+		urlString = @"prefs:root=MOBILE_DATA_SETTINGS_ID";
+	} else if (kCFCoreFoundationVersionNumber >= 700) {
+		urlString = @"prefs:root=General&path=MOBILE_DATA_SETTINGS_ID";
+	} else {
+		urlString = @"prefs:root=General&path=Network";
+	}
+	[[FSSwitchPanel sharedPanel] openURLAsAlternateAction:[NSURL URLWithString:urlString]];
 }
 
 @end
 
 static void FSDataSwitchStatusDidChange(void)
 {
-    [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[DataSwitch class]].bundleIdentifier];
+	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[DataSwitch class]].bundleIdentifier];
 }
