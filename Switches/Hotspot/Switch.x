@@ -79,6 +79,13 @@ static FSSwitchState pendingState;
 	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[HotspotSwitch class]].bundleIdentifier];
 }
 
+- (void)_queue_noteWirelessModemDynamicStoreChanged
+{
+	%orig();
+	pendingState = FSSwitchStateIndeterminate;
+	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[HotspotSwitch class]].bundleIdentifier];
+}
+
 %end
 
 @implementation HotspotSwitch
