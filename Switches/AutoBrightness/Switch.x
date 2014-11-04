@@ -5,8 +5,8 @@
 extern void GSSendAppPreferencesChanged(CFStringRef bundleID, CFStringRef key);
 #endif
 
-#define kABSBackboardPlist @"/var/mobile/Library/Preferences/com.apple.backboardd.plist"
-#define kABSAutoBrightnessKey @"BKEnableALS"
+#define kABSBackboard CFSTR("com.apple.backboardd")
+#define kABSAutoBrightnessKey CFSTR("BKEnableALS")
 
 @interface AutoBrightnessSwitch : NSObject <FSSwitchDataSource>
 @end
@@ -15,10 +15,9 @@ extern void GSSendAppPreferencesChanged(CFStringRef bundleID, CFStringRef key);
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
-    NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:kABSBackboardPlist];
-    BOOL enabled = ([dict objectForKey:kABSAutoBrightnessKey] && [[dict valueForKey:kABSAutoBrightnessKey] boolValue]);
-
-    return enabled;
+    CFPreferencesAppSynchronize(kABSBackboard);
+    Boolean enabled = CFPreferencesGetAppBooleanValue(CFSTR("com.apple.backboardd"), kABSAutoBrightnessKey, NULL);
+    return enabled ? FSSwitchStateOn : FSSwitchStateOff;
 }
 
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
@@ -26,14 +25,9 @@ extern void GSSendAppPreferencesChanged(CFStringRef bundleID, CFStringRef key);
     if (newState == FSSwitchStateIndeterminate)
         return;
 
-    NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithContentsOfFile:kABSBackboardPlist] ?: [[NSMutableDictionary alloc] init];
-    NSNumber *value = [NSNumber numberWithBool:newState];
-    [dict setValue:value forKey:kABSAutoBrightnessKey];
-    [dict writeToFile:kABSBackboardPlist atomically:YES];
-    [dict release];
-
-    GSSendAppPreferencesChanged(CFSTR("com.apple.backboardd"), (CFStringRef)kABSAutoBrightnessKey);
-
+    CFPreferencesSetAppValue(kABSAutoBrightnessKey, newState ? kCFBooleanTrue : kCFBooleanFalse, kABSBackboard);
+    CFPreferencesAppSynchronize(kABSBackboard);
+    GSSendAppPreferencesChanged(kABSBackboard, kABSAutoBrightnessKey);
 }
 
 @end
