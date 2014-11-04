@@ -15,6 +15,8 @@
 #import <UIKit/UIKit2.h>
 #import <libkern/OSAtomic.h>
 #import <QuartzCore/QuartzCore.h>
+#import <sys/types.h>
+#import <fcntl.h>
 
 #define ROCKETBOOTSTRAP_LOAD_DYNAMIC
 #import "LightMessaging/LightMessaging.h"
