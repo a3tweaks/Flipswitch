@@ -154,7 +154,7 @@ static void StealFlashlight(void)
 		if (_contentView && [*_contentView respondsToSelector:@selector(quickLaunchSection)]) {
 			id quickLaunchSection = [*_contentView quickLaunchSection];
 			NSMutableDictionary **_modulesByID = CHIvarRef(quickLaunchSection, _modulesByID, NSMutableDictionary *);
-			id target = _modulesByID && *_modulesByID ? [*_modulesByID objectForKey:@"flashlight"] : nil;
+			id target = _modulesByID && *_modulesByID ? [*_modulesByID objectForKey:@"flashlight"] : quickLaunchSection;
 			AVFlashlight **_flashlight = CHIvarRef(target, _flashlight, AVFlashlight *);
 			if (_flashlight) {
 				newFlashlight = *_flashlight;
