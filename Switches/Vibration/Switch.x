@@ -45,11 +45,12 @@ static void VibrationSettingsChanged(CFNotificationCenterRef center, void *obser
 
     NSMutableDictionary *dict;
     if (kCFCoreFoundationVersionNumber >= 1000) {
-        dict = [[NSMutableDictionary alloc] init];
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        dict = [[defaults persistentDomainForName:@"com.apple.springboard"] mutableCopy] ?: [[NSMutableDictionary alloc] init];
         NSNumber *value = [NSNumber numberWithBool:newState];
         [dict setValue:value forKey:@"ring-vibrate"];
         [dict setValue:value forKey:@"silent-vibrate"];
-        [[NSUserDefaults standardUserDefaults] setPersistentDomain:dict forName:@"com.apple.springboard"];
+        [defaults setPersistentDomain:dict forName:@"com.apple.springboard"];
     } else {
         dict = [[NSMutableDictionary alloc] initWithContentsOfFile:kSpringBoardPlist] ?: [[NSMutableDictionary alloc] init];
         NSNumber *value = [NSNumber numberWithBool:newState];
