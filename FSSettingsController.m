@@ -84,6 +84,7 @@ typedef enum {
 @interface FSSettingsController : PSViewController <UITableViewDataSource, UITableViewDelegate> {
 @private
 	NSString *settingsFile;
+	CFStringRef preferencesApplicationID;
 	NSString *enabledKey;
 	NSMutableArray *enabledIdentifiers;
 	NSString *disabledKey;
@@ -108,6 +109,9 @@ typedef enum {
 	[notificationName release];
 	[settingsFile release];
 	[templateBundle release];
+	if (preferencesApplicationID) {
+		CFRelease(preferencesApplicationID);
+	}
 	[super dealloc];
 }
 
@@ -129,6 +133,13 @@ typedef enum {
 	self.navigationItem.title = [specifier name];
 	[settingsFile release];
 	settingsFile = [[specifier propertyForKey:@"flipswitchSettingsFile"] copy];
+	if (preferencesApplicationID) {
+		CFRelease(preferencesApplicationID);
+		preferencesApplicationID = NULL;
+	}
+	if ((kCFCoreFoundationVersionNumber >= 1000) && [settingsFile hasPrefix:@"/var/mobile/Library/Preferences/"]) {
+		preferencesApplicationID = (CFStringRef)[[[settingsFile lastPathComponent] stringByDeletingPathExtension] retain];
+	}
 	[notificationName release];
 	notificationName = [[specifier propertyForKey:@"flipswitchPostNotification"] copy];
 	[enabledKey release];
@@ -144,7 +155,19 @@ typedef enum {
 		mode = FSSettingsControllerReorderingMode;
 	}
 	// Reading Settings file
-	NSDictionary *settings = settingsFile ? [NSDictionary dictionaryWithContentsOfFile:settingsFile] : nil;
+	NSDictionary *settings = nil;
+	if (settingsFile) {
+		if (preferencesApplicationID) {
+			CFPreferencesAppSynchronize(preferencesApplicationID);
+			CFArrayRef keyList = CFPreferencesCopyKeyList(preferencesApplicationID, kCFPreferencesCurrentUser, kCFPreferencesCurrentHost);
+			if (keyList) {
+				settings = [(NSDictionary *)CFPreferencesCopyMultiple(keyList, preferencesApplicationID, kCFPreferencesCurrentUser, kCFPreferencesCurrentHost) autorelease];
+				CFRelease(keyList);
+			}
+		} else {
+			settings = [NSDictionary dictionaryWithContentsOfFile:settingsFile];
+		}
+	}
 	NSArray *originalEnabled = [settings objectForKey:enabledKey] ?: [specifier propertyForKey:@"flipswitchDefaultEnabled"] ?: [NSArray array];
 	[enabledIdentifiers release];
 	enabledIdentifiers = [originalEnabled mutableCopy];
@@ -192,6 +215,17 @@ typedef enum {
 
 - (void)_flushSettings
 {
+	if (preferencesApplicationID && (enabledKey || disabledKey)) {
+		NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+		if (enabledKey) {
+			[dict setObject:enabledIdentifiers forKey:enabledKey];
+		}
+		if (disabledKey) {
+			[dict setObject:disabledIdentifiers forKey:disabledKey];
+		}
+		CFPreferencesSetMultiple((CFDictionaryRef)dict, NULL, preferencesApplicationID, kCFPreferencesCurrentUser, kCFPreferencesCurrentHost);
+		CFPreferencesAppSynchronize(preferencesApplicationID);
+	}
 	if (settingsFile) {
 		NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithContentsOfFile:settingsFile] ?: [NSMutableDictionary dictionary];
 		if (enabledKey) {
