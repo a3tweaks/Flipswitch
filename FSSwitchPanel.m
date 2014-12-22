@@ -549,7 +549,7 @@ in_memory_fallback:
 	int err;
 	do {
 		err = flock(fd, LOCK_EX);
-	} while(err == EINTR);
+	} while ((err == -1) && (errno == EINTR));
 	if (err)
 		goto in_memory_fallback;
 	NSDictionary *metadata = [NSDictionary dictionaryWithContentsOfFile:metadataPath];
@@ -568,17 +568,26 @@ in_memory_fallback:
 		mappingStart = floor_to_page(positionOffset);
 		mappingEnd = ceil_to_page(positionOffset + rawSize);
 		// Make file larger to accomodate new buffer
-		if (lseek(fd, mappingEnd, SEEK_SET) == -1) {
+		do {
+			err = lseek(fd, mappingEnd, SEEK_SET);
+		} while ((err == -1) && (errno == EINTR));
+		if (err == -1) {
 unlock_and_in_memory_fallback:
 			do {
 				err = flock(fd, LOCK_UN);
-			} while(err == EINTR);
+			} while((err == -1) && (errno == EINTR));
 			goto in_memory_fallback;
 		}
 		char zero = 0;
-		if (write(fd, &zero, 1) == -1)
+		do {
+			err = write(fd, &zero, 1);
+		} while ((err == -1) && (errno == EINTR));
+		if (err == -1)
 			goto unlock_and_in_memory_fallback;
-		if (lseek(fd, 0, SEEK_SET) == -1)
+		do {
+			err = lseek(fd, 0, SEEK_SET);
+		} while ((err == -1) && (errno == EINTR));
+		if (err == -1)
 			goto unlock_and_in_memory_fallback;
 		// Map it in
 		buffer = mmap(NULL, mappingEnd - mappingStart, PROT_READ | PROT_WRITE, MAP_SHARED, fd, mappingStart);
@@ -588,6 +597,10 @@ unlock_and_in_memory_fallback:
 		memset(&buffer[positionOffset - mappingStart], 0, rawSize);
 		// Draw image
 		CGContextRef context = CGBitmapContextCreate(&buffer[positionOffset - mappingStart], rawWidth, rawHeight, 8, rawWidth * 4, _sharedColorSpace, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little);
+		if (!context) {
+			munmap(buffer, mappingEnd - mappingStart);
+			goto unlock_and_in_memory_fallback;
+		}
 		//if (_scaleIsSupported) {
 			CGContextScaleCTM(context, scale, -scale);
 			CGContextTranslateCTM(context, 0.0f, -size.height);
@@ -599,7 +612,7 @@ unlock_and_in_memory_fallback:
 		// Sync
 		do {
 			err = msync(buffer, mappingEnd - mappingStart, MS_SYNC);
-		} while(err == EINTR);
+		} while((err == -1) && (errno == EINTR));
 		if (err)
 			goto unlock_and_in_memory_fallback;
 		// Write new metadata
@@ -612,14 +625,20 @@ unlock_and_in_memory_fallback:
 	}
 	do {
 		err = flock(fd, LOCK_UN);
-	} while(err == EINTR);
+	} while ((err == -1) && (errno == EINTR));
 	// Map it in
 	buffer = mmap(NULL, mappingEnd - mappingStart, PROT_READ, MAP_SHARED, fd, mappingStart);
 	if (buffer == MAP_FAILED)
 		goto in_memory_fallback;
 	CGDataProviderRef dataProvider = CGDataProviderCreateWithData(buffer, &buffer[positionOffset - mappingStart], rawSize, FlipSwitchMappingCGDataProviderReleaseDataCallback);
+	if (!dataProvider) {
+		munmap(buffer, mappingEnd - mappingStart);
+		goto in_memory_fallback;
+	}
 	CGImageRef cgResult = CGImageCreate(rawWidth, rawHeight, 8, 32, rawWidth * 4, _sharedColorSpace, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little, dataProvider, NULL, false, kCGRenderingIntentDefault);
 	CGDataProviderRelease(dataProvider);
+	if (!cgResult)
+		goto in_memory_fallback;
 	if (_scaleIsSupported)
 		result = [UIImage imageWithCGImage:cgResult scale:scale orientation:UIImageOrientationUp];
 	else
