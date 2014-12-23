@@ -101,8 +101,11 @@ static inline NSString *MD5OfString(NSString *string)
 	return [self imagePathForFlipswitchImageName:imageName imageSize:imageSize preferredScale:preferredScale controlState:controlState inDirectory:directory loadedControlState:NULL];
 }
 
-- (id)objectForResolvedInfoDictionaryKey:(NSString *)name withSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState resolvedKeyName:(NSString **)outKeyName
+- (id)objectForResolvedInfoDictionaryKey:(NSString *)name withLayerSet:(NSString *)layerSet switchState:(FSSwitchState)state controlState:(UIControlState)controlState resolvedKeyName:(NSString **)outKeyName;
 {
+	if (layerSet) {
+		name = [NSString stringWithFormat:@"%@-%@", layerSet, name];
+	}
 	NSDictionary *themedInfoDictionary = self.flipswitchThemedInfoDictionary;
 	NSString *stateName = [NSString stringWithFormat:@"%@-%@", name, NSStringFromFSSwitchState(state)];
 	for (size_t i = 0; i < sizeof(ControlStateVariantMasks) / sizeof(*ControlStateVariantMasks); i++) {

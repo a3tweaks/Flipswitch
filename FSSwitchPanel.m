@@ -236,10 +236,10 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	}
 }
 
-- (id)_layersKeyForSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState usingTemplate:(NSBundle *)template layers:(NSArray **)outLayers
+- (id)_layersKeyForSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState usingLayerSet:(NSString *)layerSet inTemplate:(NSBundle *)template layers:(NSArray **)outLayers
 {
 	NSString *keyName = nil;
-	id layers = [template objectForResolvedInfoDictionaryKey:@"layers" withSwitchState:state controlState:controlState resolvedKeyName:&keyName];
+	id layers = [template objectForResolvedInfoDictionaryKey:@"layers" withLayerSet:layerSet switchState:state controlState:controlState resolvedKeyName:&keyName];
 	if (outLayers)
 		*outLayers = layers;
 	return keyName;
@@ -263,11 +263,12 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	return [self glyphImageDescriptorOfState:switchState variant:variant size:size scale:scale forSwitchIdentifier:switchIdentifier];
 }
 
-- (NSString *)_cacheKeyForSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template layers:(NSArray **)outLayers prerenderedFileName:(NSString **)outImageFileName
+- (NSString *)_cacheKeyForSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingLayerSet:(NSString *)layerSet inTemplate:(NSBundle *)template layers:(NSArray **)outLayers prerenderedFileName:(NSString **)outImageFileName
 {
-	NSString *imagePath = [template imagePathForFlipswitchImageName:[switchIdentifier stringByAppendingFormat:@"-prerendered-%@", NSStringFromFSSwitchState(state)] imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
+	NSString *prefix = layerSet ? [layerSet stringByAppendingFormat:@"-%@", switchIdentifier] : switchIdentifier;
+	NSString *imagePath = [template imagePathForFlipswitchImageName:[prefix stringByAppendingFormat:@"-prerendered-%@", NSStringFromFSSwitchState(state)] imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
 	if (!imagePath)
-		imagePath = [template imagePathForFlipswitchImageName:[switchIdentifier stringByAppendingString:@"-prerendered"] imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
+		imagePath = [template imagePathForFlipswitchImageName:[prefix stringByAppendingString:@"-prerendered"] imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
 	if (imagePath) {
 		if (outLayers)
 			*outLayers = nil;
@@ -276,7 +277,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 		return imagePath;
 	}
 	NSArray *layers;
-	NSString *layersKey = [self _layersKeyForSwitchState:state controlState:controlState usingTemplate:template layers:&layers];
+	NSString *layersKey = [self _layersKeyForSwitchState:state controlState:controlState usingLayerSet:layerSet inTemplate:template layers:&layers];
 	if (!layersKey)
 		return nil;
 	NSMutableArray *keys = [[NSMutableArray alloc] initWithObjects:template.bundlePath, [NSNumber numberWithFloat:scale], layersKey, nil];
@@ -300,6 +301,10 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 				[keys addObject:fullPath ?: @""];
 			}
 		}
+	}
+	NSString *renderingMode = [template objectForResolvedInfoDictionaryKey:@"renderingMode" withLayerSet:layerSet switchState:state controlState:controlState resolvedKeyName:NULL];
+	if (renderingMode && [UIImage instancesRespondToSelector:@selector(imageWithRenderingMode:)]) {
+		[keys addObject:renderingMode];
 	}
 	if (outLayers)
 		*outLayers = layers;
@@ -487,21 +492,21 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 	munmap(info, ceil_to_page((uintptr_t)data - (uintptr_t)info + size));
 }
 
-- (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
+- (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingLayerSet:(NSString *)layerSet inTemplate:(NSBundle *)template
 {
 	NSDictionary *infoDictionary = template.flipswitchThemedInfoDictionary;
 	template = [template flipswitchThemedBundle];
+	NSArray *layers;
+	NSString *prerenderedImageName;
+	NSString *cacheKey = [self _cacheKeyForSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingLayerSet:layerSet inTemplate:template layers:&layers prerenderedFileName:&prerenderedImageName];
+	if (!cacheKey)
+		return nil;
 	CGSize size;
 	size.width = [[infoDictionary objectForKey:@"width"] floatValue];
 	if (size.width == 0.0f)
 		return nil;
 	size.height = [[infoDictionary objectForKey:@"height"] floatValue];
 	if (size.height == 0.0f)
-		return nil;
-	NSArray *layers;
-	NSString *prerenderedImageName;
-	NSString *cacheKey = [self _cacheKeyForSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template layers:&layers prerenderedFileName:&prerenderedImageName];
-	if (!cacheKey)
 		return nil;
 	OSSpinLockLock(&_lock);
 	UIImage *result = [[_cachedSwitchImages objectForKey:cacheKey] retain];
@@ -647,7 +652,7 @@ unlock_and_in_memory_fallback:
 cache_and_return_result:
 	if (result) {
 		if ([result respondsToSelector:@selector(imageWithRenderingMode:)]) {
-			NSString *compositingFilter = [template objectForResolvedInfoDictionaryKey:@"renderingMode" withSwitchState:state controlState:controlState resolvedKeyName:NULL];
+			NSString *compositingFilter = [template objectForResolvedInfoDictionaryKey:@"renderingMode" withLayerSet:layerSet switchState:state controlState:controlState resolvedKeyName:NULL];
 			UIImageRenderingMode renderingMode;
 			if ([compositingFilter isEqualToString:@"auto"]) {
 				renderingMode = UIImageRenderingModeAutomatic;
@@ -675,16 +680,26 @@ cache_and_return_result:
 	return result;
 }
 
-- (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
+- (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
 {
-	CGFloat scale = [UIScreen instancesRespondToSelector:@selector(scale)] ? [UIScreen mainScreen].scale : 1.0f;
-	return [self imageOfSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:template];
+	return [self imageOfSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingLayerSet:nil inTemplate:template];
 }
 
-- (BOOL)hasCachedImageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)templateBundle
+- (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
+{
+	return [self imageOfSwitchState:state controlState:controlState forSwitchIdentifier:switchIdentifier usingLayerSet:nil inTemplate:template];
+}
+
+- (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState forSwitchIdentifier:(NSString *)switchIdentifier usingLayerSet:(NSString *)layerSet inTemplate:(NSBundle *)template
+{
+	CGFloat scale = [UIScreen instancesRespondToSelector:@selector(scale)] ? [UIScreen mainScreen].scale : 1.0f;
+	return [self imageOfSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingLayerSet:layerSet inTemplate:template];
+}
+
+- (BOOL)hasCachedImageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingLayerSet:(NSString *)layerSet inTemplate:(NSBundle *)templateBundle
 {
 	templateBundle = [templateBundle flipswitchThemedBundle];
-	id cacheKey = [self _cacheKeyForSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:templateBundle layers:NULL prerenderedFileName:NULL];
+	id cacheKey = [self _cacheKeyForSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingLayerSet:layerSet inTemplate:templateBundle layers:NULL prerenderedFileName:NULL];
 	if (!cacheKey)
 		return NO;
 	OSSpinLockLock(&_lock);
@@ -699,10 +714,20 @@ cache_and_return_result:
 	return position != nil;
 }
 
+- (BOOL)hasCachedImageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)templateBundle
+{
+	return [self hasCachedImageOfSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingLayerSet:nil inTemplate:templateBundle];
+}
+
 - (BOOL)hasCachedImageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState forSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)templateBundle
 {
+	return [self hasCachedImageOfSwitchState:state controlState:controlState forSwitchIdentifier:switchIdentifier usingLayerSet:nil inTemplate:templateBundle];
+}
+
+- (BOOL)hasCachedImageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState forSwitchIdentifier:(NSString *)switchIdentifier usingLayerSet:(NSString *)layerSet inTemplate:(NSBundle *)templateBundle
+{
 	CGFloat scale = [UIScreen instancesRespondToSelector:@selector(scale)] ? [UIScreen mainScreen].scale : 1.0f;
-	return [self hasCachedImageOfSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingTemplate:templateBundle];
+	return [self hasCachedImageOfSwitchState:state controlState:controlState scale:scale forSwitchIdentifier:switchIdentifier usingLayerSet:layerSet inTemplate:templateBundle];
 }
 
 - (UIButton *)buttonForSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
@@ -869,12 +894,17 @@ cache_and_return_result:
 
 @implementation FSSwitchPanel (LayerEffects)
 
-- (void)applyEffectsToLayer:(CALayer *)layer forSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState usingTemplate:(NSBundle *)templateBundle
+- (void)applyEffectsToLayer:(CALayer *)layer forSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState usingLayerSet:(NSString *)layerSet inTemplate:(NSBundle *)templateBundle
 {
-	NSString *compositingFilter = [templateBundle objectForResolvedInfoDictionaryKey:@"compositingFilter" withSwitchState:state controlState:controlState resolvedKeyName:NULL];
+	NSString *compositingFilter = [templateBundle objectForResolvedInfoDictionaryKey:@"compositingFilter" withLayerSet:layerSet switchState:state controlState:controlState resolvedKeyName:NULL];
 	if (![compositingFilter length])
 		compositingFilter = nil;
 	layer.compositingFilter = compositingFilter;
+}
+
+- (void)applyEffectsToLayer:(CALayer *)layer forSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState usingTemplate:(NSBundle *)templateBundle
+{
+	[self applyEffectsToLayer:layer forSwitchState:state controlState:controlState usingLayerSet:nil inTemplate:templateBundle];
 }
 
 @end

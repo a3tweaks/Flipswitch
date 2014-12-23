@@ -2,6 +2,10 @@
 #import "FSSwitchPanel.h"
 #import "NSBundle+Flipswitch.h"
 
+@interface CALayer (Private)
+@property (assign) BOOL allowsGroupBlending;
+@end
+
 @implementation FSSwitchButton
 
 - (id)initWithSwitchIdentifier:(NSString *)switchIdentifier_ template:(NSBundle *)template_
@@ -16,6 +20,9 @@
 		self.adjustsImageWhenDisabled = NO;
 		CALayer *layer = self.layer;
 		layer.needsDisplayOnBoundsChange = NO;
+		if ([layer respondsToSelector:@selector(setAllowsGroupBlending:)]) {
+			[layer setAllowsGroupBlending:NO];
+		}
 		[layer setNeedsDisplay];
 		[self addObserver:self forKeyPath:@"enabled" options:0 context:template];
 		[self addObserver:self forKeyPath:@"highlighted" options:0 context:template];
@@ -35,6 +42,8 @@
 	[self removeObserver:self forKeyPath:@"selected"];
 	[switchIdentifier release];
 	[template release];
+	[backgroundView release];
+	[currentBackgroundImage release];
 	[super dealloc];
 }
 
@@ -71,7 +80,29 @@
 	UIImage *image = [sharedPanel imageOfSwitchState:switchState controlState:controlState forSwitchIdentifier:switchIdentifier usingTemplate:template];
 	[self setImage:image forState:UIControlStateNormal];
 	[self setImage:image forState:UIControlStateHighlighted];
-	[sharedPanel applyEffectsToLayer:self.layer forSwitchState:switchState controlState:controlState usingTemplate:template];
+	UIImageView *imageView = self.imageView;
+	[sharedPanel applyEffectsToLayer:imageView.layer forSwitchState:switchState controlState:controlState usingTemplate:template];
+	// Add background image so that button can be stretchable
+	UIImage *backgroundImage = [sharedPanel imageOfSwitchState:switchState controlState:controlState forSwitchIdentifier:switchIdentifier usingLayerSet:@"background" inTemplate:template];
+	if (backgroundImage && (backgroundImage != currentBackgroundImage)) {
+		[currentBackgroundImage release];
+		currentBackgroundImage = [backgroundImage retain];
+		CGSize size = backgroundImage.size;
+		if ([backgroundImage respondsToSelector:@selector(resizableImageWithCapInsets:resizingMode:)]) {
+			backgroundImage = [backgroundImage resizableImageWithCapInsets:UIEdgeInsetsMake(size.height * 0.5, size.width * 0.5, size.height * 0.5, size.width * 0.5) resizingMode:UIImageResizingModeStretch];
+		} else if ([backgroundImage respondsToSelector:@selector(resizableImageWithCapInsets:)]) {
+			backgroundImage = [backgroundImage resizableImageWithCapInsets:UIEdgeInsetsMake(size.height * 0.5, size.width * 0.5, size.height * 0.5, size.width * 0.5)];
+		} else {
+			backgroundImage = [backgroundImage stretchableImageWithLeftCapWidth:size.width * 0.5 topCapHeight:size.height * 0.5];
+		}
+		if (!backgroundView) {
+			backgroundView = [[UIImageView alloc] initWithFrame:self.bounds];
+			backgroundView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+			[imageView.superview insertSubview:backgroundView belowSubview:imageView];
+		}
+		backgroundView.image = backgroundImage;
+		[sharedPanel applyEffectsToLayer:backgroundView.layer forSwitchState:switchState controlState:controlState usingLayerSet:@"background" inTemplate:template];
+	}
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event

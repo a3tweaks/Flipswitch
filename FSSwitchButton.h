@@ -6,6 +6,8 @@ __attribute__((visibility("hidden")))
 	NSBundle *template;
 	NSString *switchIdentifier;
 	BOOL skippingForHold;
+	UIImageView *backgroundView;
+	UIImage *currentBackgroundImage;
 }
 - (id)initWithSwitchIdentifier:(NSString *)switchIdentifier_ template:(NSBundle *)template_;
 @end

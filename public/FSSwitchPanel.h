@@ -63,6 +63,14 @@
 - (BOOL)switchWithIdentifierIsSimpleAction:(NSString *)switchIdentifier;
 // Gets whether or not the switch is a simple "button" (1.0.4 or later)
 
+- (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState forSwitchIdentifier:(NSString *)switchIdentifier usingLayerSet:(NSString *)layerSet inTemplate:(NSBundle *)templateBundle;
+- (UIImage *)imageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingLayerSet:(NSString *)layerSet inTemplate:(NSBundle *)templateBundle;
+// Returns an image representing how a specific switch would look in a particular state when styled with the provided template
+
+- (BOOL)hasCachedImageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState forSwitchIdentifier:(NSString *)switchIdentifier usingLayerSet:(NSString *)layerSet inTemplate:(NSBundle *)templateBundle;
+- (BOOL)hasCachedImageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingLayerSet:(NSString *)layerSet inTemplate:(NSBundle *)templateBundle;
+// Returns YES if an image representing the state is loaded
+
 @end
 
 @protocol FSSwitchDataSource;
@@ -85,4 +93,5 @@ extern NSString * const FSSwitchPanelSwitchWillOpenURLNotification;
 
 @interface FSSwitchPanel (LayerEffects)
 - (void)applyEffectsToLayer:(CALayer *)layer forSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState usingTemplate:(NSBundle *)templateBundle;
+- (void)applyEffectsToLayer:(CALayer *)layer forSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState usingLayerSet:(NSString *)layerSet inTemplate:(NSBundle *)templateBundle;
 @end

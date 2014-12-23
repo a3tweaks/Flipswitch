@@ -25,5 +25,5 @@ static inline NSString *MD5OfData(NSData *data)
 - (NSString *)imagePathForFlipswitchImageName:(NSString *)imageName imageSize:(NSUInteger)imageSize preferredScale:(CGFloat)preferredScale controlState:(UIControlState)controlState inDirectory:(NSString *)directory;
 - (NSString *)imagePathForFlipswitchImageName:(NSString *)imageName imageSize:(NSUInteger)imageSize preferredScale:(CGFloat)preferredScale controlState:(UIControlState)controlState inDirectory:(NSString *)directory loadedControlState:(UIControlState *)outImageControlState;
 
-- (id)objectForResolvedInfoDictionaryKey:(NSString *)name withSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState resolvedKeyName:(NSString **)outKeyName;
+- (id)objectForResolvedInfoDictionaryKey:(NSString *)name withLayerSet:(NSString *)layerSet switchState:(FSSwitchState)state controlState:(UIControlState)controlState resolvedKeyName:(NSString **)outKeyName;
 @end
