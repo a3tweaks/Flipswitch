@@ -16,7 +16,7 @@ extern void GSSendAppPreferencesChanged(CFStringRef bundleID, CFStringRef key);
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
     CFPreferencesAppSynchronize(kABSBackboard);
-    Boolean enabled = CFPreferencesGetAppBooleanValue(CFSTR("com.apple.backboardd"), kABSAutoBrightnessKey, NULL);
+    Boolean enabled = CFPreferencesGetAppBooleanValue(kABSAutoBrightnessKey, kABSBackboard, NULL);
     return enabled ? FSSwitchStateOn : FSSwitchStateOff;
 }
 
