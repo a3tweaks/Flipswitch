@@ -29,9 +29,9 @@ static void VibrationSettingsChanged(CFNotificationCenterRef center, void *obser
 {
     NSDictionary *dict;
     if (kCFCoreFoundationVersionNumber >= 1000) {
-        dict = [NSDictionary dictionaryWithContentsOfFile:kSpringBoardPlist];
-    } else {
         dict = [[NSUserDefaults standardUserDefaults] persistentDomainForName:@"com.apple.springboard"];
+    } else {
+        dict = [NSDictionary dictionaryWithContentsOfFile:kSpringBoardPlist];
     }
     BOOL enabled = ([[dict valueForKey:@"ring-vibrate"] boolValue] && [[dict valueForKey:@"silent-vibrate"] boolValue]);
 
