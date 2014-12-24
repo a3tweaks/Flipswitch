@@ -137,20 +137,11 @@ static void FSDataStatusChanged(void)
 	}
 }
 
-+ (void)registerSwitch
-{
-	CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataStatusChanged, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
-	FSDataStatusChanged();
-}
-
 @end
 
 __attribute__((constructor))
 static void constructor(void)
 {
-	if ([NSThread isMainThread]) {
-		[DataSpeedSwitch registerSwitch];
-	} else {
-		[DataSpeedSwitch performSelectorOnMainThread:@selector(registerSwitch) withObject:nil waitUntilDone:NO];
-	}
+	CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataStatusChanged, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
+	FSDataStatusChanged();
 }
