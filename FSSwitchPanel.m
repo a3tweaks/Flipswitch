@@ -733,7 +733,7 @@ cache_and_return_result:
 - (UIButton *)buttonForSwitchIdentifier:(NSString *)switchIdentifier usingTemplate:(NSBundle *)template
 {
 	REQUIRE_MAIN_THREAD(FSSwitchPanel);
-	return [[[FSSwitchButton alloc] initWithSwitchIdentifier:switchIdentifier template:template] autorelease];
+	return [[[_FSSwitchButton alloc] initWithSwitchIdentifier:switchIdentifier template:template] autorelease];
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier

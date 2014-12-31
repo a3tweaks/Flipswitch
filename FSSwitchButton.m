@@ -6,7 +6,7 @@
 @property (assign) BOOL allowsGroupBlending;
 @end
 
-@implementation FSSwitchButton
+@implementation _FSSwitchButton
 
 - (id)initWithSwitchIdentifier:(NSString *)switchIdentifier_ template:(NSBundle *)template_
 {

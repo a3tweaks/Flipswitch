@@ -467,7 +467,7 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 	}
 	Class switchClass = nil;
 	if ([[bundle objectForInfoDictionaryKey:@"lazy-load"] boolValue]) {
-		switchClass = [FSLazySwitch class];
+		switchClass = [_FSLazySwitch class];
 	} else if ([bundle objectForInfoDictionaryKey:@"CFBundleExecutable"]) {
 		NSError *error = nil;
 		if ([bundle loadAndReturnError:&error]) {

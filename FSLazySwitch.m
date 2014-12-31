@@ -1,7 +1,7 @@
 #import "FSLazySwitch.h"
 #import "FSSwitchPanel.h"
 
-@implementation FSLazySwitch
+@implementation _FSLazySwitch
 
 - (id)initWithBundle:(NSBundle *)_bundle
 {
