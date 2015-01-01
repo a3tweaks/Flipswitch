@@ -70,23 +70,33 @@ static FSSwitchState pendingState;
 @interface HotspotSwitch : NSObject <FSSwitchDataSource>
 @end
 
+static void UpdateSwitchStatus(void)
+{
+	[[FSSwitchPanel sharedPanel] performSelector:@selector(stateDidChangeForSwitchIdentifier:) withObject:[NSBundle bundleForClass:[HotspotSwitch class]].bundleIdentifier afterDelay:0.0];
+}
+
 %hook SBTelephonyManager
 
 - (void)noteWirelessModemChanged
 {
 	%orig();
 	pendingState = FSSwitchStateIndeterminate;
-	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[HotspotSwitch class]].bundleIdentifier];
+	UpdateSwitchStatus();
 }
 
 - (void)_queue_noteWirelessModemDynamicStoreChanged
 {
 	%orig();
 	pendingState = FSSwitchStateIndeterminate;
-	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[HotspotSwitch class]].bundleIdentifier];
+	UpdateSwitchStatus();
 }
 
 %end
+
+static void StateChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+{
+	UpdateSwitchStatus();
+}
 
 @implementation HotspotSwitch
 
@@ -166,4 +176,5 @@ static FSSwitchState pendingState;
 	[controller setParentController:rootController];
 	// Create Specifier
 	specifier = [[PSSpecifier preferenceSpecifierNamed:@"Tethering" target:controller set:@selector(setInternetTethering:specifier:) get:@selector(internetTethering:) detail:Nil cell:PSSwitchCell edit:Nil] retain];
+	CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), StateChanged, StateChanged, CFSTR("SBNetworkTetheringStateChangedNotification"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 }
