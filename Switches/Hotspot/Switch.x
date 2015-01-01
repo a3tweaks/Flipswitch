@@ -43,7 +43,7 @@ static FSSwitchState pendingState;
 {
 	if (insideSwitch) {
 		// Make sure we're suppressing the right alert view
-		if ([[self buttons] count] == 2) {
+		if ([self numberOfButtons] == 2) {
 			id<UIAlertViewDelegate> delegate = [self delegate];
 			if ([delegate respondsToSelector:@selector(alertView:clickedButtonAtIndex:)]) {
 				[delegate alertView:self clickedButtonAtIndex:0];
