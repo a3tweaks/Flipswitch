@@ -6,6 +6,7 @@
 #import "FSSwitchButton.h"
 #import "ControlStateVariants.h"
 #import "Internal.h"
+#import "ModifiedTime.h"
 
 #import <dlfcn.h>
 #import <sys/stat.h>
@@ -558,6 +559,15 @@ in_memory_fallback:
 	if (err)
 		goto in_memory_fallback;
 	NSDictionary *metadata = [NSDictionary dictionaryWithContentsOfFile:metadataPath];
+	if (!fileDescriptor) {
+		// Check for cases where the Info.plist or Theme.plist is modified and invalidate the cache if so
+		struct timespec infoTimespec = GetFileModifiedTime([[template pathForResource:@"Info" ofType:@"plist"] UTF8String]);
+		struct timespec themeTimespec = GetFileModifiedTime([[template pathForResource:@"Theme" ofType:@"plist"] UTF8String]);
+		struct timespec bundleTimespec = (infoTimespec.tv_sec > themeTimespec.tv_sec) || ((infoTimespec.tv_sec == themeTimespec.tv_sec) && (infoTimespec.tv_nsec > themeTimespec.tv_nsec)) ? infoTimespec : themeTimespec;
+		if ((bundleTimespec.tv_sec != [[metadata objectForKey:@"sec"] longLongValue]) || (bundleTimespec.tv_nsec != [[metadata objectForKey:@"nsec"] longLongValue])) {
+			metadata = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithLongLong:bundleTimespec.tv_sec], @"sec", [NSNumber numberWithLongLong:bundleTimespec.tv_nsec], @"nsec", nil];
+		}
+	}
 	NSNumber *position = [metadata objectForKey:cacheKey];
 	uintptr_t positionOffset;
 	uintptr_t mappingStart;

@@ -6,6 +6,7 @@
 #import "FSLazySwitch.h"
 #import "FSCapability.h"
 #import "FSLaunchURL.h"
+#import "ModifiedTime.h"
 
 #define ROCKETBOOTSTRAP_LOAD_DYNAMIC
 #import "LightMessaging/LightMessaging.h"
@@ -520,17 +521,6 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 }
 
 @end
-
-static struct timespec GetFileModifiedTime(const char *path)
-{
-	struct stat temp;
-	if (stat(path, &temp) == 0)
-		return temp.st_mtimespec;
-	struct timespec distantPast;
-	distantPast.tv_sec = 0;
-	distantPast.tv_nsec = 0;
-	return distantPast;
-}
 
 __attribute__((constructor))
 static void constructor(void)
