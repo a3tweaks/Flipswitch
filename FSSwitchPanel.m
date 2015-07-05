@@ -13,7 +13,7 @@
 #import <unistd.h>
 #import <sys/mman.h>
 #import <objc/message.h>
-#import <UIKit/UIKit2.h>
+#import <UIKit/UIKit.h>
 #import <libkern/OSAtomic.h>
 #import <QuartzCore/QuartzCore.h>
 #import <sys/types.h>

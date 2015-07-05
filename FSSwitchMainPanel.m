@@ -17,6 +17,8 @@
 #import <libkern/OSAtomic.h>
 #import <objc/runtime.h>
 
+extern UIApplication *UIApp;
+
 #define kSwitchesPath @"/Library/Switches/"
 
 static volatile int32_t stateChangeCount;
@@ -449,6 +451,10 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 - (void)_loadSwitchForBundle:(NSBundle *)bundle
 {
 	Class arrayClass = [NSArray class];
+	if ([[bundle objectForInfoDictionaryKey:@"wait-for-application"] boolValue] && (UIApp == nil)) {
+		[self performSelector:_cmd withObject:bundle afterDelay:0.0];
+		return;
+	}
 	NSArray *capabilities = [bundle objectForInfoDictionaryKey:@"required-capabilities"];
 	if ([capabilities isKindOfClass:arrayClass])
 		for (NSString *capability in capabilities)

@@ -28,5 +28,7 @@
 	<string>WifiProxySwitch</string>
 	<key>alternate-action-url</key>
 	<string>prefs:root=WIFI</string>
+	<key>wait-for-application</key>
+	<true/>
 </dict>
 </plist>
