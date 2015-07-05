@@ -5,7 +5,7 @@ libflipswitch_FRAMEWORKS = UIKit CoreGraphics
 libflipswitch_ARCHS = armv6 armv7 armv7s arm64
 
 libFlipswitchSpringBoard_FILES = FSSwitchMainPanel.m FSSwitchDataSource.m FSSwitchMainPanel.m FSPreferenceSwitchDataSource.m FSLazySwitch.m FSCapability.m FSLaunchURL.x
-libFlipswitchSpringBoard_LIBRARIES = flipswitch
+libFlipswitchSpringBoard_LIBRARIES = flipswitch bsm
 libFlipswitchSpringBoard_FRAMEWORKS = UIKit
 libFlipswitchSpringBoard_PRIVATE_FRAMEWORKS = GraphicsServices
 libFlipswitchSpringBoard_LDFLAGS = -L$(THEOS_OBJ_DIR_NAME)

@@ -16,6 +16,8 @@
 #import <sys/stat.h>
 #import <libkern/OSAtomic.h>
 #import <objc/runtime.h>
+#import <bsm/libbsm.h>
+#import <SpringBoard/SpringBoard.h>
 
 extern UIApplication *UIApp;
 
@@ -278,7 +280,175 @@ static volatile int32_t stateChangeCount;
 	return [switchImplementation switchWithIdentifierIsSimpleAction:switchIdentifier];
 }
 
-static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_t replyPort, CFDataRef data)
+static SBApplication *applicationForAuditToken(const audit_token_t *token)
+{
+	if (token != NULL) {
+		pid_t pid = 0;
+		audit_token_to_au32(*token, NULL, NULL, NULL, NULL, NULL, &pid, NULL, NULL);
+		SBApplicationController *ac = (SBApplicationController *)[objc_getClass("SBApplicationController") sharedInstance];
+		if ([ac respondsToSelector:@selector(applicationWithPid:)]) {
+			return [ac applicationWithPid:pid];
+		}
+	}
+	return nil;
+}
+
+static NSString *displayIdentifierForApp(SBApplication *app)
+{
+	return [app respondsToSelector:@selector(displayIdentifier)] ? [app displayIdentifier] : [app bundleIdentifier];
+}
+
+typedef enum {
+	FSApprovalStateUnknown = -1,
+	FSApprovalStateDenied = 0,
+	FSApprovalStateAllowed = 1,
+} FSApprovalState;
+
+static NSMutableSet *deniedDisplayIdentifiers;
+
+static FSApprovalState approvalStateForApplication(SBApplication *app)
+{
+	NSString *displayIdentifier = displayIdentifierForApp(app);
+	if (!displayIdentifier || [displayIdentifier isEqualToString:@"com.apple.Preferences"] || [displayIdentifier isEqualToString:@"com.apple.springboard"])
+		return FSApprovalStateAllowed;
+	NSString *key = [@"APIAccessApproved-" stringByAppendingString:displayIdentifier];
+	if (CFPreferencesGetAppBooleanValue((CFStringRef)key, CFSTR("com.a3tweaks.flipswitch"), NULL)) {
+		return FSApprovalStateAllowed;
+	}
+	return [deniedDisplayIdentifiers containsObject:displayIdentifier] ? FSApprovalStateDenied : FSApprovalStateUnknown;
+}
+
+static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_t replyPort, CFDataRef data, const audit_token_t *token);
+static void ApproveCFUserNotificationCallback(CFUserNotificationRef userNotification, CFOptionFlags responseFlags);
+
+typedef struct {
+	FSSwitchServiceMessage messageId;
+	mach_port_t replyPort;
+	CFDataRef data;
+	SBApplication *application;
+} FSQueuedMessage;
+
+static struct {
+	CFMutableArrayRef queue;
+	CFUserNotificationRef userNotification;
+	CFRunLoopSourceRef runLoopSource;
+} pendingApproval;
+
+static void displayAlertForMessage(FSQueuedMessage *message)
+{
+	const CFTypeRef keys[] = {
+		kCFUserNotificationAlertTopMostKey,
+		kCFUserNotificationAlertHeaderKey,
+		kCFUserNotificationAlertMessageKey,
+		kCFUserNotificationDefaultButtonTitleKey,
+		kCFUserNotificationOtherButtonTitleKey,
+	};
+	const CFTypeRef values[] = {
+		kCFBooleanTrue,
+		CFSTR("Flipswitch"),
+		(CFStringRef)[NSString stringWithFormat:@"%@ is requesting permission to adjust your device settings", [message->application displayName]],
+		CFSTR("Grant Access"),
+		CFSTR("Deny"),
+	};
+	CFDictionaryRef dict = CFDictionaryCreate(kCFAllocatorDefault, (const void **)keys, (const void **)values, sizeof(keys) / sizeof(*keys), &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+	SInt32 err = 0;
+	pendingApproval.userNotification = CFUserNotificationCreate(kCFAllocatorDefault, 0.0, kCFUserNotificationPlainAlertLevel, &err, dict);
+	pendingApproval.runLoopSource = CFUserNotificationCreateRunLoopSource(kCFAllocatorDefault, pendingApproval.userNotification, ApproveCFUserNotificationCallback, 0);
+	CFRunLoopAddSource(CFRunLoopGetMain(), pendingApproval.runLoopSource, kCFRunLoopCommonModes);
+	CFRelease(dict);
+}
+
+static void CleanupQueuedMessage(FSQueuedMessage *message)
+{
+	if (message->data) {
+		CFRelease(message->data);
+	}
+	[message->application release];
+	free(message);
+}
+
+static void ApproveCFUserNotificationCallback(CFUserNotificationRef userNotification, CFOptionFlags responseFlags)
+{
+	// Cleanup the alert
+	CFRunLoopSourceInvalidate(pendingApproval.runLoopSource);
+	CFRelease(pendingApproval.runLoopSource);
+	CFRelease(pendingApproval.userNotification);
+	pendingApproval.userNotification = NULL;
+	// Handle the message, if approved
+	FSQueuedMessage *message = (FSQueuedMessage *)CFArrayGetValueAtIndex(pendingApproval.queue, 0);
+	NSString *displayIdentifier = displayIdentifierForApp(message->application);
+	if (displayIdentifier) {
+		if (responseFlags == kCFUserNotificationDefaultResponse) {
+			NSString *key = [@"APIAccessApproved-" stringByAppendingString:displayIdentifier];
+			CFPreferencesSetAppValue((CFStringRef)key, (id)kCFBooleanTrue, CFSTR("com.a3tweaks.flipswitch"));
+			CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.flipswitch"));
+		} else {
+			if (!deniedDisplayIdentifiers) {
+				deniedDisplayIdentifiers = [[NSMutableSet alloc] init];
+			}
+			[deniedDisplayIdentifiers addObject:displayIdentifier];
+		}
+	}
+	// Process more incoming messages, stopping when we hit one that needs to alert
+	do {
+		message = (FSQueuedMessage *)CFArrayGetValueAtIndex(pendingApproval.queue, 0);
+		switch (approvalStateForApplication(message->application)) {
+			case FSApprovalStateUnknown:
+				if (!pendingApproval.userNotification) {
+					displayAlertForMessage(message);
+				}
+				return;
+			case FSApprovalStateAllowed:
+				CFArrayRemoveValueAtIndex(pendingApproval.queue, 0);
+				processMessage((FSSwitchMainPanel *)[FSSwitchPanel sharedPanel], message->messageId, message->replyPort, message->data, NULL);
+				CleanupQueuedMessage(message);
+				break;
+			case FSApprovalStateDenied:
+				CFArrayRemoveValueAtIndex(pendingApproval.queue, 0);
+				LMSendReply(message->replyPort, NULL, 0);
+				CleanupQueuedMessage(message);
+				break;
+			default:
+				return;
+		}
+	} while (CFArrayGetCount(pendingApproval.queue));
+}
+
+static BOOL handleApproveOfMessage(FSSwitchServiceMessage messageId, mach_port_t replyPort, CFDataRef data, FSSwitchMainPanel *self, const audit_token_t *token)
+{
+	SBApplication *app = applicationForAuditToken(token);
+	switch (approvalStateForApplication(app)) {
+		case FSApprovalStateUnknown: {
+			FSQueuedMessage *message = malloc(sizeof(*message));
+			message->messageId = messageId;
+			message->replyPort = replyPort;
+			message->data = (CFDataRef)[[NSData alloc] initWithData:(NSData *)data];
+			message->application = [app retain];
+			if (!pendingApproval.queue) {
+				pendingApproval.queue = CFArrayCreateMutable(kCFAllocatorDefault, 0, NULL);
+			}
+			CFArrayAppendValue(pendingApproval.queue, message);
+			if (!pendingApproval.userNotification) {
+				displayAlertForMessage(message);
+			}
+			return YES;
+		}
+		case FSApprovalStateAllowed:
+			return NO;
+		case FSApprovalStateDenied:
+			LMSendReply(replyPort, NULL, 0);
+			return YES;
+		default:
+			return NO;
+	}
+}
+
+#define PROTECT_MESSAGE() do { \
+	if (handleApproveOfMessage((FSSwitchServiceMessage)messageId, replyPort, data, self, token)) \
+		return; \
+} while (0)
+
+static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_t replyPort, CFDataRef data, const audit_token_t *token)
 {
 	switch ((FSSwitchServiceMessage)messageId) {
 		case FSSwitchServiceMessageGetIdentifiers:
@@ -302,6 +472,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			break;
 		}
 		case FSSwitchServiceMessageSetStateForIdentifier: {
+			PROTECT_MESSAGE();
 			NSArray *args = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([args isKindOfClass:[NSArray class]] && [args count] == 2) {
 				NSNumber *state = [args objectAtIndex:0];
@@ -330,6 +501,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			break;
 		}
 		case FSSwitchServiceMessageApplyActionForIdentifier: {
+			PROTECT_MESSAGE();
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
 				[self applyActionForSwitchIdentifier:identifier];
@@ -345,6 +517,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			break;
 		}
 		case FSSwitchServiceMessageApplyAlternateActionForIdentifier: {
+			PROTECT_MESSAGE();
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
 				[self applyAlternateActionForSwitchIdentifier:identifier];
@@ -364,6 +537,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			break;
 		}
 		case FSSwitchServiceMessageBeginPrewarmingForIdentifier: {
+			PROTECT_MESSAGE();
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
 				[self beginPrewarmingForSwitchIdentifier:identifier];
@@ -372,6 +546,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			break;
 		}
 		case FSSwitchServiceMessageCancelPrewarmingForIdentifier: {
+			PROTECT_MESSAGE();
 			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([identifier isKindOfClass:[NSString class]]) {
 				[self cancelPrewarmingForSwitchIdentifier:identifier];
@@ -380,6 +555,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			break;
 		}
 		case FSSwitchServiceMessageOpenURLAsAlternateAction: {
+			PROTECT_MESSAGE();
 			NSString *url = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
 			if ([url isKindOfClass:[NSString class]]) {
 				[self openURLAsAlternateAction:[NSURL URLWithString:url]];
@@ -429,6 +605,16 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 	LMSendReply(replyPort, NULL, 0);
 }
 
+static const audit_token_t *extract_audit_token(mach_msg_header_t *request)
+{
+	mach_msg_audit_trailer_t *trailer = (mach_msg_audit_trailer_t *)((vm_offset_t)request + round_msg(request->msgh_size));
+	if ((trailer->msgh_trailer_type == MACH_MSG_TRAILER_FORMAT_0) && (trailer->msgh_trailer_size >= MACH_MSG_TRAILER_FORMAT_0_SIZE)) {
+		return &trailer->msgh_audit;
+	} else {
+		return NULL;
+	}
+}
+
 static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void *info)
 {
 	LMMessage *request = bytes;
@@ -442,7 +628,7 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 	size_t length = LMMessageGetDataLength(request);
 	mach_port_t replyPort = request->head.msgh_remote_port;
 	CFDataRef cfdata = CFDataCreateWithBytesNoCopy(kCFAllocatorDefault, data ?: &data, length, kCFAllocatorNull);
-	processMessage((FSSwitchMainPanel *)[FSSwitchPanel sharedPanel], request->head.msgh_id, replyPort, cfdata);
+	processMessage((FSSwitchMainPanel *)[FSSwitchPanel sharedPanel], request->head.msgh_id, replyPort, cfdata, extract_audit_token(bytes));
 	if (cfdata)
 		CFRelease(cfdata);
 	LMResponseBufferFree(bytes);
