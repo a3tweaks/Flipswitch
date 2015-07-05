@@ -30,6 +30,8 @@
 	<string>prefs:root=General&amp;path=MOBILE_DATA_SETTINGS_ID</string>
 	<key>alternate-action-url-7</key>
 	<string>prefs:root=MOBILE_DATA_SETTINGS_ID</string>
+	<key>lazy-load</key>
+	<true/>
 	<key>required-capabilities</key>
 	<array>
 		<string>cellular-data</string>

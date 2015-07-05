@@ -32,6 +32,8 @@
 	<string>com.apple.locationd</string>
 	<key>key</key>
 	<string>LocationServicesEnabled</string>
+	<key>lazy-load</key>
+	<true/>
 	<key>PostNotification</key>
 	<string>com.apple.locationd/Prefs</string>
 </dict>
