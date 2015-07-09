@@ -13,6 +13,7 @@
 #import "Internal.h"
 #import "audit_lookup.h"
 
+#import <objc/runtime.h>
 #import <notify.h>
 #import <sys/stat.h>
 #import <libkern/OSAtomic.h>
