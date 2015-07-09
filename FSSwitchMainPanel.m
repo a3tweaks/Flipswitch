@@ -11,12 +11,11 @@
 #define ROCKETBOOTSTRAP_LOAD_DYNAMIC
 #import "LightMessaging/LightMessaging.h"
 #import "Internal.h"
+#import "audit_lookup.h"
 
 #import <notify.h>
 #import <sys/stat.h>
 #import <libkern/OSAtomic.h>
-#import <objc/runtime.h>
-#import <bsm/libbsm.h>
 #import <SpringBoard/SpringBoard.h>
 
 extern UIApplication *UIApp;
@@ -280,24 +279,6 @@ static volatile int32_t stateChangeCount;
 	return [switchImplementation switchWithIdentifierIsSimpleAction:switchIdentifier];
 }
 
-static SBApplication *applicationForAuditToken(const audit_token_t *token)
-{
-	if (token != NULL) {
-		pid_t pid = 0;
-		audit_token_to_au32(*token, NULL, NULL, NULL, NULL, NULL, &pid, NULL, NULL);
-		SBApplicationController *ac = (SBApplicationController *)[objc_getClass("SBApplicationController") sharedInstance];
-		if ([ac respondsToSelector:@selector(applicationWithPid:)]) {
-			return [ac applicationWithPid:pid];
-		}
-	}
-	return nil;
-}
-
-static NSString *displayIdentifierForApp(SBApplication *app)
-{
-	return [app respondsToSelector:@selector(displayIdentifier)] ? [app displayIdentifier] : [app bundleIdentifier];
-}
-
 typedef enum {
 	FSApprovalStateUnknown = -1,
 	FSApprovalStateDenied = 0,
@@ -306,9 +287,8 @@ typedef enum {
 
 static NSMutableSet *deniedDisplayIdentifiers;
 
-static FSApprovalState approvalStateForApplication(SBApplication *app)
+static FSApprovalState approvalStateForDisplayIdentifier(NSString *displayIdentifier)
 {
-	NSString *displayIdentifier = displayIdentifierForApp(app);
 	if (!displayIdentifier || [displayIdentifier isEqualToString:@"com.apple.Preferences"] || [displayIdentifier isEqualToString:@"com.apple.springboard"])
 		return FSApprovalStateAllowed;
 	NSString *key = [@"APIAccessApproved-" stringByAppendingString:displayIdentifier];
@@ -325,7 +305,8 @@ typedef struct {
 	FSSwitchServiceMessage messageId;
 	mach_port_t replyPort;
 	CFDataRef data;
-	SBApplication *application;
+	NSString *displayIdentifier;
+	NSString *displayName;
 } FSQueuedMessage;
 
 static struct {
@@ -346,7 +327,7 @@ static void displayAlertForMessage(FSQueuedMessage *message)
 	const CFTypeRef values[] = {
 		kCFBooleanTrue,
 		CFSTR("Flipswitch"),
-		(CFStringRef)[NSString stringWithFormat:@"%@ is requesting permission to adjust your device settings", [message->application displayName]],
+		(CFStringRef)[NSString stringWithFormat:@"%@ is requesting permission to adjust your device settings", message->displayName],
 		CFSTR("Grant Access"),
 		CFSTR("Deny"),
 	};
@@ -363,7 +344,8 @@ static void CleanupQueuedMessage(FSQueuedMessage *message)
 	if (message->data) {
 		CFRelease(message->data);
 	}
-	[message->application release];
+	[message->displayIdentifier release];
+	[message->displayName release];
 	free(message);
 }
 
@@ -376,7 +358,7 @@ static void ApproveCFUserNotificationCallback(CFUserNotificationRef userNotifica
 	pendingApproval.userNotification = NULL;
 	// Handle the message, if approved
 	FSQueuedMessage *message = (FSQueuedMessage *)CFArrayGetValueAtIndex(pendingApproval.queue, 0);
-	NSString *displayIdentifier = displayIdentifierForApp(message->application);
+	NSString *displayIdentifier = message->displayIdentifier;
 	if (displayIdentifier) {
 		if (responseFlags == kCFUserNotificationDefaultResponse) {
 			NSString *key = [@"APIAccessApproved-" stringByAppendingString:displayIdentifier];
@@ -392,7 +374,7 @@ static void ApproveCFUserNotificationCallback(CFUserNotificationRef userNotifica
 	// Process more incoming messages, stopping when we hit one that needs to alert
 	do {
 		message = (FSQueuedMessage *)CFArrayGetValueAtIndex(pendingApproval.queue, 0);
-		switch (approvalStateForApplication(message->application)) {
+		switch (approvalStateForDisplayIdentifier(message->displayIdentifier)) {
 			case FSApprovalStateUnknown:
 				if (!pendingApproval.userNotification) {
 					displayAlertForMessage(message);
@@ -416,14 +398,18 @@ static void ApproveCFUserNotificationCallback(CFUserNotificationRef userNotifica
 
 static BOOL handleApproveOfMessage(FSSwitchServiceMessage messageId, mach_port_t replyPort, CFDataRef data, FSSwitchMainPanel *self, const audit_token_t *token)
 {
-	SBApplication *app = applicationForAuditToken(token);
-	switch (approvalStateForApplication(app)) {
+	NSString *displayIdentifier = nil;
+	if (!token || !audit_lookup_by_token(*token, &displayIdentifier, NULL))
+		return NO;
+	switch (approvalStateForDisplayIdentifier(displayIdentifier)) {
 		case FSApprovalStateUnknown: {
 			FSQueuedMessage *message = malloc(sizeof(*message));
 			message->messageId = messageId;
 			message->replyPort = replyPort;
 			message->data = (CFDataRef)[[NSData alloc] initWithData:(NSData *)data];
-			message->application = [app retain];
+			message->displayIdentifier = [displayIdentifier retain];
+			audit_lookup_by_token(*token, NULL, &message->displayName);
+			[message->displayName retain];
 			if (!pendingApproval.queue) {
 				pendingApproval.queue = CFArrayCreateMutable(kCFAllocatorDefault, 0, NULL);
 			}
