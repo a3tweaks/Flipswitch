@@ -4,7 +4,7 @@ Flashlight_FRAMEWORKS = AVFoundation UIKit
 Flashlight_LIBRARIES = flipswitch
 Flashlight_INSTALL_PATH = /Library/Switches
 
-ADDITIONAL_CFLAGS = -I../../public -I../../overlayheaders
+ADDITIONAL_CFLAGS = -I../../public -I../../PrivateHeaders -I../../overlayheaders
 ADDITIONAL_LDFLAGS = -L../../$(THEOS_OBJ_DIR_NAME)
 
 include $(THEOS)/makefiles/common.mk

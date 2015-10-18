@@ -2,19 +2,9 @@
 #import <FSSwitchPanel.h>
 
 #import <Foundation/Foundation.h>
+#import <SpringBoard/SpringBoard.h>
 #include <dispatch/dispatch.h>
 #include <dlfcn.h>
-
-@interface SBTelephonyManager
-+ (id)sharedTelephonyManager;
-- (void)setIsInAirplaneMode:(BOOL)airplaneMode;
-- (BOOL)isInAirplaneMode;
-@end
-
-@interface SBStatusBarController
-+ (SBStatusBarController *)sharedStatusBarController;
-- (BOOL)airplaneModeIsEnabled;
-@end
 
 @interface AirplaneModeSwitch : NSObject <FSSwitchDataSource>
 @end

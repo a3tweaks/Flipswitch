@@ -4,7 +4,7 @@ Wifi_FRAMEWORKS = UIKit
 Wifi_LIBRARIES = flipswitch
 Wifi_INSTALL_PATH = /Library/Switches
 
-ADDITIONAL_CFLAGS = -I../../public
+ADDITIONAL_CFLAGS = -I../../public -I../../PrivateHeaders
 ADDITIONAL_LDFLAGS = -L../../$(THEOS_OBJ_DIR_NAME)
 
 include $(THEOS)/makefiles/common.mk

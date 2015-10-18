@@ -6,6 +6,7 @@
 #import <objc/runtime.h>
 #import <CaptainHook/CaptainHook.h>
 #import <UIKit/UIKit.h>
+#import <SpringBoard/SpringBoard.h>
 
 #import "../../NSObject+FSSwitchDataSource.h"
 
@@ -22,38 +23,6 @@ typedef enum {
 	FlashlightSwitchAction defaultAction;
 	FlashlightSwitchAction alternateAction;
 }
-@end
-
-@interface AVFlashlight : NSObject
-
-+ (BOOL)hasFlashlight;
-
-@property(readonly, nonatomic) float flashlightLevel;
-- (BOOL)setFlashlightLevel:(float)level withError:(NSError **)error;
-
-- (void)turnPowerOff;
-- (BOOL)turnPowerOnWithError:(NSError **)error;
-@property(readonly, nonatomic, getter=isOverheated) BOOL overheated;
-@property(readonly, nonatomic, getter=isAvailable) BOOL available;
-
-- (void)teardownFigRecorder;
-- (BOOL)ensureFigRecorderWithError:(NSError **)error;
-- (BOOL)bringupFigRecorderWithError:(NSError **)error;
-
-@end
-
-@interface SBControlCenterController : UIViewController
-+ (SBControlCenterController *)sharedInstanceIfExists;
-@end
-
-@interface SBControlCenterViewController : UIViewController
-@end
-
-@interface SBCCQuickLaunchSectionController : /* ... */ UIViewController
-@end
-
-@interface SBControlCenterContentView : UIView
-@property (retain, nonatomic) SBCCQuickLaunchSectionController *quickLaunchSection;
 @end
 
 static FlashlightSwitch *sharedFlashlight;

@@ -1,11 +1,7 @@
 #import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
 
-@interface SBMediaController
-+ (id)sharedInstance;
-- (BOOL)isRingerMuted;
-- (void)setRingerMuted:(BOOL)muted;
-@end
+#import <SpringBoard/SpringBoard.h>
 
 @interface RingerSwitch : NSObject <FSSwitchDataSource>
 @end

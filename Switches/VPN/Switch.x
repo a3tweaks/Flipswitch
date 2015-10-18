@@ -5,17 +5,6 @@
 #import <dlfcn.h>
 #import <CaptainHook/CaptainHook.h>
 
-@interface VPNBundleController : PSListController {
-@private
-	PSSpecifier *_vpnSpecifier;
-}
-- (id)initWithParentListController:(PSListController *)parentListController;
-- (id)vpnActiveForSpecifier:(PSSpecifier *)specifier;
-- (void)_setVPNActive:(BOOL)active;
-- (NSArray *)specifiersWithSpecifier:(PSSpecifier *)specifier;
-- (void)initSC;
-@end
-
 static VPNBundleController *controller;
 
 @interface VPNSwitch : NSObject <FSSwitchDataSource>

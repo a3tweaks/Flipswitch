@@ -2,15 +2,12 @@
 #import <FSSwitchPanel.h>
 
 #import <Preferences/Preferences.h>
+#import <SpringBoard/SpringBoard.h>
 #import <dlfcn.h>
 
 #import <CaptainHook/CaptainHook.h>
 
 #import "../../NSObject+FSSwitchDataSource.h"
-
-@interface SBTelephonyManager : NSObject
-+ (SBTelephonyManager *)sharedTelephonyManager;
-@end
 
 typedef enum {
 	NETRB_SVC_STATE_ON = 1023,

@@ -1,14 +1,8 @@
 #import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
 
-#import <Foundation/Foundation.h>
+#import <SpringBoard/SpringBoard.h>
 #include <dispatch/dispatch.h>
-
-@interface SBWiFiManager
-+ (id)sharedInstance;
-- (BOOL)wiFiEnabled;
-- (void)setWiFiEnabled:(BOOL)enabled;
-@end
 
 @interface WifiSwitch : NSObject <FSSwitchDataSource>
 @end

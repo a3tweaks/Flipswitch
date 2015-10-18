@@ -2,14 +2,9 @@
 #import <FSSwitchPanel.h>
 #import <Foundation/Foundation.h>
 #import <limits.h>
+#import <ManagedConfiguration/ManagedConfiguration.h>
 
 #define PLIST_PATH @"/var/mobile/Library/Preferences/com.flipswitch.autolock.plist"
-
-@interface MCProfileConnection : NSObject
-+ (MCProfileConnection *)sharedConnection;
-- (void)setValue:(id)value forSetting:(id)setting;
-- (id)effectiveParametersForValueSetting:(id)setting;
-@end
 
 @interface AutolockSwitch : NSObject <FSSwitchDataSource>
 @end

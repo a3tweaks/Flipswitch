@@ -18,8 +18,7 @@
 #import <sys/stat.h>
 #import <libkern/OSAtomic.h>
 #import <CoreFoundation/CFUserNotification.h>
-
-extern UIApplication *UIApp;
+#import <UIKit/UIKit.h>
 
 #define kSwitchesPath @"/Library/Switches/"
 

@@ -1,12 +1,7 @@
 #import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
 
-@interface BluetoothManager
-+ (BluetoothManager *)sharedInstance;
-- (BOOL)powered;
-- (BOOL)setPowered:(BOOL)powered;
-- (void)setEnabled:(BOOL)enabled;
-@end
+#import <SpringBoard/SpringBoard.h>
 
 @interface BluetoothSwitch : NSObject <FSSwitchDataSource>
 - (void)_bluetoothStateDidChange:(NSNotification *)notification;

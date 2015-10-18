@@ -5,24 +5,7 @@
 #undef __OSX_AVAILABLE_STARTING
 #define __OSX_AVAILABLE_STARTING(mac,ios)
 #import <SystemConfiguration/SystemConfiguration.h>
-
-@interface SBWiFiManager
-+ (id)sharedInstance;
-- (BOOL)wiFiEnabled;
-- (void)setWiFiEnabled:(BOOL)enabled;
-@end
-
-@interface NSNetworkSettings : NSObject
-+ (NSNetworkSettings *)sharedNetworkSettings;
-- (void)setProxyDictionary:(NSDictionary *)dictionary;
-- (BOOL)connectedToInternet:(BOOL)unknown;
-- (void)setProxyPropertiesForURL:(NSURL *)url onStream:(CFReadStreamRef)stream;
-- (BOOL)isProxyNeededForURL:(NSURL *)url;
-- (NSDictionary *)proxyPropertiesForURL:(NSURL *)url;
-- (NSDictionary *)proxyDictionary;
-- (void)_listenForProxySettingChanges;
-- (void)_updateProxySettings;
-@end
+#import <SpringBoard/SpringBoard.h>
 
 @interface WifiProxySwitch : NSObject <FSSwitchDataSource>
 + (void)stateDidChange;
