@@ -5,6 +5,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import <objc/runtime.h>
 #import <CaptainHook/CaptainHook.h>
+#import <UIKit/UIKit.h>
 
 #import "../../NSObject+FSSwitchDataSource.h"
 

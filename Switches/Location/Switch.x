@@ -1,8 +1,8 @@
 #import <FSSwitchDataSource.h>
-#import <FSSwitchPanel.h>
 #import "FSPreferenceSwitchDataSource.h"
-#import <notify.h>
-#import <CoreLocation/CoreLocation.h>
+
+@interface CLLocationManager : NSObject
+@end
 
 @interface CLLocationManager (iOS7)
 + (BOOL)locationServicesEnabled;

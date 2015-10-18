@@ -1,11 +1,8 @@
 #import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
 
-@interface SpringBoard : UIApplication
-- (void)_relaunchSpringBoardNow;
-- (void)reboot;
-- (void)powerDown;
-@end
+#import <SpringBoard/SpringBoard.h>
+#import <UIKit/UIKit.h>
 
 @interface RespringSwitch : NSObject <FSSwitchDataSource, UIAlertViewDelegate> {
 	CFIndex lastChosenAction;

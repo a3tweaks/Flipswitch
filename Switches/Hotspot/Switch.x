@@ -12,12 +12,6 @@
 + (SBTelephonyManager *)sharedTelephonyManager;
 @end
 
-@interface WirelessModemController : PSListController {
-}
-- (id)internetTethering:(PSSpecifier *)specifier;
-- (void)setInternetTethering:(id)value specifier:(PSSpecifier *)specifier;
-@end
-
 typedef enum {
 	NETRB_SVC_STATE_ON = 1023,
 	NETRB_SVC_STATE_OFF = 1022,

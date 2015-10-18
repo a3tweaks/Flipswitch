@@ -1,4 +1,4 @@
-#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 
 @protocol FSSwitchSettingsViewController <NSObject> // Must be a UIViewController subclass
 @optional

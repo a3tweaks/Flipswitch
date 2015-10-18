@@ -1,6 +1,8 @@
-#import <UIKit/UIKit.h>
+#import <UIKit/UIControl.h>
 #import "FSSwitchState.h"
 #import "FSSwitchSettingsViewController.h"
+
+@class UIButton;
 
 @interface FSSwitchPanel : NSObject
 

@@ -9,6 +9,7 @@
 @private
 	PSSpecifier *_vpnSpecifier;
 }
+- (id)initWithParentListController:(PSListController *)parentListController;
 - (id)vpnActiveForSpecifier:(PSSpecifier *)specifier;
 - (void)_setVPNActive:(BOOL)active;
 - (NSArray *)specifiersWithSpecifier:(PSSpecifier *)specifier;

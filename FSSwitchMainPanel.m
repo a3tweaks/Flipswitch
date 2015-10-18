@@ -17,7 +17,7 @@
 #import <notify.h>
 #import <sys/stat.h>
 #import <libkern/OSAtomic.h>
-#import <SpringBoard/SpringBoard.h>
+#import <CoreFoundation/CFUserNotification.h>
 
 extern UIApplication *UIApp;
 

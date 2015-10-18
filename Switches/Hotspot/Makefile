@@ -5,7 +5,7 @@ Hotspot_PRIVATE_FRAMEWORKS = Preferences
 Hotspot_LIBRARIES = flipswitch
 Hotspot_INSTALL_PATH = /Library/Switches
 
-ADDITIONAL_CFLAGS = -I../../public
+ADDITIONAL_CFLAGS = -I../../public -I../../overlayheaders -I../../PrivateHeaders
 ADDITIONAL_LDFLAGS = -L../../$(THEOS_OBJ_DIR_NAME)
 
 include $(THEOS)/makefiles/common.mk
