@@ -93,7 +93,13 @@ static void (*setEnabled)(BOOL newState);
 				}
 			}
 		}
-		id appSwitcherController = [%c(SBAppSwitcherController) respondsToSelector:@selector(sharedInstanceIfAvailable)] ? [%c(SBAppSwitcherController) sharedInstanceIfAvailable] : [(SBUIController *)[%c(SBUIController) sharedInstance] switcherController];
+		id appSwitcherController;
+		if ([%c(SBAppSwitcherController) respondsToSelector:@selector(sharedInstanceIfAvailable)])
+			appSwitcherController = [%c(SBAppSwitcherController) sharedInstanceIfAvailable];
+		else if ([%c(SBUIController) instancesRespondToSelector:@selector(switcherController)])
+			appSwitcherController = [(SBUIController *)[%c(SBUIController) sharedInstance] switcherController];
+		else
+			return;
 		SBNowPlayingBar **nowPlayingBar = CHIvarRef(appSwitcherController, _nowPlaying, SBNowPlayingBar *);
 		if (nowPlayingBar) {
 			UIButton **_orientationLockButton = CHIvarRef(*nowPlayingBar, _orientationLockButton, UIButton *);
