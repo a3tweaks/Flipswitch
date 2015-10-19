@@ -32,7 +32,11 @@ static VPNBundleController *controller;
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
-	[controller _setVPNActive:newState];
+	if ([controller respondsToSelector:@selector(_setVPNActive:)]) {
+		[controller _setVPNActive:newState];
+	} else {
+		[controller setVPNActive:newState];
+	}
 }
 
 @end

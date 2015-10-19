@@ -48,3 +48,7 @@ typedef enum PSCellType {
 - (NSArray *)specifiersWithSpecifier:(PSSpecifier *)specifier;
 - (void)initSC;
 @end
+
+@interface VPNBundleController (iOS9)
+- (void)setVPNActive:(BOOL)active;
+@end
