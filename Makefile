@@ -11,7 +11,7 @@ libFlipswitchSpringBoard_PRIVATE_FRAMEWORKS = GraphicsServices
 libFlipswitchSpringBoard_LDFLAGS = -L$(THEOS_OBJ_DIR_NAME)
 libFlipswitchSpringBoard_INSTALL_PATH = /Library/Flipswitch
 
-SUBPROJECTS = Switches/Location Switches/3G Switches/AirplaneMode Switches/Autolock Switches/AutoBrightness Switches/Bluetooth Switches/Data Switches/DoNotDisturb Switches/Flashlight Switches/Hotspot Switches/Respring Switches/Ringer Switches/Rotation Switches/Settings Switches/Vibration Switches/VPN Switches/Wifi Switches/WifiProxy
+SUBPROJECTS = Switches/Location Switches/3G Switches/AirplaneMode Switches/Autolock Switches/AutoBrightness Switches/Bluetooth Switches/Data Switches/DoNotDisturb Switches/Flashlight Switches/Hotspot Switches/LowPower Switches/Respring Switches/Ringer Switches/Rotation Switches/Settings Switches/Vibration Switches/VPN Switches/Wifi Switches/WifiProxy
 
 BUNDLE_NAME = FlipswitchSettings
 
