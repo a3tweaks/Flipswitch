@@ -6,6 +6,8 @@
 @property (assign) BOOL allowsGroupBlending;
 @end
 
+#define HAS_GESTURE_RECOGNIZER (kCFCoreFoundationVersionNumber >= 478.61)
+
 @implementation _FSSwitchButton
 
 - (id)initWithSwitchIdentifier:(NSString *)switchIdentifier_ template:(NSBundle *)template_
@@ -30,6 +32,11 @@
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(switchStateDidChange:) name:FSSwitchPanelSwitchStateChangedNotification object:nil];
 		[self addTarget:self action:@selector(_pressed) forControlEvents:UIControlEventTouchUpInside];
 		self.enabled = [[FSSwitchPanel sharedPanel] switchWithIdentifierIsEnabled:switchIdentifier_];
+		if (HAS_GESTURE_RECOGNIZER) {
+			UILongPressGestureRecognizer *recognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(_longPressRecognizerUpdated:)];
+			[self addGestureRecognizer:recognizer];
+			[recognizer release];
+		}
 	}
 	return self;
 }
@@ -108,8 +115,10 @@
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
 	[super touchesBegan:touches withEvent:event];
-	skippingForHold = NO;
-	[self performSelector:@selector(_held) withObject:nil afterDelay:1.0];
+	if (!HAS_GESTURE_RECOGNIZER) {
+		skippingForHold = NO;
+		[self performSelector:@selector(_held) withObject:nil afterDelay:0.5];
+	}
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
@@ -141,6 +150,13 @@
 {
 	skippingForHold = YES;
 	[[FSSwitchPanel sharedPanel] applyAlternateActionForSwitchIdentifier:switchIdentifier];
+}
+
+- (void)_longPressRecognizerUpdated:(UILongPressGestureRecognizer *)recognizer
+{
+	if (recognizer.state == UIGestureRecognizerStateBegan) {
+		[[FSSwitchPanel sharedPanel] applyAlternateActionForSwitchIdentifier:switchIdentifier];
+	}
 }
 
 - (NSString *)accessibilityLabel
