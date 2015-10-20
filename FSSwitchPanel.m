@@ -160,6 +160,9 @@ static NSInteger DictionaryTextComparator(id a, id b, void *context)
 - (NSArray *)sortedSwitchIdentifiers
 {
 	NSMutableArray *switchIdentifiers = [[self.switchIdentifiers mutableCopy] autorelease];
+	if (!switchIdentifiers) {
+		return nil;
+	}
 	NSMutableDictionary *titles = [NSMutableDictionary dictionary];
 	for (NSString *identifier in switchIdentifiers) {
 		[titles setObject:[self titleForSwitchIdentifier:identifier] forKey:identifier];

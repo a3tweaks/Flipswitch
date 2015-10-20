@@ -244,11 +244,17 @@ typedef enum {
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)table
 {
+	if (!allSwitches) {
+		return 1;
+	}
 	return (mode == FSSettingsControllerReorderingMode) ? 2 : 1;
 }
 
 - (NSString *)tableView:(UITableView *)table titleForHeaderInSection:(NSInteger)section
 {
+	if (!allSwitches) {
+		return nil;
+	}
 	switch (mode) {
 		case FSSettingsControllerEnablingMode:
 			return nil;
@@ -260,6 +266,9 @@ typedef enum {
 
 - (NSString *)tableView:(UITableView *)table titleForFooterInSection:(NSInteger)section
 {
+	if (!allSwitches) {
+		return @"Error loading switches to configure!";
+	}
 	switch (mode) {
 		case FSSettingsControllerEnablingMode:
 			return nil;
@@ -282,6 +291,9 @@ typedef enum {
 
 - (NSInteger)tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section
 {
+	if (!allSwitches) {
+		return 0;
+	}
 	return [[self arrayForSection:section] count];
 }
 
