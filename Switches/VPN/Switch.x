@@ -10,12 +10,25 @@ static VPNBundleController *controller;
 @interface VPNSwitch : NSObject <FSSwitchDataSource>
 @end
 
+static void VPNSettingsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+{
+	FSSwitchPanel *panel = [FSSwitchPanel sharedPanel];
+	[panel stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.vpn"];
+	[panel performSelector:@selector(stateDidChangeForSwitchIdentifier:) withObject:@"com.a3tweaks.switch.vpn" afterDelay:0.1];
+}
+
 %hook VPNBundleController
 
 - (void)_vpnStatusChanged:(NSNotification *)notification
 {
 	%orig();
-	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[VPNSwitch class]].bundleIdentifier];
+	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.vpn"];
+}
+
+- (void)vpnStatusChanged:(NSNotification *)notification
+{
+	%orig();
+	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.vpn"];
 }
 
 %end
@@ -25,7 +38,7 @@ static VPNBundleController *controller;
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	PSSpecifier **specifier = CHIvarRef(controller, _vpnSpecifier, PSSpecifier *);
-	return specifier ? [[controller vpnActiveForSpecifier:*specifier] boolValue] : NO;
+	return specifier ? [[controller vpnActiveForSpecifier:*specifier] boolValue] : FSSwitchStateOff;
 }
 
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
@@ -57,4 +70,6 @@ static VPNBundleController *controller;
 		[controller specifiersWithSpecifier:nil];
 	if ([controller respondsToSelector:@selector(initSC)])
 		[controller initSC];
+	CFNotificationCenterRef center = CFNotificationCenterGetLocalCenter();
+	CFNotificationCenterAddObserver(center, NULL, VPNSettingsChanged, CFSTR("SBVPNConnectionChangedNotification"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 }
