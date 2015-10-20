@@ -27,7 +27,7 @@
 	<key>NSPrincipalClass</key>
 	<string>LowPowerSwitch</string>
 	<key>alternate-action-url</key>
-	<string>prefs:root=Battery</string>
+	<string>prefs:root=BATTERY_USAGE</string>
 	<key>lazy-load</key>
 	<true/>
 	<key>CoreFoundationVersion</key>
