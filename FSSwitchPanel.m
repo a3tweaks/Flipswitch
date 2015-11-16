@@ -165,7 +165,7 @@ static NSInteger DictionaryTextComparator(id a, id b, void *context)
 	}
 	NSMutableDictionary *titles = [NSMutableDictionary dictionary];
 	for (NSString *identifier in switchIdentifiers) {
-		[titles setObject:[self titleForSwitchIdentifier:identifier] forKey:identifier];
+		[titles setObject:[self titleForSwitchIdentifier:identifier] ?: @"" forKey:identifier];
 	}
 	[switchIdentifiers sortUsingFunction:DictionaryTextComparator context:titles];
 	return switchIdentifiers;
