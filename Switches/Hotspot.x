@@ -18,6 +18,7 @@ typedef enum {
 + (MISManager *)sharedManager;
 - (void)setState:(NETRB_SVC_STATE)state;
 - (void)getState:(NETRB_SVC_STATE *)outState andReason:(int *)reason;
+- (void)sendStateUpdate;
 @end
 
 static WirelessModemController *controller;
@@ -25,6 +26,11 @@ static MISManager *manager;
 static PSSpecifier *specifier;
 static NSInteger insideSwitch;
 static FSSwitchState pendingState;
+
+static void UpdateSwitchStatus(void)
+{
+	[[FSSwitchPanel sharedPanel] performSelector:@selector(stateDidChangeForSwitchIdentifier:) withObject:@"com.a3tweaks.switch.hotspot" afterDelay:0.0];
+}
 
 %group WirelessModemSettings
 
@@ -56,15 +62,20 @@ static FSSwitchState pendingState;
 
 %end
 
+%hook MISManager
+
+- (void)sendStateUpdate
+{
+	%orig();
+	pendingState = FSSwitchStateIndeterminate;
+	UpdateSwitchStatus();
+}
+%end
+
 %end
 
 @interface HotspotSwitch : NSObject <FSSwitchDataSource>
 @end
-
-static void UpdateSwitchStatus(void)
-{
-	[[FSSwitchPanel sharedPanel] performSelector:@selector(stateDidChangeForSwitchIdentifier:) withObject:@"com.a3tweaks.switch.hotspot" afterDelay:0.0];
-}
 
 %hook SBTelephonyManager
 
@@ -152,13 +163,13 @@ static void StateChanged(CFNotificationCenterRef center, void *observer, CFStrin
 
 %ctor {
 	pendingState = FSSwitchStateIndeterminate;
+	// Load WirelessModemSettings
+	dlopen("/System/Library/PreferenceBundles/WirelessModemSettings.bundle/WirelessModemSettings", RTLD_LAZY);
+	%init(WirelessModemSettings);
 	Class _MISManager = objc_getClass("MISManager");
 	%init();
 	if ([_MISManager instancesRespondToSelector:@selector(getState:andReason:)] && [_MISManager instancesRespondToSelector:@selector(setState:)] && [_MISManager respondsToSelector:@selector(sharedManager)] && (manager = [_MISManager sharedManager]))
 		return;
-	// Load WirelessModemSettings
-	dlopen("/System/Library/PreferenceBundles/WirelessModemSettings.bundle/WirelessModemSettings", RTLD_LAZY);
-	%init(WirelessModemSettings);
 	// Create root controller
 	PSRootController *rootController = [[PSRootController alloc] initWithTitle:@"Preferences" identifier:@"com.apple.Preferences"];
 	// Create controller
