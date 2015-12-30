@@ -9,6 +9,11 @@
 @interface AirplaneModeSwitch : NSObject <FSSwitchDataSource>
 @end
 
+static void UpdateAirplaneModeStatus(void)
+{
+	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.airplane-mode"];
+}
+
 %hook SBTelephonyManager
 
 // Modern iOS versions
@@ -16,7 +21,7 @@
 - (void)airplaneModeChanged
 {
 	%orig();
-	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.airplane-mode"];
+	UpdateAirplaneModeStatus();
 }
 
 // iOS 3.x
@@ -24,15 +29,26 @@
 - (void)updateAirplaneMode
 {
 	%orig();
-	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.airplane-mode"];
+	UpdateAirplaneModeStatus();
 }
 
 %end
 
+static BOOL justSwitchedAirplaneModeOff;
+
 @implementation AirplaneModeSwitch
+
+- (void)timeOutAirplaneMode
+{
+	justSwitchedAirplaneModeOff = NO;
+	UpdateAirplaneModeStatus();
+}
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
+	if (justSwitchedAirplaneModeOff) {
+		return FSSwitchStateOff;
+	}
 	if ([%c(SBTelephonyManager) instancesRespondToSelector:@selector(isInAirplaneMode)])
 		return [[%c(SBTelephonyManager) sharedTelephonyManager] isInAirplaneMode];
 	return (FSSwitchState)[[%c(SBStatusBarController) sharedStatusBarController] airplaneModeIsEnabled];
@@ -49,6 +65,12 @@
 		if (enable) {
 			enable(newState);
 		}
+	}
+	// Workaround for the airplane mode for turning off airplane mode taking effect after a short delay and the wrong status
+	// getting returned if queried immediately afterwards. Shows as the wrong status in the popup text in FlipControlCenter, among others
+	if (newState == FSSwitchStateOff) {
+		justSwitchedAirplaneModeOff = YES;
+		[self performSelector:@selector(timeOutAirplaneMode) withObject:nil afterDelay:0.75];
 	}
 }
 
