@@ -5,9 +5,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.a3tweaks.switch.rotation-lock</string>
+	<string>com.a3tweaks.switch.do-not-disturb</string>
 	<key>CFBundleDisplayName</key>
-	<string>Rotation Lock</string>
+	<string>Do Not Disturb</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -21,8 +21,16 @@
 	<key>DTPlatformName</key>
 	<string>iphoneos</string>
 	<key>MinimumOSVersion</key>
-	<string>3.0</string>
+	<string>6.0</string>
 	<key>NSPrincipalClass</key>
-	<string>RotationLockSwitch</string>
+	<string>DoNotDisturbSwitch</string>
+	<key>alternate-action-url</key>
+	<string>prefs:path=DND</string>
+	<key>alternate-action-url-7</key>
+	<string>prefs:root=DO_NOT_DISTURB</string>
+	<key>CoreFoundationVersion</key>
+	<array>
+		<real>700</real>
+	</array>
 </dict>
 </plist>

@@ -4,8 +4,6 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
-	<key>CFBundleExecutable</key>
-	<string>Wifi</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.a3tweaks.switch.wifi</string>
 	<key>CFBundleDisplayName</key>

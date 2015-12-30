@@ -7,7 +7,7 @@
 
 - (NSBundle *)bundleForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	return [NSBundle bundleForClass:[self class]];
+	return [NSBundle bundleWithIdentifier:switchIdentifier] ?: [NSBundle bundleForClass:[self class]];
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier

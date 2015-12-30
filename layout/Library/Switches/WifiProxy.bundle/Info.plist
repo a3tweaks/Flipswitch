@@ -5,9 +5,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.a3tweaks.switch.rotation-lock</string>
+	<string>com.a3tweaks.switch.wifi-proxy</string>
 	<key>CFBundleDisplayName</key>
-	<string>Rotation Lock</string>
+	<string>Wi-Fi Proxy</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -23,6 +23,10 @@
 	<key>MinimumOSVersion</key>
 	<string>3.0</string>
 	<key>NSPrincipalClass</key>
-	<string>RotationLockSwitch</string>
+	<string>WifiProxySwitch</string>
+	<key>alternate-action-url</key>
+	<string>prefs:root=WIFI</string>
+	<key>wait-for-application</key>
+	<true/>
 </dict>
 </plist>

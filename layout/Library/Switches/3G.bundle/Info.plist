@@ -5,9 +5,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.a3tweaks.switch.rotation-lock</string>
+	<string>com.a3tweaks.switch.3g</string>
 	<key>CFBundleDisplayName</key>
-	<string>Rotation Lock</string>
+	<string>3G</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -21,8 +21,18 @@
 	<key>DTPlatformName</key>
 	<string>iphoneos</string>
 	<key>MinimumOSVersion</key>
-	<string>3.0</string>
-	<key>NSPrincipalClass</key>
-	<string>RotationLockSwitch</string>
+	<string>5.0</string>
+	<key>alternate-action-url</key>
+	<string>prefs:root=General&amp;path=MOBILE_DATA_SETTINGS_ID</string>
+	<key>alternate-action-url-7</key>
+	<string>prefs:root=MOBILE_DATA_SETTINGS_ID</string>
+	<key>required-capabilities</key>
+	<array>
+		<string>cellular-data</string>
+	</array>
+	<key>CoreFoundationVersion</key>
+	<array>
+		<real>600</real>
+	</array>
 </dict>
 </plist>

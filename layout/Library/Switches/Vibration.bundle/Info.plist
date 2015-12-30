@@ -5,9 +5,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.a3tweaks.switch.rotation-lock</string>
+	<string>com.a3tweaks.switch.vibration</string>
 	<key>CFBundleDisplayName</key>
-	<string>Rotation Lock</string>
+	<string>Vibration</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -23,6 +23,14 @@
 	<key>MinimumOSVersion</key>
 	<string>3.0</string>
 	<key>NSPrincipalClass</key>
-	<string>RotationLockSwitch</string>
+	<string>VibrationSwitch</string>
+	<key>alternate-action-url</key>
+	<string>prefs:root=Sounds</string>
+	<key>lazy-load</key>
+	<true/>
+	<key>required-capabilities</key>
+	<array>
+		<string>sms</string>
+	</array>
 </dict>
 </plist>

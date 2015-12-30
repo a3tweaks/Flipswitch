@@ -1,17 +1,23 @@
-LIBRARY_NAME = libflipswitch libFlipswitchSpringBoard
+LIBRARY_NAME = libflipswitch libFlipswitchSpringBoard libFlipswitchSwitches
 
 libflipswitch_FILES = FSSwitchPanel.m NSBundle+Flipswitch.m FSSwitchButton.m FSSwitchState.m
 libflipswitch_FRAMEWORKS = UIKit CoreGraphics
 libflipswitch_ARCHS = armv6 armv7 armv7s arm64
 
-libFlipswitchSpringBoard_FILES = FSSwitchMainPanel.m FSSwitchDataSource.m FSSwitchMainPanel.m FSPreferenceSwitchDataSource.m FSLazySwitch.m FSCapability.m FSLaunchURL.x Switches/Wifi.x
+libFlipswitchSpringBoard_FILES = FSSwitchDataSource.m FSSwitchMainPanel.m FSPreferenceSwitchDataSource.m FSLazySwitch.m FSCapability.m FSLaunchURL.x
 libFlipswitchSpringBoard_LIBRARIES = flipswitch bsm
 libFlipswitchSpringBoard_FRAMEWORKS = UIKit
 libFlipswitchSpringBoard_PRIVATE_FRAMEWORKS = GraphicsServices
 libFlipswitchSpringBoard_LDFLAGS = -L$(THEOS_OBJ_DIR_NAME)
 libFlipswitchSpringBoard_INSTALL_PATH = /Library/Flipswitch
 
-SUBPROJECTS = Switches/Location Switches/3G Switches/AirplaneMode Switches/Autolock Switches/AutoBrightness Switches/Bluetooth Switches/Data Switches/DoNotDisturb Switches/Flashlight Switches/Hotspot Switches/LowPower Switches/Respring Switches/Ringer Switches/Rotation Switches/Settings Switches/Vibration Switches/VPN Switches/WifiProxy
+libFlipswitchSwitches_FILES = Switches/3G.x Switches/AirplaneMode.x Switches/AutoBrightness.x Switches/Autolock.x Switches/Bluetooth.x Switches/Data.x Switches/DoNotDisturb.x Switches/Flashlight.x Switches/Hotspot.x Switches/Location.x Switches/LowPower.x Switches/Respring.x Switches/Ringer.x Switches/Rotation.x Switches/Settings.x Switches/VPN.x Switches/Vibration.x Switches/Wifi.x Switches/WifiProxy.x
+libFlipswitchSwitches_FRAMEWORKS = UIKit CoreLocation CoreTelephony SystemConfiguration
+libFlipswitchSwitches_PRIVATE_FRAMEWORKS = ManagedConfiguration GraphicsServices Preferences
+libFlipswitchSwitches_LIBRARIES = flipswitch FlipswitchSpringBoard
+libFlipswitchSwitches_LDFLAGS = -L$(THEOS_OBJ_DIR_NAME)
+libFlipswitchSwitches_CFLAGS = -I./
+libFlipswitchSwitches_INSTALL_PATH = /Library/Flipswitch
 
 BUNDLE_NAME = FlipswitchSettings
 
@@ -37,7 +43,6 @@ include theos/makefiles/common.mk
 include $(THEOS_MAKE_PATH)/library.mk
 include $(THEOS_MAKE_PATH)/tweak.mk
 include $(THEOS_MAKE_PATH)/bundle.mk
-include $(THEOS_MAKE_PATH)/aggregate.mk
 
 stage::
 	$(ECHO_NOTHING)mkdir -p $(THEOS_STAGING_DIR)/usr/include$(ECHO_END)

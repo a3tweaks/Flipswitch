@@ -5,9 +5,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.a3tweaks.switch.rotation-lock</string>
+	<string>com.a3tweaks.switch.hotspot</string>
 	<key>CFBundleDisplayName</key>
-	<string>Rotation Lock</string>
+	<string>Hotspot</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -23,6 +23,14 @@
 	<key>MinimumOSVersion</key>
 	<string>3.0</string>
 	<key>NSPrincipalClass</key>
-	<string>RotationLockSwitch</string>
+	<string>HotspotSwitch</string>
+	<key>alternate-action-url</key>
+	<string>prefs:root=INTERNET_TETHERING</string>
+	<key>lazy-load</key>
+	<true/>
+	<key>required-capabilities</key>
+	<array>
+		<string>personal-hotspot</string>
+	</array>
 </dict>
 </plist>
