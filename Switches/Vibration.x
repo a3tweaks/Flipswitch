@@ -18,7 +18,8 @@ static void VibrationSettingsChanged(CFNotificationCenterRef center, void *obser
     [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.vibration"];
 }
 
-+ (void)load
+__attribute__((constructor))
+static void constructor(void)
 {
     CFNotificationCenterRef center = CFNotificationCenterGetDarwinNotifyCenter();
     CFNotificationCenterAddObserver(center, NULL, VibrationSettingsChanged, CFSTR("com.apple.springboard.ring-vibrate.changed"), NULL, CFNotificationSuspensionBehaviorCoalesce);

@@ -15,7 +15,8 @@ static void BatterySaverSettingsChanged(CFNotificationCenterRef center, void *ob
     [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.low-power"];
 }
 
-+ (void)load
+__attribute__((constructor))
+static void constructor(void)
 {
     CFNotificationCenterRef center = CFNotificationCenterGetDarwinNotifyCenter();
     CFNotificationCenterAddObserver(center, NULL, BatterySaverSettingsChanged, CFSTR("com.apple.system.batterysavermode"), NULL, CFNotificationSuspensionBehaviorCoalesce);

@@ -13,7 +13,8 @@ static void RingerSettingsChanged(CFNotificationCenterRef center, void *observer
     [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.ringer"];
 }
 
-+ (void)load
+__attribute__((constructor))
+static void constructor(void)
 {
     CFNotificationCenterRef center = CFNotificationCenterGetDarwinNotifyCenter();
     CFNotificationCenterAddObserver(center, NULL, RingerSettingsChanged, CFSTR("com.apple.springboard.ringerstate"), NULL, CFNotificationSuspensionBehaviorCoalesce);
