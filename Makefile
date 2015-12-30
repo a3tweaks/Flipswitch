@@ -37,6 +37,10 @@ export TARGET_IPHONEOS_DEPLOYMENT_VERSION_armv7s = 6.0
 export TARGET_IPHONEOS_DEPLOYMENT_VERSION_arm64 = 7.0
 export ARCHS = armv6 arm64
 
+ifeq ($(THEOS_CURRENT_ARCH),armv6)
+	GO_EASY_ON_ME=1
+endif
+
 INSTALL_TARGET_PROCESSES = SpringBoard
 
 include theos/makefiles/common.mk
