@@ -15,7 +15,7 @@ static BOOL wiFiEnabled;
 {
 	%orig();
 	wiFiEnabled = [self wiFiEnabled];
-	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:[NSBundle bundleForClass:[WifiSwitch class]].bundleIdentifier];
+	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.wifi"];
 }
 
 %end

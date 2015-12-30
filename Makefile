@@ -4,14 +4,14 @@ libflipswitch_FILES = FSSwitchPanel.m NSBundle+Flipswitch.m FSSwitchButton.m FSS
 libflipswitch_FRAMEWORKS = UIKit CoreGraphics
 libflipswitch_ARCHS = armv6 armv7 armv7s arm64
 
-libFlipswitchSpringBoard_FILES = FSSwitchMainPanel.m FSSwitchDataSource.m FSSwitchMainPanel.m FSPreferenceSwitchDataSource.m FSLazySwitch.m FSCapability.m FSLaunchURL.x
+libFlipswitchSpringBoard_FILES = FSSwitchMainPanel.m FSSwitchDataSource.m FSSwitchMainPanel.m FSPreferenceSwitchDataSource.m FSLazySwitch.m FSCapability.m FSLaunchURL.x Switches/Wifi.x
 libFlipswitchSpringBoard_LIBRARIES = flipswitch bsm
 libFlipswitchSpringBoard_FRAMEWORKS = UIKit
 libFlipswitchSpringBoard_PRIVATE_FRAMEWORKS = GraphicsServices
 libFlipswitchSpringBoard_LDFLAGS = -L$(THEOS_OBJ_DIR_NAME)
 libFlipswitchSpringBoard_INSTALL_PATH = /Library/Flipswitch
 
-SUBPROJECTS = Switches/Location Switches/3G Switches/AirplaneMode Switches/Autolock Switches/AutoBrightness Switches/Bluetooth Switches/Data Switches/DoNotDisturb Switches/Flashlight Switches/Hotspot Switches/LowPower Switches/Respring Switches/Ringer Switches/Rotation Switches/Settings Switches/Vibration Switches/VPN Switches/Wifi Switches/WifiProxy
+SUBPROJECTS = Switches/Location Switches/3G Switches/AirplaneMode Switches/Autolock Switches/AutoBrightness Switches/Bluetooth Switches/Data Switches/DoNotDisturb Switches/Flashlight Switches/Hotspot Switches/LowPower Switches/Respring Switches/Ringer Switches/Rotation Switches/Settings Switches/Vibration Switches/VPN Switches/WifiProxy
 
 BUNDLE_NAME = FlipswitchSettings
 
