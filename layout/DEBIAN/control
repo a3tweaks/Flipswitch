@@ -4,7 +4,7 @@ Depends: mobilesubstrate (>= 0.9.5001), com.rpetrich.rocketbootstrap (>= 1.0.4) 
 Conflicts: com.rpetrich.donotdisturbtoggle (<= 1.0-1), com.jerryen.rotationlockflipswitch
 Replaces: com.jerryen.rotationlockflipswitch
 Provides: com.jerryen.rotationlockflipswitch
-Version: 1.0.10
+Version: 1.0.11~beta1
 Architecture: iphoneos-arm
 Description: Centralized toggle system for iOS
 Homepage: http://rpetri.ch/cydia/flipswitch/beta/
