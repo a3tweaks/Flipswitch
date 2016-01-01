@@ -10,6 +10,7 @@
 
 #include <notify.h>
 #include <dlfcn.h>
+#include <objc/runtime.h>
 
 #define IsOS4 (kCFCoreFoundationVersionNumber >= 478.61)
 static BOOL (*isEnabled)(void);
@@ -19,9 +20,6 @@ static void (*setEnabled)(BOOL newState);
 @end
 
 @interface RotationLockSwitch : RotationSwitch
-@end
-
-@interface RotationSwitchSettingsViewController : UITableViewController <FSSwitchSettingsViewController>
 @end
 
 %hook SBOrientationLockManager
@@ -160,7 +158,11 @@ static NSString *LockedOrientationName(void)
 
 - (Class <FSSwitchSettingsViewController>)settingsViewControllerClassForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	return (UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPad) ? [RotationSwitchSettingsViewController class] : nil;
+	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+		return Nil;
+	}
+	dlopen("/Library/PreferenceBundles/FlipswitchSettings.bundle/FlipswitchSettings", RTLD_LAZY);
+	return objc_getClass("RotationSwitchSettingsViewController");
 }
 
 - (NSString *)descriptionOfState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier
@@ -218,40 +220,6 @@ static NSString *LockedOrientationName(void)
 
 @end
 
-@implementation RotationSwitchSettingsViewController
-
-- (id)init
-{
-	return [super initWithStyle:UITableViewStyleGrouped];
-}
-
-- (NSInteger)tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section
-{
-	return 1;
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"] ?: [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"cell"] autorelease];
-	cell.textLabel.text = @"Support Landscape Lock";
-	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.rotation"));
-	cell.accessoryType = CFPreferencesGetAppBooleanValue(CFSTR("DisableLandsapeLock"), CFSTR("com.a3tweaks.switch.rotation"), NULL) ? UITableViewCellAccessoryNone : UITableViewCellAccessoryCheckmark;
-	return cell;
-}
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
-{
-	[tableView deselectRowAtIndexPath:indexPath animated:YES];
-	UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-	BOOL newValue = (cell.accessoryType == UITableViewCellAccessoryCheckmark);
-	cell.accessoryType = newValue ? UITableViewCellAccessoryNone : UITableViewCellAccessoryCheckmark;
-	CFPreferencesSetAppValue(CFSTR("DisableLandsapeLock"), (CFTypeRef)[NSNumber numberWithBool:newValue], CFSTR("com.a3tweaks.switch.rotation"));
-	CFPreferencesAppSynchronize(CFSTR("com.a3tweaks.switch.rotation"));
-}
-
-@end
-
-
 CHConstructor
 {
 	%init();
@@ -261,4 +229,3 @@ CHConstructor
 		setEnabled = dlsym(rotationinhibitor, "setEnabled");
 	}
 }
-
