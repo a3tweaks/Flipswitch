@@ -2,6 +2,7 @@
 #import "FSSwitchPanel.h"
 #import "FSCapability.h"
 #import "NSBundle+Flipswitch.h"
+#import <dlfcn.h>
 
 @implementation NSObject (FSSwitchDataSource)
 
@@ -132,7 +133,12 @@
 
 - (Class <FSSwitchSettingsViewController>)settingsViewControllerClassForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	NSString *className = [[self bundleForSwitchIdentifier:switchIdentifier] objectForInfoDictionaryKey:@"settings-view-controller-class"];
+	NSBundle *bundle = [self bundleForSwitchIdentifier:switchIdentifier];
+	NSString *binaryPath = [bundle objectForInfoDictionaryKey:@"settings-view-controller-binary"];
+	if (binaryPath) {
+		dlopen([binaryPath UTF8String], RTLD_LAZY);
+	}
+	NSString *className = [bundle objectForInfoDictionaryKey:@"settings-view-controller-class"];
 	return NSClassFromString(className);
 }
 

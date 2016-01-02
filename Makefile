@@ -21,7 +21,7 @@ libFlipswitchSwitches_INSTALL_PATH = /Library/Flipswitch
 
 BUNDLE_NAME = FlipswitchSettings
 
-FlipswitchSettings_FILES = FSSettingsController.m Switches/RotationSettings.m Switches/FlashlightSettings.m
+FlipswitchSettings_FILES = FSSettingsController.m Switches/RotationSettings.m Switches/FlashlightSettings.m Switches/RespringSettings.m
 FlipswitchSettings_FRAMEWORKS = UIKit
 FlipswitchSettings_PRIVATE_FRAMEWORKS = Preferences
 FlipswitchSettings_LIBRARIES = flipswitch
