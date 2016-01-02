@@ -8,6 +8,8 @@
 #import <FSSwitchPanel.h>
 #import <FSSwitchSettingsViewController.h>
 
+#import "../NSObject+FSSwitchDataSource.h"
+
 #include <notify.h>
 #include <dlfcn.h>
 #include <objc/runtime.h>
@@ -161,8 +163,7 @@ static NSString *LockedOrientationName(void)
 	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
 		return Nil;
 	}
-	dlopen("/Library/PreferenceBundles/FlipswitchSettings.bundle/FlipswitchSettings", RTLD_LAZY);
-	return objc_getClass("RotationSwitchSettingsViewController");
+	return [super settingsViewControllerClassForSwitchIdentifier:switchIdentifier];
 }
 
 - (NSString *)descriptionOfState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier

@@ -24,5 +24,9 @@
 	<string>3.0</string>
 	<key>NSPrincipalClass</key>
 	<string>RotationSwitch</string>
+	<key>settings-view-controller-class</key>
+	<string>RotationSwitchSettingsViewController</string>
+	<key>settings-view-controller-binary</key>
+	<string>/Library/PreferenceBundles/FlipswitchSettings.bundle/FlipswitchSettings</string>
 </dict>
 </plist>

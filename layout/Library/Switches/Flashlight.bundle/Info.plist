@@ -30,5 +30,9 @@
 	<array>
 		<string>camera-flash</string>
 	</array>
+	<key>settings-view-controller-class</key>
+	<string>FlashlightSwitchSettingsViewController</string>
+	<key>settings-view-controller-binary</key>
+	<string>/Library/PreferenceBundles/FlipswitchSettings.bundle/FlipswitchSettings</string>
 </dict>
 </plist>

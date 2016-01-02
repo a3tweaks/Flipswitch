@@ -240,8 +240,7 @@ static float theJam;
 	if (kCFCoreFoundationVersionNumber < 800) {
 		return Nil;
 	}
-	dlopen("/Library/PreferenceBundles/FlipswitchSettings.bundle/FlipswitchSettings", RTLD_LAZY);
-	return objc_getClass("FlashlightSwitchSettingsViewController");
+	return [super settingsViewControllerClassForSwitchIdentifier:switchIdentifier];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
