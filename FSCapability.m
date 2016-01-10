@@ -14,7 +14,7 @@ BOOL FSSystemHasCapability(NSString *capabilityName)
 		if (!MGGetBoolAnswer) {
 			void *libGraphicServices = dlopen("/System/Library/PrivateFrameworks/GraphicsServices.framework/GraphicsServices", RTLD_LAZY);
 			if (libGraphicServices) {
-				MGGetBoolAnswer = dlsym(libMobileGestalt, "GSSystemHasCapability");
+				MGGetBoolAnswer = dlsym(libGraphicServices, "GSSystemHasCapability");
 			}
 		}
 	}
