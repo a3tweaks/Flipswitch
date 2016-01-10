@@ -11,12 +11,14 @@ BOOL FSSystemHasCapability(NSString *capabilityName)
 		if (libMobileGestalt) {
 			MGGetBoolAnswer = dlsym(libMobileGestalt, "MGGetBoolAnswer");
 		}
+#ifndef __arm64__
 		if (!MGGetBoolAnswer) {
 			void *libGraphicServices = dlopen("/System/Library/PrivateFrameworks/GraphicsServices.framework/GraphicsServices", RTLD_LAZY);
 			if (libGraphicServices) {
 				MGGetBoolAnswer = dlsym(libGraphicServices, "GSSystemHasCapability");
 			}
 		}
+#endif
 	}
 	if (MGGetBoolAnswer != NULL)
 		return MGGetBoolAnswer(capabilityName);
