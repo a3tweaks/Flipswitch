@@ -27,6 +27,10 @@ NSMutableDictionary *_switchImplementations;
 static BOOL hasUpdatedSwitches;
 static NSDictionary *pendingNotificationUserInfo;
 
+@interface FSSwitchMainPanel ()
+- (void)_postNotificationName:(NSString *)notificationName userInfo:(NSDictionary *)userInfo;
+@end
+
 @implementation FSSwitchMainPanel
 
 - (void)_registerDataSourceForSwitchIdentifier:(NSArray *)args
@@ -90,13 +94,13 @@ static NSDictionary *pendingNotificationUserInfo;
 {
 	hasUpdatedSwitches = NO;
 	notify_post([FSSwitchPanelSwitchesChangedNotification UTF8String]);
-	[self postNotificationName:FSSwitchPanelSwitchesChangedNotification userInfo:nil];
+	[self _postNotificationName:FSSwitchPanelSwitchesChangedNotification userInfo:nil];
 }
 
 - (void)_postNotificationForStateDidChangeForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	NSDictionary *userInfo = switchIdentifier ? [NSDictionary dictionaryWithObject:switchIdentifier forKey:FSSwitchPanelSwitchIdentifierKey] : nil;
-	[self postNotificationName:FSSwitchPanelSwitchStateChangedNotification userInfo:userInfo];
+	[self _postNotificationName:FSSwitchPanelSwitchStateChangedNotification userInfo:userInfo];
 }
 
 - (void)stateDidChangeForSwitchIdentifier:(NSString *)switchIdentifier
@@ -197,7 +201,7 @@ static NSDictionary *pendingNotificationUserInfo;
 	[switchImplementation applyAlternateActionForSwitchIdentifier:switchIdentifier];
 }
 
-- (void)postNotificationName:(NSString *)notificationName userInfo:(NSDictionary *)userInfo
+- (void)_postNotificationName:(NSString *)notificationName userInfo:(NSDictionary *)userInfo
 {
 	[userInfo retain];
 	[pendingNotificationUserInfo release];
@@ -213,7 +217,7 @@ static NSDictionary *pendingNotificationUserInfo;
 		return;
 	}
 	NSDictionary *userInfo = url ? [NSDictionary dictionaryWithObject:[url absoluteString] forKey:@"url"] : nil;
-	[self postNotificationName:FSSwitchPanelSwitchWillOpenURLNotification userInfo:userInfo];
+	[self _postNotificationName:FSSwitchPanelSwitchWillOpenURLNotification userInfo:userInfo];
 	FSLaunchURL(url);
 }
 
