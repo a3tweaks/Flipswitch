@@ -129,6 +129,18 @@ static void constructor(void)
 	}
 }
 
+#ifdef DEBUG
+
++ (NSDictionary *)fileDescriptors
+{
+	OSSpinLockLock(&_lock);
+	NSDictionary *fileDescriptors = [_fileDescriptors copy];
+	OSSpinLockUnlock(&_lock);
+	return [fileDescriptors autorelease];
+}
+
+#endif
+
 + (void)_didReceiveMemoryWarning
 {
 	OSSpinLockLock(&_lock);
