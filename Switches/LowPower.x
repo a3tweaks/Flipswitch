@@ -15,6 +15,9 @@ static void BatterySaverSettingsChanged(CFNotificationCenterRef center, void *ob
 
 %ctor
 {
+	if (kCFCoreFoundationVersionNumber < 1240.0) {
+		return;
+	}
     CFNotificationCenterRef center = CFNotificationCenterGetDarwinNotifyCenter();
     CFNotificationCenterAddObserver(center, NULL, BatterySaverSettingsChanged, CFSTR("com.apple.system.batterysavermode"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 }

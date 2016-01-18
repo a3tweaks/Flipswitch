@@ -57,6 +57,9 @@ static FSSwitchState state;
 
 %ctor
 {
+	if (kCFCoreFoundationVersionNumber < 700.9) {
+		return;
+	}
 	state = FSSwitchStateIndeterminate;
 	dispatch_async(dispatch_get_main_queue(), ^{
 		Class BBSettingsGatewayClass = objc_getClass("BBSettingsGateway");

@@ -179,6 +179,9 @@ static void FSDataStatusChanged(void)
 
 %ctor
 {
+	if (kCFCoreFoundationVersionNumber < 600.0) {
+		return;
+	}
 	CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataStatusChanged, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)FSDataStatusChanged, CFSTR("com.a3tweaks.switch.dataspeed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 	FSDataStatusChanged();

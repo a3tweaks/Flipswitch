@@ -13,6 +13,9 @@ static void RingerSettingsChanged(CFNotificationCenterRef center, void *observer
 
 %ctor
 {
+	if (kCFCoreFoundationVersionNumber < 600) {
+		return;
+	}
     CFNotificationCenterRef center = CFNotificationCenterGetDarwinNotifyCenter();
     CFNotificationCenterAddObserver(center, NULL, RingerSettingsChanged, CFSTR("com.apple.springboard.ringerstate"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 }
