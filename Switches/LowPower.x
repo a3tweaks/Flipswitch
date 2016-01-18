@@ -7,20 +7,19 @@
 @interface LowPowerSwitch : NSObject <FSSwitchDataSource>
 @end
 
-@implementation LowPowerSwitch
-
 static void BatterySaverSettingsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
 	NSLog(@"Flipswitch: Low Power switch state changed value = %d", [[objc_getClass("_CDBatterySaver") batterySaver] getPowerMode]);
     [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.low-power"];
 }
 
-__attribute__((constructor))
-static void constructor(void)
+%ctor
 {
     CFNotificationCenterRef center = CFNotificationCenterGetDarwinNotifyCenter();
     CFNotificationCenterAddObserver(center, NULL, BatterySaverSettingsChanged, CFSTR("com.apple.system.batterysavermode"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 }
+
+@implementation LowPowerSwitch
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {

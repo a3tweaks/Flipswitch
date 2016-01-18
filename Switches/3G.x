@@ -139,8 +139,7 @@ static void FSDataStatusChanged(void)
 
 @end
 
-__attribute__((constructor))
-static void constructor(void)
+%ctor
 {
 	CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataStatusChanged, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
 	FSDataStatusChanged();

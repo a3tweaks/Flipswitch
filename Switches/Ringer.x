@@ -6,19 +6,18 @@
 @interface RingerSwitch : NSObject <FSSwitchDataSource>
 @end
 
-@implementation RingerSwitch
-
 static void RingerSettingsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
     [[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.ringer"];
 }
 
-__attribute__((constructor))
-static void constructor(void)
+%ctor
 {
     CFNotificationCenterRef center = CFNotificationCenterGetDarwinNotifyCenter();
     CFNotificationCenterAddObserver(center, NULL, RingerSettingsChanged, CFSTR("com.apple.springboard.ringerstate"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 }
+
+@implementation RingerSwitch
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
