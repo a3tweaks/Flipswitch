@@ -7,8 +7,8 @@ Provides: com.jerryen.rotationlockflipswitch
 Version: 1.0.11~beta3
 Architecture: iphoneos-arm
 Description: Centralized toggle system for iOS
-Homepage: http://rpetri.ch/cydia/flipswitch/beta/
-Depiction: http://rpetri.ch/cydia/flipswitch/beta/
+Homepage: http://rpetri.ch/cydia/flipswitch/
+Depiction: http://rpetri.ch/cydia/flipswitch/
 Author: rpetrich & A3Tweaks <rpetrich+flipswitch@gmail.com>
 Section: System
 Tag: purpose::extension, role::developer
