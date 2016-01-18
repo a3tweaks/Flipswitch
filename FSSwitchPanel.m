@@ -138,7 +138,7 @@ static void constructor(void)
 	_fileDescriptors = nil;
 	OSSpinLockUnlock(&_lock);
 	[cachedSwitchImages release];
-	for (NSNumber *number in fileDescriptors) {
+	for (NSNumber *number in [fileDescriptors allValues]) {
 		close([number intValue]);
 	}
 	[fileDescriptors release];
