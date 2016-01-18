@@ -39,16 +39,19 @@ NSString * const FSSwitchPanelSwitchWillOpenURLNotification = @"FSSwitchPanelSwi
 static FSSwitchPanel *_switchManager;
 static NSMutableDictionary *_cachedSwitchImages;
 static volatile OSSpinLock _lock;
-static BOOL _scaleIsSupported;
-static CGColorSpaceRef _sharedColorSpace;
 static long int _pageSize;
 static NSMutableDictionary *_fileDescriptors;
+
+static BOOL scaleIsSupported(void)
+{
+	return [UIImage respondsToSelector:@selector(imageWithCGImage:scale:orientation:)];
+}
 
 @implementation FSSwitchPanel
 
 static UIImage *FlipSwitchUnmappedImageWithContentsOfFile(NSString *filePath, CGFloat requestedScale)
 {
-	if (!_scaleIsSupported || (requestedScale == [UIScreen mainScreen].scale)) {
+	if (!scaleIsSupported() || (requestedScale == [UIScreen mainScreen].scale)) {
 		return [UIImage imageWithContentsOfFile:filePath];
 	}
 	CGFloat scale = 1.0f;
@@ -107,10 +110,6 @@ static void constructor(void)
 + (void)initialize
 {
 	if (self == [FSSwitchPanel class]) {
-		_scaleIsSupported = [UIImage respondsToSelector:@selector(imageWithCGImage:scale:orientation:)];
-		_sharedColorSpace = CGColorSpaceCreateDeviceRGB();
-		_pageSize = sysconf(_SC_PAGESIZE);
-		_fileDescriptors = [[NSMutableDictionary alloc] init];
 		if (objc_getClass("SpringBoard")) {
 			FSSwitchMainPanel *mainPanel = [[objc_getClass("FSSwitchMainPanel") alloc] init];
 			_switchManager = mainPanel;
@@ -133,9 +132,16 @@ static void constructor(void)
 + (void)_didReceiveMemoryWarning
 {
 	OSSpinLockLock(&_lock);
-	[_cachedSwitchImages release];
+	NSDictionary *cachedSwitchImages = _cachedSwitchImages;
 	_cachedSwitchImages = nil;
+	NSDictionary *fileDescriptors = _fileDescriptors;
+	_fileDescriptors = nil;
 	OSSpinLockUnlock(&_lock);
+	[cachedSwitchImages release];
+	for (NSNumber *number in fileDescriptors) {
+		close([number intValue]);
+	}
+	[fileDescriptors release];
 }
 
 + (FSSwitchPanel *)sharedPanel
@@ -523,8 +529,9 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 		result = FlipSwitchUnmappedImageWithContentsOfFile(prerenderedImageName, scale);
 		goto cache_and_return_result;
 	}
-	size_t rawWidth = _scaleIsSupported ? (size.width * scale) : size.width;
-	size_t rawHeight = _scaleIsSupported ? (size.height * scale) : size.height;
+	BOOL supportsScale = scaleIsSupported();
+	size_t rawWidth = supportsScale ? (size.width * scale) : size.width;
+	size_t rawHeight = supportsScale ? (size.height * scale) : size.height;
 	size_t rawSize = rawWidth * 4 * rawHeight;
 	char *buffer;
 	NSString *basePath = template.flipswitchImageCacheBasePath;
@@ -532,6 +539,16 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 	NSString *binaryPath = [basePath stringByAppendingString:@".bin"];
 	int fd;
 	OSSpinLockLock(&_lock);
+	if (_pageSize == 0) {
+		_pageSize = sysconf(_SC_PAGESIZE);
+	}
+	static CGColorSpaceRef _sharedColorSpace;
+	if (!_sharedColorSpace) {
+		_sharedColorSpace = CGColorSpaceCreateDeviceRGB();
+	}
+	if (!_fileDescriptors) {
+		_fileDescriptors = [[NSMutableDictionary alloc] init];
+	}
 	NSNumber *fileDescriptor = [_fileDescriptors objectForKey:basePath];
 	if (fileDescriptor) {
 		OSSpinLockUnlock(&_lock);
@@ -620,7 +637,7 @@ unlock_and_in_memory_fallback:
 			munmap(buffer, mappingEnd - mappingStart);
 			goto unlock_and_in_memory_fallback;
 		}
-		//if (_scaleIsSupported) {
+		//if (scaleIsSupported()) {
 			CGContextScaleCTM(context, scale, -scale);
 			CGContextTranslateCTM(context, 0.0f, -size.height);
 		//}
@@ -658,7 +675,7 @@ unlock_and_in_memory_fallback:
 	CGDataProviderRelease(dataProvider);
 	if (!cgResult)
 		goto in_memory_fallback;
-	if (_scaleIsSupported)
+	if (scaleIsSupported())
 		result = [UIImage imageWithCGImage:cgResult scale:scale orientation:UIImageOrientationUp];
 	else
 		result = [UIImage imageWithCGImage:cgResult];
