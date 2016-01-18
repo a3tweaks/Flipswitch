@@ -23,6 +23,9 @@
 #define kSwitchesPath @"/Library/Switches/"
 
 static volatile int32_t stateChangeCount;
+NSMutableDictionary *_switchImplementations;
+static BOOL hasUpdatedSwitches;
+static NSDictionary *pendingNotificationUserInfo;
 
 @implementation FSSwitchMainPanel
 
@@ -511,7 +514,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			break;
 		}
 		case FSSwitchServiceMessageGetPendingNotificationUserInfo: {
-			LMSendPropertyListReply(replyPort, self->pendingNotificationUserInfo);
+			LMSendPropertyListReply(replyPort, pendingNotificationUserInfo);
 			return;
 		}
 		case FSSwitchServiceMessageGetEnabledForIdentifier: {
