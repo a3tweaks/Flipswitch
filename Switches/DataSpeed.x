@@ -18,13 +18,50 @@ void CTTelephonyCenterAddObserver(CFNotificationCenterRef center, const void *ob
 void CTTelephonyCenterRemoveObserver(CFNotificationCenterRef center, const void *observer, CFStringRef name, const void *object);
 #endif
 
+@interface NSObject (FSSwitchDataSource)
+- (Class <FSSwitchSettingsViewController>)settingsViewControllerClassForSwitchIdentifier:(NSString *)switchIdentifier;
+@end
+
 @interface DataSpeedSwitch : NSObject <FSSwitchDataSource> {
 @private
 	NSBundle *_bundle;
-	NSString *_desiredDataRate;
 }
 @property (nonatomic, readonly) NSBundle *bundle;
 @end
+
+static BOOL Supports4G(void)
+{
+	CFArrayRef supportedDataRates = CTRegistrationCopySupportedDataRates();
+	if (!supportedDataRates) {
+		return NO;
+	}
+	BOOL result = [(NSArray *)supportedDataRates containsObject:(id)kCTRegistrationDataRate4G];
+	CFRelease(supportedDataRates);
+	return result;
+}
+
+static CFStringRef ChosenDataRateForSwitchState(FSSwitchState state)
+{
+	CFStringRef key = state == FSSwitchStateOn ? CFSTR("onDataRate") : CFSTR("offDataRate");
+	Boolean valid;
+	CFIndex value = CFPreferencesGetAppIntegerValue(key, CFSTR("com.a3tweaks.switch.dataspeed"), &valid);
+
+	if (!valid) {
+		if (Supports4G()) {
+			return state == FSSwitchStateOn ? kCTRegistrationDataRate4G : kCTRegistrationDataRate3G;
+		}
+		return state == FSSwitchStateOn ? kCTRegistrationDataRate3G : kCTRegistrationDataRate2G;
+	}
+
+	switch (value) {
+		case 0:
+			return kCTRegistrationDataRate4G;
+		case 1:
+			return kCTRegistrationDataRate3G;
+		default:
+			return kCTRegistrationDataRate2G;
+ 	}
+}
 
 static void FSDataStatusChanged(void);
 
@@ -36,11 +73,10 @@ static void FSDataStatusChanged(void);
 	return nil;
 }
 
-- (id)initWithBundle:(NSBundle *)bundle desiredDataRate:(NSString *)desiredDataRate
+- (id)initWithBundle:(NSBundle *)bundle
 {
 	if ((self = [super init])) {
 		_bundle = [bundle retain];
-		_desiredDataRate = [desiredDataRate copy];
 	}
 
 	return self;
@@ -49,7 +85,6 @@ static void FSDataStatusChanged(void);
 - (void)dealloc
 {
 	[_bundle release];
-	[_desiredDataRate release];
 	[super dealloc];
 }
 
@@ -63,7 +98,8 @@ static void FSDataStatusChanged(void);
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	NSArray *supportedDataRates = [(NSArray *)CTRegistrationCopySupportedDataRates() autorelease];
-	NSUInteger desiredRateIndex = [supportedDataRates indexOfObject:_desiredDataRate];
+	CFStringRef desiredDataRate = ChosenDataRateForSwitchState(FSSwitchStateOn);
+	NSUInteger desiredRateIndex = [supportedDataRates indexOfObject:(id)desiredDataRate];
 	if (desiredRateIndex == NSNotFound)
 		return FSSwitchStateOff;
 	NSUInteger currentRateIndex = [supportedDataRates indexOfObject:(id)CTRegistrationGetCurrentMaxAllowedDataRate()];
@@ -77,18 +113,15 @@ static void FSDataStatusChanged(void);
 	if (newState == FSSwitchStateIndeterminate)
 		return;
 	NSArray *supportedDataRates = [(NSArray *)CTRegistrationCopySupportedDataRates() autorelease];
-	NSUInteger desiredRateIndex = [supportedDataRates indexOfObject:_desiredDataRate];
+	CFStringRef desiredDataRate = ChosenDataRateForSwitchState(newState);
+	NSUInteger desiredRateIndex = [supportedDataRates indexOfObject:(id)desiredDataRate];
 	if (desiredRateIndex == NSNotFound)
 		return;
 	NSUInteger currentRateIndex = [supportedDataRates indexOfObject:(id)CTRegistrationGetCurrentMaxAllowedDataRate()];
 	if (currentRateIndex == NSNotFound)
 		return;
-	if (newState) {
-		if (currentRateIndex < desiredRateIndex)
-			CTRegistrationSetMaxAllowedDataRate((CFStringRef)_desiredDataRate);
-	} else {
-		if ((currentRateIndex >= desiredRateIndex) && desiredRateIndex)
-			CTRegistrationSetMaxAllowedDataRate((CFStringRef)[supportedDataRates objectAtIndex:desiredRateIndex - 1]);
+	if (currentRateIndex != desiredRateIndex) {
+		CTRegistrationSetMaxAllowedDataRate((CFStringRef)desiredDataRate);
 	}
 }
 
@@ -98,21 +131,26 @@ static void FSDataStatusChanged(void);
 	[[FSSwitchPanel sharedPanel] openURLAsAlternateAction:url];
 }
 
+- (Class <FSSwitchSettingsViewController>)settingsViewControllerClassForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	if (Supports4G()) {
+		return [super settingsViewControllerClassForSwitchIdentifier:switchIdentifier];
+	}
+	return Nil;
+}
+
 static DataSpeedSwitch *activeSwitch;
 
 static void FSDataStatusChanged(void)
 {
     NSString *bundlePath = nil;
-    NSString *desiredDataRate = nil;
 	CFArrayRef supportedDataRates = CTRegistrationCopySupportedDataRates();
 	if (supportedDataRates) {
 		if ([(NSArray *)supportedDataRates containsObject:(id)kCTRegistrationDataRate3G]) {
-			if ([(NSArray *)supportedDataRates containsObject:(id)kCTRegistrationDataRate4G]) {
+			if ([(NSArray *)supportedDataRates containsObject:(id)kCTRegistrationDataRate4G] && CFEqual(ChosenDataRateForSwitchState(FSSwitchStateOn), kCTRegistrationDataRate4G)) {
 				bundlePath = @"/Library/Switches/LTE.bundle";
-				desiredDataRate = (NSString *)kCTRegistrationDataRate4G;
 			} else {
 				bundlePath = @"/Library/Switches/3G.bundle";
-				desiredDataRate = (NSString *)kCTRegistrationDataRate3G;
 			}
 		}
 		CFRelease(supportedDataRates);
@@ -126,7 +164,7 @@ static void FSDataStatusChanged(void)
 			return;
 		}
 		NSBundle *newBundle = [NSBundle bundleWithPath:bundlePath];
-		activeSwitch = [[DataSpeedSwitch alloc] initWithBundle:newBundle desiredDataRate:desiredDataRate];
+		activeSwitch = [[DataSpeedSwitch alloc] initWithBundle:newBundle];
 		[[FSSwitchPanel sharedPanel] registerDataSource:activeSwitch forSwitchIdentifier:newBundle.bundleIdentifier];
 	} else {
 		activeSwitch = nil;
@@ -142,5 +180,6 @@ static void FSDataStatusChanged(void)
 %ctor
 {
 	CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataStatusChanged, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
+	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)FSDataStatusChanged, CFSTR("com.a3tweaks.switch.dataspeed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 	FSDataStatusChanged();
 }

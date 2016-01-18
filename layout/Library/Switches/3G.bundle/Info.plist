@@ -34,5 +34,9 @@
 	<array>
 		<real>600</real>
 	</array>
+	<key>settings-view-controller-class</key>
+	<string>DataSpeedSwitchSettingsViewController</string>
+	<key>settings-view-controller-binary</key>
+	<string>/Library/PreferenceBundles/FlipswitchSettings.bundle/FlipswitchSettings</string>
 </dict>
 </plist>
