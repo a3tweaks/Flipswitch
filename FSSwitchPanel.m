@@ -567,7 +567,7 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 		OSSpinLockUnlock(&_lock);
 	} else {
 		mkdir("/tmp/FlipswitchCache", 0777);
-		fd = open([binaryPath UTF8String], O_RDWR | O_CREAT);
+		fd = open([binaryPath UTF8String], O_RDWR | O_CREAT | O_CLOEXEC);
 		if (fd == -1) {
 in_memory_fallback:
 			if (&UIGraphicsBeginImageContextWithOptions != NULL) {
