@@ -1,5 +1,6 @@
 #import "FSLazySwitch.h"
 #import "FSSwitchPanel.h"
+#import "FSSwitchMainPanel.h"
 
 @implementation _FSLazySwitch
 
@@ -21,16 +22,16 @@
 {
 	Class switchClass = [bundle principalClass] ?: NSClassFromString([bundle objectForInfoDictionaryKey:@"NSPrincipalClass"]);
 
+	[[self retain] autorelease];
+
 	id<FSSwitchDataSource> switchImplementation = [switchClass respondsToSelector:@selector(initWithBundle:)] ? [[switchClass alloc] initWithBundle:bundle] : [[switchClass alloc] init];
 	if (switchImplementation) {
-		[[self retain] autorelease];
 		[[FSSwitchPanel sharedPanel] registerDataSource:switchImplementation forSwitchIdentifier:switchIdentifier];
-	} else {
+		[switchImplementation release];
+	} else if (![_switchImplementations objectForKey:switchIdentifier]) {
 		[[FSSwitchPanel sharedPanel] unregisterSwitchIdentifier:switchIdentifier];
 		NSLog(@"Flipswitch: Lazy switch with identifier '%@' was unregistered because it failed to load!", switchIdentifier);
 	}
-
-	[switchImplementation release];
 }
 
 - (NSBundle *)bundleForSwitchIdentifier:(NSString *)switchIdentifier
