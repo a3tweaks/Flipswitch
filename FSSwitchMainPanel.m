@@ -41,10 +41,10 @@ static NSDictionary *pendingNotificationUserInfo;
 - (void)registerDataSource:(id<FSSwitchDataSource>)dataSource forSwitchIdentifier:(NSString *)switchIdentifier;
 {
 	if (!switchIdentifier) {
-		[NSException raise:NSInvalidArgumentException format:@"Switch identifier passed to -[FSSwitchPanel registerSwitch:forIdentifier:] must not be nil"];
+		[NSException raise:NSInvalidArgumentException format:@"Switch identifier passed to -[FSSwitchPanel registerDataSource:forSwitchIdentifier:] must not be nil"];
 	}
 	if (!dataSource) {
-		[NSException raise:NSInvalidArgumentException format:@"Switch data source passed to -[FSSwitchPanel registerSwitch:forIdentifier:] must not be nil"];
+		[NSException raise:NSInvalidArgumentException format:@"Switch data source passed to -[FSSwitchPanel registerDataSource:forSwitchIdentifier:] must not be nil"];
 	}
 	if (![NSThread isMainThread]) {
 		[self performSelectorOnMainThread:@selector(_registerDataSourceForSwitchIdentifier:) withObject:[NSArray arrayWithObjects:dataSource, switchIdentifier, nil] waitUntilDone:YES];
@@ -53,11 +53,11 @@ static NSDictionary *pendingNotificationUserInfo;
 	// Verify that switchImplementation is either a valid action-like switchImplementation or setting-like switchImplementation
 	if ([(NSObject *)dataSource methodForSelector:@selector(applyState:forSwitchIdentifier:)] == [NSObject instanceMethodForSelector:@selector(applyState:forSwitchIdentifier:)]) {
 		if ([(NSObject *)dataSource methodForSelector:@selector(applyActionForSwitchIdentifier:)] == [NSObject instanceMethodForSelector:@selector(applyActionForSwitchIdentifier:)]) {
-			[NSException raise:NSInvalidArgumentException format:@"Switch data source passed to -[FSSwitchPanel registerSwitch:forIdentifier] must override either applyState:forSwitchIdentifier: or applyActionForSwitchIdentifier:"];
+			[NSException raise:NSInvalidArgumentException format:@"Switch data source passed to -[FSSwitchPanel registerDataSource:forSwitchIdentifier:] must override either applyState:forSwitchIdentifier: or applyActionForSwitchIdentifier:"];
 		}
 	} else {
 		if ([(NSObject *)dataSource methodForSelector:@selector(stateForSwitchIdentifier:)] == [NSObject instanceMethodForSelector:@selector(stateForSwitchIdentifier:)]) {
-			[NSException raise:NSInvalidArgumentException format:@"Switch data source passed to -[FSSwitchPanel registerSwitch:forIdentifier] must override stateForSwitchIdentifier:"];
+			[NSException raise:NSInvalidArgumentException format:@"Switch data source passed to -[FSSwitchPanel registerDataSource:forSwitchIdentifier:] must override stateForSwitchIdentifier:"];
 		}
 	}
 	id<FSSwitchDataSource> oldSwitch = [[_switchImplementations objectForKey:switchIdentifier] retain];
