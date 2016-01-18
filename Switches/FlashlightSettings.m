@@ -1,4 +1,4 @@
-#import "flashlight.h"
+#import "Flashlight.h"
 #import "FSSwitchSettingsViewController.h"
 #import <UIKit/UIKit.h>
 
