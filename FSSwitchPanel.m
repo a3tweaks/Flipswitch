@@ -551,8 +551,8 @@ static void FlipSwitchMappingCGDataProviderReleaseDataCallback(void *info, const
 	}
 	NSNumber *fileDescriptor = [_fileDescriptors objectForKey:basePath];
 	if (fileDescriptor) {
-		OSSpinLockUnlock(&_lock);
 		fd = [fileDescriptor intValue];
+		OSSpinLockUnlock(&_lock);
 	} else {
 		mkdir("/tmp/FlipswitchCache", 0777);
 		fd = open([binaryPath UTF8String], O_RDWR | O_CREAT);
