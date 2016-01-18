@@ -145,7 +145,10 @@
 - (BOOL)switchWithIdentifierIsSimpleAction:(NSString *)switchIdentifier
 {
 	id result = [[self bundleForSwitchIdentifier:switchIdentifier] objectForInfoDictionaryKey:@"is-simple-action"];
-	return [result boolValue];
+	if (result) {
+		return [result boolValue];
+	}
+	return [self methodForSelector:@selector(stateForSwitchIdentifier:)] == [NSObject instanceMethodForSelector:@selector(stateForSwitchIdentifier:)];
 }
 
 @end
