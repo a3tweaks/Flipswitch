@@ -12,10 +12,10 @@ libFlipswitchSpringBoard_LDFLAGS = -L$(THEOS_OBJ_DIR_NAME)
 libFlipswitchSpringBoard_INSTALL_PATH = /Library/Flipswitch
 
 libFlipswitchSwitches_FILES = Switches/AirplaneMode.x Switches/AutoBrightness.x Switches/Autolock.x Switches/Bluetooth.x Switches/Data.x Switches/DataSpeed.x Switches/DoNotDisturb.x Switches/Flashlight.x Switches/Hotspot.x Switches/Location.x Switches/LowPower.x Switches/Respring.x Switches/Ringer.x Switches/Rotation.x Switches/Settings.x Switches/VPN.x Switches/Vibration.x Switches/Wifi.x Switches/WifiProxy.x
-libFlipswitchSwitches_FRAMEWORKS = UIKit CoreLocation CoreTelephony SystemConfiguration
+libFlipswitchSwitches_FRAMEWORKS = UIKit CoreLocation SystemConfiguration
 libFlipswitchSwitches_PRIVATE_FRAMEWORKS = ManagedConfiguration GraphicsServices Preferences
 libFlipswitchSwitches_LIBRARIES = flipswitch FlipswitchSpringBoard
-libFlipswitchSwitches_LDFLAGS = -L$(THEOS_OBJ_DIR_NAME)
+libFlipswitchSwitches_LDFLAGS = -L$(THEOS_OBJ_DIR_NAME) -weak_framework CoreTelephony
 libFlipswitchSwitches_CFLAGS = -I./
 libFlipswitchSwitches_INSTALL_PATH = /Library/Flipswitch
 
