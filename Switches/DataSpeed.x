@@ -179,7 +179,7 @@ static void FSDataStatusChanged(void)
 
 %ctor
 {
-	if (kCFCoreFoundationVersionNumber < 600.0) {
+	if (kCFCoreFoundationVersionNumber < 700.0) {
 		return;
 	}
 	CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataStatusChanged, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);

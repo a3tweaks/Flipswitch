@@ -32,7 +32,7 @@
 	</array>
 	<key>CoreFoundationVersion</key>
 	<array>
-		<real>600</real>
+		<real>700</real>
 	</array>
 	<key>settings-view-controller-class</key>
 	<string>DataSpeedSwitchSettingsViewController</string>
