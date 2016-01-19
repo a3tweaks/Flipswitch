@@ -20,6 +20,14 @@
 
 - (void)lazyLoadWithSwitchIdentifier:(NSString *)switchIdentifier
 {
+	if ([bundle objectForInfoDictionaryKey:@"CFBundleExecutable"]) {
+		NSError *error = nil;
+		if (![bundle loadAndReturnError:&error]) {
+			NSLog(@"Flipswitch: Lazy switch with identifier '%@' was unregistered because the bundle failed to load with error: %@", switchIdentifier, error);
+			[[FSSwitchPanel sharedPanel] unregisterSwitchIdentifier:switchIdentifier];
+			return;
+		}
+	}
 	Class switchClass = [bundle principalClass] ?: NSClassFromString([bundle objectForInfoDictionaryKey:@"NSPrincipalClass"]);
 
 	[[self retain] autorelease];
