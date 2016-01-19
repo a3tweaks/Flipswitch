@@ -681,7 +681,16 @@ static void machPortCallback(CFMachPortRef port, void *bytes, CFIndex size, void
 
 - (void)_loadBuiltInSwitches
 {
+#ifdef DEBUG
+	NSLog(@"Flipswitch: Loading built in switches");
+#endif
 	dlopen("/Library/Flipswitch/libFlipswitchSwitches.dylib", RTLD_LAZY);
+#ifdef DEBUG
+	const char *error = dlerror();
+	if (error) {
+		NSLog(@"Flipswitch: Loading bundled switches failed with: %s", error);
+	}
+#endif
 	NSArray *switchDirectoryContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:kSwitchesPath error:nil];
 	for (NSString *folder in switchDirectoryContents) {
 		NSBundle *bundle = [NSBundle bundleWithPath:[kSwitchesPath stringByAppendingPathComponent:folder]];
