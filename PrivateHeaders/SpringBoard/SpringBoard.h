@@ -281,6 +281,30 @@ typedef struct {
 @property (retain, nonatomic) SBCCQuickLaunchSectionController *quickLaunchSection;
 @end
 
+typedef struct {
+    int hour;
+    int minute;
+} CBBlueLightTransitionTime;
+
+typedef struct {
+	BOOL active;
+	BOOL enabled;
+	BOOL sunSchedulePermitted;
+	int mode;
+	struct {
+		CBBlueLightTransitionTime fromTime;
+		CBBlueLightTransitionTime toTime;
+	} schedule;
+	NSUInteger disableFlags;
+} CBBlueLightStatus;
+
+@interface CBBlueLightClient : NSObject
++ (BOOL)supportsBlueLightReduction;
+- (void)setEnabled:(BOOL)enabled withOption:(NSInteger)flags;
+- (BOOL)getBlueLightStatus:(CBBlueLightStatus *)status;
+- (void)setStatusNotificationBlock:(void (^)(CBBlueLightStatus *))callback;
+@end
+
 @interface BluetoothManager
 + (BluetoothManager *)sharedInstance;
 - (BOOL)powered;
