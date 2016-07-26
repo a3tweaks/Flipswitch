@@ -46,6 +46,11 @@ static void (*setEnabled)(BOOL newState);
 
 #pragma mark Switch
 
+static BOOL isLocked(SBOrientationLockManager *orientationLockManager)
+{
+	return [orientationLockManager respondsToSelector:@selector(isUserLocked)] ? [orientationLockManager isUserLocked] : [orientationLockManager isLocked];
+}
+
 @implementation RotationSwitch
 
 - (id)init
@@ -59,7 +64,7 @@ static void (*setEnabled)(BOOL newState);
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
 	if (IsOS4)
-		return ![[%c(SBOrientationLockManager) sharedInstance] isLocked];
+		return !isLocked([%c(SBOrientationLockManager) sharedInstance]);
 	else
 		return isEnabled ? isEnabled() : YES;
 }
@@ -104,7 +109,7 @@ static void (*setEnabled)(BOOL newState);
 		if (nowPlayingBar) {
 			UIButton **_orientationLockButton = CHIvarRef(*nowPlayingBar, _orientationLockButton, UIButton *);
 			if (_orientationLockButton) {
-				[*_orientationLockButton setSelected:[lockManager isLocked]];
+				[*_orientationLockButton setSelected:isLocked(lockManager)];
 			}
 		}
 	} else {
@@ -122,7 +127,7 @@ static void (*setEnabled)(BOOL newState);
 	if (![self hasAlternateActionForSwitchIdentifier:switchIdentifier])
 		return;
 	SBOrientationLockManager *lockManager = [%c(SBOrientationLockManager) sharedInstance];
-	if ([lockManager isLocked]) {
+	if (isLocked(lockManager)) {
 		switch ([lockManager respondsToSelector:@selector(userLockOrientation)] ? [lockManager userLockOrientation] : [lockManager lockOrientation]) {
 			case UIInterfaceOrientationPortrait:
 				[lockManager lock:UIInterfaceOrientationLandscapeLeft];
@@ -145,7 +150,7 @@ static void (*setEnabled)(BOOL newState);
 static NSString *LockedOrientationName(void)
 {
 	SBOrientationLockManager *lockManager = [%c(SBOrientationLockManager) sharedInstance];
-	if ([lockManager isLocked]) {
+	if (isLocked(lockManager)) {
 		switch ([lockManager respondsToSelector:@selector(userLockOrientation)] ? [lockManager userLockOrientation] : [lockManager lockOrientation]) {
 			case UIInterfaceOrientationPortrait:
 			case UIInterfaceOrientationPortraitUpsideDown:

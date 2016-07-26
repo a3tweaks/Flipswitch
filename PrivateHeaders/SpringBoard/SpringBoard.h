@@ -62,6 +62,10 @@
 - (UIInterfaceOrientation)userLockOrientation;
 @end
 
+@interface SBOrientationLockManager (iOS93)
+- (BOOL)isUserLocked;
+@end
+
 @class SBApplication;
 
 @interface SBNowPlayingBar : NSObject {
