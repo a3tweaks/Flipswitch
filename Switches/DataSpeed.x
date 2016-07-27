@@ -140,6 +140,7 @@ static void FSDataStatusChanged(void);
 }
 
 static DataSpeedSwitch *activeSwitch;
+static NSString *activeSwitchPath;
 
 static void FSDataStatusChanged(void)
 {
@@ -158,8 +159,10 @@ static void FSDataStatusChanged(void)
 	DataSpeedSwitch *oldActiveSwitch = activeSwitch;
 	if (!bundlePath && !oldActiveSwitch)
 		return;
+	NSString *oldActiveSwitchPath = activeSwitchPath;
+	activeSwitchPath = [bundlePath copy];
 	if (bundlePath) {
-		if ([oldActiveSwitch.bundle.bundlePath isEqualToString:bundlePath]) {
+		if ([oldActiveSwitchPath isEqualToString:bundlePath]) {
 			[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:oldActiveSwitch.bundle.bundleIdentifier];
 			return;
 		}
@@ -169,6 +172,7 @@ static void FSDataStatusChanged(void)
 	} else {
 		activeSwitch = nil;
 	}
+	[oldActiveSwitchPath release];
 	if (oldActiveSwitch) {
 		[[FSSwitchPanel sharedPanel] unregisterSwitchIdentifier:oldActiveSwitch.bundle.bundleIdentifier];
 		[oldActiveSwitch release];
