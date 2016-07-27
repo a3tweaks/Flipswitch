@@ -19,7 +19,11 @@ static void PerformAction(CFIndex actionIndex)
 	SpringBoard *sb = (SpringBoard *)[%c(SpringBoard) sharedApplication];
 	switch (actionIndex) {
 		case 0:
-			[sb _relaunchSpringBoardNow];
+			if ([sb respondsToSelector:@selector(relaunchSpringBoard)]) {
+				[sb _relaunchSpringBoardNow];
+			} else {
+				[(FBSystemApp *)[objc_getClass("FBSystemApp") sharedApplication] sendActionsToBackboard:[NSSet setWithObject:[objc_getClass("BKSRestartAction") actionWithOptions:1]]];
+			}
 			break;
 		case 1:
 			[sb reboot];

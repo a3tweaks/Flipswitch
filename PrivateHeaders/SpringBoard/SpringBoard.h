@@ -281,6 +281,15 @@ typedef struct {
 @property (retain, nonatomic) SBCCQuickLaunchSectionController *quickLaunchSection;
 @end
 
+@interface FBSystemApp : NSObject
++ (id)sharedApplication;
+- (void)sendActionsToBackboard:(NSSet *)actions;
+@end
+
+@interface BKSRestartAction : NSObject
++ (id)actionWithOptions:(NSInteger)options;
+@end
+
 typedef struct {
     int hour;
     int minute;
