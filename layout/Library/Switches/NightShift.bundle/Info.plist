@@ -25,7 +25,7 @@
 	<key>NSPrincipalClass</key>
 	<string>NightShiftSwitch</string>
 	<key>alternate-action-url</key>
-	<string>prefs:root=DISPLAY&path=BLUE_LIGHT_REDUCTION</string>
+	<string>prefs:root=DISPLAY&amp;path=BLUE_LIGHT_REDUCTION</string>
 	<key>lazy-load</key>
 	<true/>
 	<key>CoreFoundationVersion</key>
