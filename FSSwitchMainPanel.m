@@ -126,7 +126,7 @@ static NSDictionary *pendingNotificationUserInfo;
 		return [super titleForSwitchIdentifier:switchIdentifier];
 	}
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
-	return [switchImplementation titleForSwitchIdentifier:switchIdentifier];
+	return [switchImplementation titleForSwitchIdentifier:switchIdentifier] ?: @"";
 }
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
