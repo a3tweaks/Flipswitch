@@ -201,8 +201,25 @@ static NSDictionary *pendingNotificationUserInfo;
 	[switchImplementation applyAlternateActionForSwitchIdentifier:switchIdentifier];
 }
 
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
+- (void)_postNotificationHelper:(NSArray *)data
+{
+	[self _postNotificationName:[data objectAtIndex:0] userInfo:[data objectAtIndex:1]];
+}
+#endif
+
 - (void)_postNotificationName:(NSString *)notificationName userInfo:(NSDictionary *)userInfo
 {
+	if (![NSThread isMainThread]) {
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
+		[self performSelectorOnMainThread:@selector(_postNotificationHelper:) withObject:[NSArray arrayWithObjects:notificationName, userInfo ?: [NSDictionary dictionary], nil] waitUntilDone:NO];
+#else
+		dispatch_async(dispatch_get_main_queue(), ^{
+			[self _postNotificationName:notificationName userInfo:userInfo];
+		});
+#endif
+		return;
+	}
 	[userInfo retain];
 	[pendingNotificationUserInfo release];
 	pendingNotificationUserInfo = userInfo;
