@@ -90,9 +90,22 @@ static void StealFlashlight(void)
 	// Steal the existing one, if we don't already have one
 	SBControlCenterViewController **_viewController = CHIvarRef([%c(SBControlCenterController) sharedInstanceIfExists], _viewController, SBControlCenterViewController *);
 	if (_viewController) {
+		id quickLaunchSection = nil;
 		SBControlCenterContentView **_contentView = CHIvarRef(*_viewController, _contentView, SBControlCenterContentView *);
 		if (_contentView && [*_contentView respondsToSelector:@selector(quickLaunchSection)]) {
-			id quickLaunchSection = [*_contentView quickLaunchSection];
+			// iOS 7-9
+			quickLaunchSection = [*_contentView quickLaunchSection];
+		} else {
+			// iOS 10
+			id *_systemControlsPage = CHIvarRef(*_viewController, _systemControlsPage, id);
+			if (_systemControlsPage) {
+				id *_quickLaunchSection = CHIvarRef(*_systemControlsPage, _quickLaunchSection, id);
+				if (_quickLaunchSection) {
+					quickLaunchSection = *_quickLaunchSection;
+				}
+			}
+		}
+		if (quickLaunchSection) {
 			NSMutableDictionary **_modulesByID = CHIvarRef(quickLaunchSection, _modulesByID, NSMutableDictionary *);
 			id target = _modulesByID && *_modulesByID ? [*_modulesByID objectForKey:@"flashlight"] : quickLaunchSection;
 			AVFlashlight **_flashlight = CHIvarRef(target, _flashlight, AVFlashlight *);
