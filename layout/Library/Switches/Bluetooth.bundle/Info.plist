@@ -34,5 +34,7 @@
 	<array>
 		<string>bluetooth</string>
 	</array>
+	<key>primary-color</key>
+	<string>#007AFF</string>
 </dict>
 </plist>

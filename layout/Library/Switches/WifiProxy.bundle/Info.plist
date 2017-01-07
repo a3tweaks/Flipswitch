@@ -28,5 +28,7 @@
 	<string>prefs:root=WIFI</string>
 	<key>wait-for-application</key>
 	<true/>
+	<key>primary-color</key>
+	<string>#007AFF</string>
 </dict>
 </plist>

@@ -32,5 +32,7 @@
 	<array>
 		<string>personal-hotspot</string>
 	</array>
+	<key>primary-color</key>
+	<string>#4CD964</string>
 </dict>
 </plist>

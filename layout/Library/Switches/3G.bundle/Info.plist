@@ -38,5 +38,7 @@
 	<string>DataSpeedSwitchSettingsViewController</string>
 	<key>settings-view-controller-binary</key>
 	<string>/Library/PreferenceBundles/FlipswitchSettings.bundle/FlipswitchSettings</string>
+	<key>primary-color</key>
+	<string>#4CD964</string>
 </dict>
 </plist>

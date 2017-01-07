@@ -28,5 +28,7 @@
 	<string>prefs:path=AIRPLANE_MODE</string>
 	<key>lazy-load</key>
 	<true/>
+	<key>primary-color</key>
+	<string>#FF9500</string>
 </dict>
 </plist>

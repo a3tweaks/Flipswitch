@@ -28,5 +28,7 @@
 	<string>RotationSwitchSettingsViewController</string>
 	<key>settings-view-controller-binary</key>
 	<string>/Library/PreferenceBundles/FlipswitchSettings.bundle/FlipswitchSettings</string>
+	<key>primary-color</key>
+	<string>#FF4D31</string>
 </dict>
 </plist>

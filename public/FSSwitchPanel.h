@@ -30,7 +30,7 @@
 // Returns YES if an image representing the state is loaded
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier;
-// Returns the current state of a particualr switch
+// Returns the current state of a particular switch
 - (void)setState:(FSSwitchState)state forSwitchIdentifier:(NSString *)switchIdentifier;
 // Updates the state of a particular switch. If the switch accepts the change it will send a state change
 - (void)applyActionForSwitchIdentifier:(NSString *)switchIdentifier;
@@ -72,6 +72,9 @@
 - (BOOL)hasCachedImageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState forSwitchIdentifier:(NSString *)switchIdentifier usingLayerSet:(NSString *)layerSet inTemplate:(NSBundle *)templateBundle;
 - (BOOL)hasCachedImageOfSwitchState:(FSSwitchState)state controlState:(UIControlState)controlState scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier usingLayerSet:(NSString *)layerSet inTemplate:(NSBundle *)templateBundle;
 // Returns YES if an image representing the state is loaded
+
+- (UIColor *)primaryColorForSwitchIdentifier:(NSString *)switchIdentifier;
+// Returns the primary branding color that is associated the the product, service or feature provided by the switch, if any
 
 @end
 

@@ -30,5 +30,7 @@
 	<string>prefs:root=General&amp;path=VPN</string>
 	<key>lazy-load</key>
 	<true/>
+	<key>primary-color</key>
+	<string>#007AFF</string>
 </dict>
 </plist>

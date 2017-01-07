@@ -32,5 +32,7 @@
 	<array>
 		<real>700</real>
 	</array>
+	<key>primary-color</key>
+	<string>#5857D6</string>
 </dict>
 </plist>

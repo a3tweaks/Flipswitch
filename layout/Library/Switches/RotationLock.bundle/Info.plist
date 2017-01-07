@@ -24,5 +24,7 @@
 	<string>3.0</string>
 	<key>NSPrincipalClass</key>
 	<string>RotationLockSwitch</string>
+	<key>primary-color</key>
+	<string>#FF4D31</string>
 </dict>
 </plist>

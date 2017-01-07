@@ -17,4 +17,5 @@ typedef enum {
 	FSSwitchServiceMessageSettingsViewControllerForIdentifier = 13,
 	FSSwitchServiceMessageDescriptionOfStateForIdentifier = 14,
 	FSSwitchServiceMessageGetIsSimpleActionForIdentifier = 15,
+	FSSwitchServiceMessageGetPrimaryColorForIdentifier = 16,
 } FSSwitchServiceMessage;

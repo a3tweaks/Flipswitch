@@ -2,6 +2,8 @@
 #import "FSSwitchState.h"
 #import "FSSwitchSettingsViewController.h"
 
+@class UIColor;
+
 @protocol FSSwitchDataSource <NSObject>
 @optional
 
@@ -32,6 +34,10 @@
 - (id)glyphImageDescriptorOfState:(FSSwitchState)switchState variant:(NSString *)variant size:(CGFloat)size scale:(CGFloat)scale forSwitchIdentifier:(NSString *)switchIdentifier;
 // Provide a modern image descriptor that best displays at the requested size and scale (1.0.4)
 // By default looks through the bundle to find a modern glyph image, falling back to using the standard glyph image descriptor
+
+- (UIColor *)primaryColorForSwitchIdentifier:(NSString *)switchIdentifier;
+// Provide a primary branding color that is associated the the product, service or feature provided by the switch
+// By default looks through the bundle to find a color specified in the primary-color Info.plist key, falling back to nil if unspecified
 
 - (NSBundle *)bundleForSwitchIdentifier:(NSString *)switchIdentifier;
 // Provides a bundle to look for localizations/images in

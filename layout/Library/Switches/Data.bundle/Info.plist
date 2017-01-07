@@ -34,5 +34,7 @@
 	<array>
 		<string>cellular-data</string>
 	</array>
+	<key>primary-color</key>
+	<string>#4CD964</string>
 </dict>
 </plist>

@@ -7,6 +7,7 @@
 #import "FSCapability.h"
 #import "FSLaunchURL.h"
 #import "ModifiedTime.h"
+#import "FSSwitchPanel+Internal.h"
 
 #define ROCKETBOOTSTRAP_LOAD_DYNAMIC
 #import "LightMessaging/LightMessaging.h"
@@ -301,6 +302,15 @@ static NSDictionary *pendingNotificationUserInfo;
 	}
 	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
 	return [switchImplementation switchWithIdentifierIsSimpleAction:switchIdentifier];
+}
+
+- (UIColor *)primaryColorForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	if (![NSThread isMainThread]) {
+		return [super primaryColorForSwitchIdentifier:switchIdentifier];
+	}
+	id<FSSwitchDataSource> switchImplementation = [_switchImplementations objectForKey:switchIdentifier];
+	return [switchImplementation primaryColorForSwitchIdentifier:switchIdentifier];
 }
 
 typedef enum {
@@ -608,6 +618,28 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			if ([identifier isKindOfClass:[NSString class]]) {
 				LMSendIntegerReply(replyPort, [self switchWithIdentifierIsSimpleAction:identifier]);
 				return;
+			}
+			break;
+		}
+		case FSSwitchServiceMessageGetPrimaryColorForIdentifier: {
+			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			if ([identifier isKindOfClass:[NSString class]]) {
+				UIColor *color = [self primaryColorForSwitchIdentifier:identifier];
+				if (color) {
+					double components[4];
+#if CGFLOAT_IS_DOUBLE
+					if ([color getRed:&components[0] green:&components[1] blue:&components[2] alpha:&components[3]]) {
+#else
+					CGFloat cgComponents[4];
+					if ([color getRed:&cgComponents[0] green:&cgComponents[1] blue:&cgComponents[2] alpha:&cgComponents[3]]) {
+						for (int i = 0; i < 4; i++) {
+							components[i] = cgComponents[i];
+						}
+#endif
+						LMSendReply(replyPort, &components, sizeof(components));
+						return;
+					}
+				}
 			}
 			break;
 		}

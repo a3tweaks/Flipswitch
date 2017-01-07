@@ -209,7 +209,7 @@ static NSInteger DictionaryTextComparator(id a, id b, void *context)
 	return LMResponseConsumePropertyList(&responseBuffer);
 }
 
-static UIColor *ColorWithHexString(NSString *stringToConvert)
+UIColor *FSColorWithHexString(NSString *stringToConvert)
 {
 	NSString *noHashString = [stringToConvert stringByReplacingOccurrencesOfString:@"#" withString:@""]; // remove the #
 	NSScanner *scanner = [NSScanner scannerWithString:noHashString];
@@ -222,6 +222,16 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 	int b = (hex) & 0xFF;
 
 	return [UIColor colorWithRed:r / 255.0f green:g / 255.0f blue:b / 255.0f alpha:1.0f];
+}
+
+static void DrawTintedImage(CGContextRef context, CGSize contextSize, UIImage *image, CGColorRef tintColor, CGFloat blur, CGSize size)
+{
+	CGSize shadowOffset = CGSizeApplyAffineTransform(CGSizeMake(0.0f, contextSize.height), CGContextGetCTM(context));
+	CGContextSetShadowWithColor(context, shadowOffset, blur, tintColor);
+	CGContextTranslateCTM(context, 0.0f, -contextSize.height);
+	UIGraphicsPushContext(context);
+	[image drawInRect:(CGRect){ { 0.0f, 0.0f }, size }];
+	UIGraphicsPopContext();
 }
 
 - (void)drawGlyphImageDescriptor:(id)descriptor toSize:(CGFloat)glyphSize atPosition:(CGPoint)position color:(CGColorRef)color blur:(CGFloat)blur inContext:(CGContextRef)context ofSize:(CGSize)contextSize scale:(CGFloat)scale
@@ -250,12 +260,7 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 		}
 	}
 	if ([descriptor isKindOfClass:[UIImage class]]) {
-		CGSize shadowOffset = CGSizeApplyAffineTransform(CGSizeMake(0.0f, contextSize.height), CGContextGetCTM(context));
-		CGContextSetShadowWithColor(context, shadowOffset, blur, color);
-		CGContextTranslateCTM(context, 0.0f, -contextSize.height);
-		UIGraphicsPushContext(context);
-		[descriptor drawInRect:CGRectMake(0.0f, 0.0f, glyphSize, glyphSize)];
-		UIGraphicsPopContext();
+		DrawTintedImage(context, contextSize, (UIImage *)descriptor, color, blur, CGSizeMake(glyphSize, glyphSize));
 	}
 }
 
@@ -322,6 +327,15 @@ static UIColor *ColorWithHexString(NSString *stringToConvert)
 			if (fileName) {
 				NSString *fullPath = [template imagePathForFlipswitchImageName:fileName imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
 				[keys addObject:fullPath ?: @""];
+			}
+		}
+		if ([layer objectForKey:@"useSwitchPrimaryColor"]) {
+			// If using the switch's primary color, the color needs to be in the cache key
+			CGFloat components[4];
+			if ([[self primaryColorForSwitchIdentifier:switchIdentifier] getRed:&components[0] green:&components[1] blue:&components[2] alpha:&components[3]]) {
+				for (int i = 0; i < 4; i++) {
+					[keys addObject:[NSNumber numberWithDouble:components[i]]];
+				}
 			}
 		}
 	}
@@ -420,7 +434,14 @@ static CGBlendMode CGBlendModeForString(NSString *blendMode)
 			if (fileName) {
 				NSString *fullPath = [template imagePathForFlipswitchImageName:fileName imageSize:0 preferredScale:scale controlState:controlState inDirectory:nil];
 				UIImage *image = FlipSwitchUnmappedImageWithContentsOfFile(fullPath, scale);
-				[image drawAtPoint:position blendMode:blendMode alpha:alpha];
+				BOOL usePrimaryColor = [[layer objectForKey:@"useSwitchPrimaryColor"] boolValue];
+				id specifiedColor = [layer objectForKey:@"color"];
+				UIColor *color = (usePrimaryColor ? [self primaryColorForSwitchIdentifier:switchIdentifier] : nil) ?: (specifiedColor ? FSColorWithHexString(specifiedColor) : nil);
+				if (color) {
+					DrawTintedImage(context, size, image, [color CGColor], 0.0, [image size]);
+				} else {
+					[image drawAtPoint:position blendMode:blendMode alpha:alpha];
+				}
 			}
 		} else if ([type isEqualToString:@"glyph"]) {
 			CGFloat blur = [[layer objectForKey:@"blur"] floatValue];
@@ -481,13 +502,13 @@ static CGBlendMode CGBlendModeForString(NSString *blendMode)
 				[image drawInRect:drawRect blendMode:blendMode alpha:alpha];
 #if ALWAYS_USE_SLOW_PATH
 			} else {
-				UIColor *color = [(ColorWithHexString([layer objectForKey:@"color"]) ?: [UIColor blackColor]) colorWithAlphaComponent:alpha];
+				UIColor *color = [(FSColorWithHexString([layer objectForKey:@"color"]) ?: [UIColor blackColor]) colorWithAlphaComponent:alpha];
 				[color setFill];
 				UIRectFillUsingBlendMode(drawRect, blendMode);
 #else
 			} else {
 				// Fast path for a solid color
-				CGColorRef color = [(ColorWithHexString([layer objectForKey:@"color"]) ?: [UIColor blackColor]) colorWithAlphaComponent:alpha].CGColor;
+				CGColorRef color = [(FSColorWithHexString([layer objectForKey:@"color"]) ?: [UIColor blackColor]) colorWithAlphaComponent:alpha].CGColor;
 				[self drawGlyphImageDescriptor:descriptor toSize:glyphSize atPosition:position color:color blur:blur inContext:context ofSize:size scale:scale];
 #endif
 			}
@@ -912,6 +933,21 @@ cache_and_return_result:
 		return NO;
 	}
 	return LMResponseConsumeInteger(&responseBuffer);
+}
+
+- (UIColor *)primaryColorForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	LMResponseBuffer responseBuffer;
+	if (LMConnectionSendTwoWayPropertyList(&connection, FSSwitchServiceMessageGetPrimaryColorForIdentifier, switchIdentifier, &responseBuffer)) {
+		return nil;
+	}
+	UIColor *result = nil;
+	if (LMMessageGetDataLength(&responseBuffer.message) == sizeof(double) * 4) {
+		const double *components = LMMessageGetData(&responseBuffer.message);
+		result = [UIColor colorWithRed:components[0] green:components[1] blue:components[2] alpha:components[3]];
+	}
+	LMResponseBufferFree(&responseBuffer);
+	return result;
 }
 
 @end

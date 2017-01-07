@@ -2,6 +2,7 @@
 #import "FSSwitchPanel.h"
 #import "FSCapability.h"
 #import "NSBundle+Flipswitch.h"
+#import "FSSwitchPanel+Internal.h"
 #import <dlfcn.h>
 
 @implementation NSObject (FSSwitchDataSource)
@@ -75,6 +76,15 @@
 			return [bundle imagePathForFlipswitchImageName:glyphVariant imageSize:closestSize preferredScale:scale controlState:UIControlStateNormal inDirectory:nil];
 	}
 	return [self glyphImageDescriptorOfState:switchState size:size scale:scale forSwitchIdentifier:switchIdentifier];
+}
+
+- (UIColor *)primaryColorForSwitchIdentifier:(NSString *)switchIdentifier
+{
+	NSString *colorString = [[self bundleForSwitchIdentifier:switchIdentifier] objectForInfoDictionaryKey:@"primary-color"];
+	if (colorString) {
+		return FSColorWithHexString(colorString);
+	}
+	return nil;
 }
 
 - (void)switchWasRegisteredForIdentifier:(NSString *)switchIdentifier
