@@ -2,7 +2,6 @@ LIBRARY_NAME = libflipswitch libFlipswitchSpringBoard libFlipswitchSwitches
 
 libflipswitch_FILES = FSSwitchPanel.m NSBundle+Flipswitch.m FSSwitchButton.m FSSwitchState.m
 libflipswitch_FRAMEWORKS = UIKit CoreGraphics
-libflipswitch_ARCHS = armv6 armv7 armv7s arm64
 
 libFlipswitchSpringBoard_FILES = FSSwitchDataSource.m FSSwitchMainPanel.m FSPreferenceSwitchDataSource.m FSLazySwitch.m FSCapability.m FSLaunchURL.x
 libFlipswitchSpringBoard_LIBRARIES = flipswitch bsm
@@ -28,14 +27,28 @@ FlipswitchSettings_LIBRARIES = flipswitch
 FlipswitchSettings_LDFLAGS = -L$(THEOS_OBJ_DIR_NAME)
 FlipswitchSettings_INSTALL_PATH = /Library/PreferenceBundles
 
-ADDITIONAL_CFLAGS = -Ipublic -Ioverlayheaders -IPrivateHeaders
+ADDITIONAL_CFLAGS = -Ipublic -Ioverlayheaders -IPrivateHeaders -include log.h
 
-export THEOS_PLATFORM_SDK_ROOT_armv6 = /Applications/Xcode_Legacy.app/Contents/Developer
-export SDKVERSION_armv6 = 5.1
-export TARGET_IPHONEOS_DEPLOYMENT_VERSION = 3.0
-export TARGET_IPHONEOS_DEPLOYMENT_VERSION_armv7s = 6.0
-export TARGET_IPHONEOS_DEPLOYMENT_VERSION_arm64 = 7.0
-export ARCHS = armv6 arm64
+LEGACY_XCODE_PATH ?= /Applications/Xcode_Legacy.app
+CLASSIC_XCODE_PATH ?= /Volumes/Xcode/Xcode.app/Contents/Developer
+
+ifeq ($(wildcard $(LEGACY_XCODE_PATH)/.*),)
+THEOS_PLATFORM_SDK_ROOT_armv6 = $(LEGACY_XCODE_PATH)
+THEOS_PLATFORM_SDK_ROOT_armv7 = $(CLASSIC_XCODE_PATH)
+SDKVERSION_armv6 = 5.1
+TARGET_IPHONEOS_DEPLOYMENT_VERSION = 3.0
+TARGET_IPHONEOS_DEPLOYMENT_VERSION_armv7s = 6.0
+TARGET_IPHONEOS_DEPLOYMENT_VERSION_arm64 = 7.0
+IPHONE_ARCHS = armv6 armv7 arm64
+libflipswitch_IPHONE_ARCHS = armv6 armv7 armv7s arm64
+ifeq ($(FINALPACKAGE),1)
+$(error Building final package requires a legacy Xcode install!)
+endif
+else
+TARGET_IPHONEOS_DEPLOYMENT_VERSION = 7.0
+IPHONE_ARCHS = armv7 arm64
+libflipswitch_IPHONE_ARCHS = armv7 armv7s arm64
+endif
 
 ifeq ($(THEOS_CURRENT_ARCH),armv6)
 	GO_EASY_ON_ME=1
