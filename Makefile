@@ -29,10 +29,10 @@ FlipswitchSettings_INSTALL_PATH = /Library/PreferenceBundles
 
 ADDITIONAL_CFLAGS = -Ipublic -Ioverlayheaders -IPrivateHeaders -include log.h
 
-LEGACY_XCODE_PATH ?= /Applications/Xcode_Legacy.app
+LEGACY_XCODE_PATH ?= /Applications/Xcode_Legacy.app/Contents/Developer
 CLASSIC_XCODE_PATH ?= /Volumes/Xcode/Xcode.app/Contents/Developer
 
-ifeq ($(wildcard $(LEGACY_XCODE_PATH)/.*),)
+ifneq ($(wildcard $(LEGACY_XCODE_PATH)/*),)
 THEOS_PLATFORM_SDK_ROOT_armv6 = $(LEGACY_XCODE_PATH)
 THEOS_PLATFORM_SDK_ROOT_armv7 = $(CLASSIC_XCODE_PATH)
 SDKVERSION_armv6 = 5.1
@@ -41,13 +41,13 @@ TARGET_IPHONEOS_DEPLOYMENT_VERSION_armv7s = 6.0
 TARGET_IPHONEOS_DEPLOYMENT_VERSION_arm64 = 7.0
 IPHONE_ARCHS = armv6 armv7 arm64
 libflipswitch_IPHONE_ARCHS = armv6 armv7 armv7s arm64
-ifeq ($(FINALPACKAGE),1)
-$(error Building final package requires a legacy Xcode install!)
-endif
 else
 TARGET_IPHONEOS_DEPLOYMENT_VERSION = 7.0
 IPHONE_ARCHS = armv7 arm64
 libflipswitch_IPHONE_ARCHS = armv7 armv7s arm64
+ifeq ($(FINALPACKAGE),1)
+$(error Building final package requires a legacy Xcode install!)
+endif
 endif
 
 ifeq ($(THEOS_CURRENT_ARCH),armv6)
