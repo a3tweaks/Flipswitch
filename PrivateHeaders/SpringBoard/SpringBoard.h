@@ -39,6 +39,40 @@
 - (void)setRingerMuted:(BOOL)muted;
 @end
 
+@interface SBApplication : NSObject
+- (NSString *)bundleIdentifier;
+@end
+
+@interface SBApplicationController : NSObject
++ (id)sharedInstance;
+- (SBApplication *)applicationWithBundleIdentifier:(NSString *)bundleIdentifier;
+@end
+
+@interface SBApplication (iOS9)
+- (NSArray *)dynamicShortcutItems;
+@end
+
+@interface SBApplication (iOS10)
+- (NSArray *)dynamicApplicationShortcutItems;
+@end
+
+@interface SBSApplicationShortcutItem : NSObject
+- (NSString *)type;
+@end
+
+@interface SBIconController : NSObject
++ (id)sharedInstance;
+- (void)_activateShortcutItem:(SBSApplicationShortcutItem *)shortcutItem fromApplication:(SBApplication *)application;
+@end
+
+@interface FBSOpenApplicationOptions : NSObject
++ (id)optionsWithDictionary:(NSDictionary *)dictionary;
+@end
+
+@interface FBSOpenApplicationService : NSObject
+- (void)openApplication:(NSString *)bundleIdentifier withOptions:(FBSOpenApplicationOptions *)options completion:(dispatch_block_t)completion;
+@end
+
 // OS 4.0
 
 @interface SBOrientationLockManager : NSObject {
