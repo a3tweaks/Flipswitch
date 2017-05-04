@@ -2,21 +2,24 @@ LIBRARY_NAME = libflipswitch libFlipswitchSpringBoard libFlipswitchSwitches
 
 libflipswitch_FILES = FSSwitchPanel.m NSBundle+Flipswitch.m FSSwitchButton.m FSSwitchState.m
 libflipswitch_FRAMEWORKS = UIKit CoreGraphics
+libflipswitch_USE_MODULES = 0
 
 libFlipswitchSpringBoard_FILES = FSSwitchDataSource.m FSSwitchMainPanel.m FSPreferenceSwitchDataSource.m FSLazySwitch.m FSCapability.m FSLaunchURL.x
 libFlipswitchSpringBoard_LIBRARIES = flipswitch bsm
 libFlipswitchSpringBoard_FRAMEWORKS = UIKit
 libFlipswitchSpringBoard_PRIVATE_FRAMEWORKS = GraphicsServices
-libFlipswitchSpringBoard_LDFLAGS = -L$(THEOS_OBJ_DIR_NAME)
+libFlipswitchSpringBoard_LDFLAGS = -L$(THEOS_OBJ_DIR)
 libFlipswitchSpringBoard_INSTALL_PATH = /Library/Flipswitch
+libFlipswitchSpringBoard_USE_MODULES = 0
 
 libFlipswitchSwitches_FILES = Switches/Adblock.x Switches/AirplaneMode.x Switches/AutoBrightness.x Switches/Autolock.x Switches/Bluetooth.x Switches/Data.x Switches/DataSpeed.x Switches/DoNotDisturb.x Switches/Flashlight.x Switches/Hotspot.x Switches/Location.x Switches/LowPower.x Switches/NightShift.x Switches/RecordScreen.x Switches/Respring.x Switches/Ringer.x Switches/Rotation.x Switches/Settings.x Switches/VPN.x Switches/Vibration.x Switches/Wifi.x Switches/WifiProxy.x
 libFlipswitchSwitches_FRAMEWORKS = UIKit CoreLocation SystemConfiguration
 libFlipswitchSwitches_PRIVATE_FRAMEWORKS = ManagedConfiguration GraphicsServices Preferences
 libFlipswitchSwitches_LIBRARIES = flipswitch FlipswitchSpringBoard
-libFlipswitchSwitches_LDFLAGS = -L$(THEOS_OBJ_DIR_NAME) -weak_framework CoreTelephony
+libFlipswitchSwitches_LDFLAGS = -L$(THEOS_OBJ_DIR) -weak_framework CoreTelephony
 libFlipswitchSwitches_CFLAGS = -I./
 libFlipswitchSwitches_INSTALL_PATH = /Library/Flipswitch
+libFlipswitchSwitches_USE_MODULES = 0
 
 BUNDLE_NAME = FlipswitchSettings
 
@@ -24,8 +27,9 @@ FlipswitchSettings_FILES = FSSettingsController.m Switches/DataSpeedSettings.m S
 FlipswitchSettings_FRAMEWORKS = UIKit
 FlipswitchSettings_PRIVATE_FRAMEWORKS = Preferences
 FlipswitchSettings_LIBRARIES = flipswitch
-FlipswitchSettings_LDFLAGS = -L$(THEOS_OBJ_DIR_NAME)
+FlipswitchSettings_LDFLAGS = -L$(THEOS_OBJ_DIR)
 FlipswitchSettings_INSTALL_PATH = /Library/PreferenceBundles
+FlipswitchSettings_USE_MODULES = 0
 
 ADDITIONAL_CFLAGS = -Ipublic -Ioverlayheaders -IPrivateHeaders -include log.h
 
@@ -36,6 +40,7 @@ ifneq ($(wildcard $(LEGACY_XCODE_PATH)/*),)
 THEOS_PLATFORM_SDK_ROOT_armv6 = $(LEGACY_XCODE_PATH)
 THEOS_PLATFORM_SDK_ROOT_armv7 = $(CLASSIC_XCODE_PATH)
 SDKVERSION_armv6 = 5.1
+INCLUDE_SDKVERSION_armv6 = latest
 TARGET_IPHONEOS_DEPLOYMENT_VERSION = 7.0
 TARGET_IPHONEOS_DEPLOYMENT_VERSION_armv6 = 3.0
 TARGET_IPHONEOS_DEPLOYMENT_VERSION_armv7 = 3.0
