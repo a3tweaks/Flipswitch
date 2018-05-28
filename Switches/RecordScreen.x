@@ -4,6 +4,8 @@
 #ifdef __arm64__
 
 #import <ReplayKit/ReplayKit.h>
+#import <dlfcn.h>
+#import <SpringBoard/SpringBoard.h>
 
 @interface CCUIShortcutModule : NSObject
 @end
@@ -49,6 +51,16 @@ static RPScreenRecorder *sharedRecorder(void)
 	return [%c(RPScreenRecorder) sharedRecorder];
 }
 
+%hook RPScreenRecorder
+
+- (void)updateScreenRecordingState:(BOOL)newState
+{
+	%orig();
+	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.record-screen"];
+}
+
+%end
+
 %hook CCUIRecordScreenShortcut
 
 + (BOOL)isSupported:(int)something
@@ -88,6 +100,7 @@ static RPScreenRecorder *sharedRecorder(void)
 {
 	if ((self = [super init])) {
 		if (!sharedRecorder().isAvailable) {
+			dlopen("/System/Library/ControlCenter/Bundles/ReplayKitModule.bundle/ReplayKitModule", RTLD_LAZY);
 			[self release];
 			return nil;
 		}
@@ -106,7 +119,17 @@ static RPScreenRecorder *sharedRecorder(void)
 	if (newState == FSSwitchStateIndeterminate)
 		return;
 	if (sharedRecorder().recording != newState) {
-		[sharedRecordScreenShortcut() _toggleState];
+		CCUIRecordScreenShortcut *shortcut = sharedRecordScreenShortcut();
+		if (shortcut) {
+			[shortcut _toggleState];
+		} else {
+			RPControlCenterClient *client = (RPControlCenterClient *)[%c(RPControlCenterClient) sharedInstance];
+			if (newState == FSSwitchStateOn) {
+				[client startRecordingWithHandler:nil];
+			} else {
+				[client stopCurrentSession:nil];
+			}
+		}
 	}
 }
 

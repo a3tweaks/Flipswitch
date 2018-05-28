@@ -21,6 +21,7 @@ typedef enum {
 - (void)sendStateUpdate;
 @end
 
+static CCUIConnectivityHotspotViewController *hotspotViewController;
 static WirelessModemController *controller;
 static MISManager *manager;
 static PSSpecifier *specifier;
@@ -31,6 +32,7 @@ static void UpdateSwitchStatus(void)
 {
 	[[FSSwitchPanel sharedPanel] performSelector:@selector(stateDidChangeForSwitchIdentifier:) withObject:@"com.a3tweaks.switch.hotspot" afterDelay:0.0];
 }
+
 
 %group WirelessModemSettings
 
@@ -74,6 +76,21 @@ static void UpdateSwitchStatus(void)
 
 %end
 
+%group iOS11
+
+%hook CCUIConnectivityHotspotViewController
+
+- (void)_updateState
+{
+	%orig();
+	pendingState = FSSwitchStateIndeterminate;
+	UpdateSwitchStatus();
+}
+
+%end
+
+%end
+
 @interface HotspotSwitch : NSObject <FSSwitchDataSource>
 @end
 
@@ -106,6 +123,9 @@ static void StateChanged(CFNotificationCenterRef center, void *observer, CFStrin
 {
 	if (pendingState != FSSwitchStateIndeterminate)
 		return pendingState;
+	if (hotspotViewController) {
+		return hotspotViewController.discoverable ? FSSwitchStateOn : FSSwitchStateOff;
+	}
 	if (manager) {
 		NETRB_SVC_STATE state = 0;
 		[manager getState:&state andReason:NULL];
@@ -125,6 +145,13 @@ static void StateChanged(CFNotificationCenterRef center, void *observer, CFStrin
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
+	if (hotspotViewController) {
+		if ((newState == FSSwitchStateOn) != hotspotViewController.discoverable) {
+			pendingState = newState;
+			[hotspotViewController _toggleState];
+		}
+		return;
+	}
 	if (manager) {
 		pendingState = newState;
 		[manager setState:(newState == FSSwitchStateOn) ? NETRB_SVC_STATE_ON : NETRB_SVC_STATE_OFF];
@@ -163,20 +190,27 @@ static void StateChanged(CFNotificationCenterRef center, void *observer, CFStrin
 
 %ctor {
 	pendingState = FSSwitchStateIndeterminate;
-	// Load WirelessModemSettings
-	dlopen("/System/Library/PreferenceBundles/WirelessModemSettings.bundle/WirelessModemSettings", RTLD_LAZY);
-	%init(WirelessModemSettings);
-	Class _MISManager = objc_getClass("MISManager");
 	%init();
-	if ([_MISManager instancesRespondToSelector:@selector(getState:andReason:)] && [_MISManager instancesRespondToSelector:@selector(setState:)] && [_MISManager respondsToSelector:@selector(sharedManager)] && (manager = [_MISManager sharedManager]))
-		return;
-	// Create root controller
-	PSRootController *rootController = [[PSRootController alloc] initWithTitle:@"Preferences" identifier:@"com.apple.Preferences"];
-	// Create controller
-	controller = [[%c(WirelessModemController) alloc] initForContentSize:(CGSize){ 0.0f, 0.0f }];
-	[controller setRootController:rootController];
-	[controller setParentController:rootController];
-	// Create Specifier
-	specifier = [[PSSpecifier preferenceSpecifierNamed:@"Tethering" target:controller set:@selector(setInternetTethering:specifier:) get:@selector(internetTethering:) detail:Nil cell:PSSwitchCell edit:Nil] retain];
-	CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), StateChanged, StateChanged, CFSTR("SBNetworkTetheringStateChangedNotification"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+	if (dlopen("/System/Library/ControlCenter/Bundles/ConnectivityModule.bundle/ConnectivityModule", RTLD_LAZY)) {
+		hotspotViewController = [[%c(CCUIConnectivityHotspotViewController) alloc] init];
+		if (hotspotViewController) {
+			%init(iOS11);
+		}
+	} else {
+		// Load WirelessModemSettings
+		dlopen("/System/Library/PreferenceBundles/WirelessModemSettings.bundle/WirelessModemSettings", RTLD_LAZY);
+		%init(WirelessModemSettings);
+		Class _MISManager = objc_getClass("MISManager");
+		if ([_MISManager instancesRespondToSelector:@selector(getState:andReason:)] && [_MISManager instancesRespondToSelector:@selector(setState:)] && [_MISManager respondsToSelector:@selector(sharedManager)] && (manager = [_MISManager sharedManager]))
+			return;
+		// Create root controller
+		PSRootController *rootController = [[PSRootController alloc] initWithTitle:@"Preferences" identifier:@"com.apple.Preferences"];
+		// Create controller
+		controller = [[%c(WirelessModemController) alloc] initForContentSize:(CGSize){ 0.0f, 0.0f }];
+		[controller setRootController:rootController];
+		[controller setParentController:rootController];
+		// Create Specifier
+		specifier = [[PSSpecifier preferenceSpecifierNamed:@"Tethering" target:controller set:@selector(setInternetTethering:specifier:) get:@selector(internetTethering:) detail:Nil cell:PSSwitchCell edit:Nil] retain];
+		CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), StateChanged, StateChanged, CFSTR("SBNetworkTetheringStateChangedNotification"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+	}
 }

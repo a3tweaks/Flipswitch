@@ -315,6 +315,16 @@ typedef struct {
 @property (retain, nonatomic) SBCCQuickLaunchSectionController *quickLaunchSection;
 @end
 
+@interface SBUIFlashlightController : NSObject
++ (id)sharedInstance;
+- (void)_updateState;
+- (void)warmUp;
+- (void)coolDown;
+- (void)turnFlashlightOn;
+- (void)turnFlashlightOff;
+@property (assign, nonatomic) NSUInteger level;
+@end
+
 @interface FBSystemApp : NSObject
 + (id)sharedApplication;
 - (void)sendActionsToBackboard:(NSSet *)actions;
@@ -355,6 +365,13 @@ typedef struct {
 - (void)setEnabled:(BOOL)enabled;
 @end
 
+@interface RPControlCenterClient : NSObject
++ (id)sharedInstance;
+@property (nonatomic, readonly) BOOL recordingOn;
+- (void)stopCurrentSession:(id)completion;
+- (void)startRecordingWithHandler:(id)completion;
+@end
+
 @interface NSNetworkSettings : NSObject
 + (NSNetworkSettings *)sharedNetworkSettings;
 - (void)setProxyDictionary:(NSDictionary *)dictionary;
@@ -365,4 +382,12 @@ typedef struct {
 - (NSDictionary *)proxyDictionary;
 - (void)_listenForProxySettingChanges;
 - (void)_updateProxySettings;
+@end
+
+@interface CCUIConnectivityHotspotViewController : UIViewController
+- (id)init;
+@property (nonatomic, getter=isAvailable) BOOL available;
+@property (nonatomic, getter=isDiscoverable) BOOL discoverable;
+- (void)_updateState;
+- (BOOL)_toggleState;
 @end

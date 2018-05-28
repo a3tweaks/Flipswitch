@@ -88,6 +88,19 @@ static void StealFlashlight(void)
 		return;
 	AVFlashlight *newFlashlight;
 	// Steal the existing one, if we don't already have one
+	Class SBUIFlashlightControllerClass = %c(SBUIFlashlightController);
+	if ([SBUIFlashlightControllerClass respondsToSelector:@selector(sharedInstance)]) {
+		// iOS 11
+		SBUIFlashlightController *fc = [SBUIFlashlightControllerClass sharedInstance];
+		AVFlashlight **_flashlight = CHIvarRef(fc, _flashlight, AVFlashlight *);
+		if (_flashlight) {
+			newFlashlight = *_flashlight;
+			if (newFlashlight) {
+				[newFlashlight retain];
+				goto retain;
+			}
+		}
+	}
 	SBControlCenterViewController **_viewController = CHIvarRef([%c(SBControlCenterController) sharedInstanceIfExists], _viewController, SBControlCenterViewController *);
 	if (_viewController) {
 		id quickLaunchSection = nil;

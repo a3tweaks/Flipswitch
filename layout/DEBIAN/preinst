@@ -1,4 +1,4 @@
 #!/bin/sh
 mkdir -p /Library/Flipswitch /Library/Switches
-/usr/libexec/cydia/move.sh /Library/Flipswitch || true
-/usr/libexec/cydia/move.sh /Library/Switches || true
+/usr/libexec/cydia/move.sh /Library/Flipswitch 2> /dev/null || true
+/usr/libexec/cydia/move.sh /Library/Switches 2> /dev/null || true
