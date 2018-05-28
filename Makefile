@@ -31,7 +31,18 @@ FlipswitchSettings_LDFLAGS = -L$(THEOS_OBJ_DIR)
 FlipswitchSettings_INSTALL_PATH = /Library/PreferenceBundles
 FlipswitchSettings_USE_MODULES = 0
 
+TOOL_NAME = switch
+switch_FILES = tool.m
+switch_USE_MODULES = 0
+# switch_LIBRARIES = flipswitch
+# switch_LDFLAGS = -L$(THEOS_OBJ_DIR)
+ifeq ($(THEOS_CURRENT_ARCH),armv6)
+	switch_FRAMEWORKS = Foundation UIKit
+endif
+
 ADDITIONAL_CFLAGS = -Ipublic -Ioverlayheaders -IPrivateHeaders -include log.h
+
+TARGET_CODESIGN_FLAGS = -Sentitlements.xml
 
 LEGACY_XCODE_PATH ?= /Applications/Xcode_Legacy.app/Contents/Developer
 CLASSIC_XCODE_PATH ?= /Volumes/Xcode/Xcode.app/Contents/Developer
@@ -61,12 +72,13 @@ ifeq ($(THEOS_CURRENT_ARCH),armv6)
 	GO_EASY_ON_ME=1
 endif
 
-INSTALL_TARGET_PROCESSES = SpringBoard
+INSTALL_TARGET_PROCESSES ?= SpringBoard
 
 include theos/makefiles/common.mk
 include $(THEOS_MAKE_PATH)/library.mk
 include $(THEOS_MAKE_PATH)/tweak.mk
 include $(THEOS_MAKE_PATH)/bundle.mk
+include $(THEOS_MAKE_PATH)/tool.mk
 
 stage::
 	$(ECHO_NOTHING)mkdir -p $(THEOS_STAGING_DIR)/usr/include$(ECHO_END)
