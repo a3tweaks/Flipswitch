@@ -67,12 +67,16 @@ static FSSwitchState state;
 			gateway = [[BBSettingsGatewayClass alloc] initWithQueue:dispatch_get_main_queue()];
 		else
 			gateway = [[BBSettingsGatewayClass alloc] init];
-		[gateway setActiveBehaviorOverrideTypesChangeHandler:^(int value) {
-			state = value & 1;
-			[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.do-not-disturb"];
-		}];
-		[gateway setBehaviorOverrideStatusChangeHandler:^(int value){
-		}];
+		if ([gateway respondsToSelector:@selector(setActiveBehaviorOverrideTypesChangeHandler:)]) {
+			[gateway setActiveBehaviorOverrideTypesChangeHandler:^(int value) {
+				state = value & 1;
+				[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.do-not-disturb"];
+			}];
+		}
+		if ([gateway respondsToSelector:@selector(setBehaviorOverrideStatusChangeHandler:)]) {
+			[gateway setBehaviorOverrideStatusChangeHandler:^(int value){
+			}];
+		}
 		if (kCFCoreFoundationVersionNumber < 800.0) {
 			// Don't force terminate the Settings app on iOS 7. Usual toggle doesn't terminate and leaves the state inconsistent, so we may as well follow suit
 			BKSTerminateApplicationForReasonAndReportWithDescription = dlsym(RTLD_DEFAULT, "BKSTerminateApplicationForReasonAndReportWithDescription");
