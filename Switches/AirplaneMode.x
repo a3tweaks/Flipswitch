@@ -14,6 +14,7 @@ static void UpdateAirplaneModeStatus(void)
 	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.airplane-mode"];
 }
 
+%group iOS10Below
 %hook SBTelephonyManager
 
 // Modern iOS versions
@@ -33,6 +34,19 @@ static void UpdateAirplaneModeStatus(void)
 }
 
 %end
+%end
+
+%group iOS11
+%hook SBAirplaneModeController
+
+- (void)airplaneModeChanged
+{
+	%orig();
+	UpdateAirplaneModeStatus();
+}
+
+%end
+%end
 
 static BOOL justSwitchedAirplaneModeOff;
 
@@ -49,8 +63,13 @@ static BOOL justSwitchedAirplaneModeOff;
 	if (justSwitchedAirplaneModeOff) {
 		return FSSwitchStateOff;
 	}
-	if ([%c(SBTelephonyManager) instancesRespondToSelector:@selector(isInAirplaneMode)])
+
+	if (%c(SBAirplaneModeController)) {
+		return [[%c(SBAirplaneModeController) sharedInstance] inAirplaneMode];
+	} else if ([%c(SBTelephonyManager) instancesRespondToSelector:@selector(isInAirplaneMode)]) {
 		return [[%c(SBTelephonyManager) sharedTelephonyManager] isInAirplaneMode];
+	}
+		
 	return (FSSwitchState)[[%c(SBStatusBarController) sharedStatusBarController] airplaneModeIsEnabled];
 }
 
@@ -58,7 +77,10 @@ static BOOL justSwitchedAirplaneModeOff;
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
-	if ([%c(SBTelephonyManager) instancesRespondToSelector:@selector(setIsInAirplaneMode:)]) {
+
+	if (%c(SBAirplaneModeController)) {
+		[[%c(SBAirplaneModeController) sharedInstance] setInAirplaneMode:newState];
+	} else if ([%c(SBTelephonyManager) instancesRespondToSelector:@selector(setIsInAirplaneMode:)]) {
 		[[%c(SBTelephonyManager) sharedTelephonyManager] setIsInAirplaneMode:newState];
 	} else {
 		void (*enable)(int enabled) = dlsym(RTLD_DEFAULT, "CTPowerSetAirplaneMode");
@@ -75,3 +97,12 @@ static BOOL justSwitchedAirplaneModeOff;
 }
 
 @end
+
+%ctor
+{
+	if (%c(SBAirplaneModeController)) {
+		%init(iOS11);
+	} else {
+		%init(iOS10Below);
+	}
+}
