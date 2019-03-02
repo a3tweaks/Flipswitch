@@ -13,6 +13,13 @@
 - (BOOL)isInAirplaneMode;
 @end
 
+@interface SBAirplaneModeController : NSObject
+@property (getter=isInAirplaneMode, assign, nonatomic) BOOL inAirplaneMode;
+
++ (SBAirplaneModeController *)sharedInstance;
+
+@end
+
 @interface SBWiFiManager
 + (id)sharedInstance;
 - (BOOL)wiFiEnabled;
