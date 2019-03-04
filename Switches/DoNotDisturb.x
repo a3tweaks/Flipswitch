@@ -2,26 +2,64 @@
 #import <FSSwitchPanel.h>
 
 #import <BulletinBoard/BulletinBoard.h>
+#import <DoNotDisturbKit/DoNotDisturbKit.h>
 #include <dlfcn.h>
 #import <SpringBoard/SpringBoard.h>
 
 static void (*BKSTerminateApplicationForReasonAndReportWithDescription)(NSString *app, int a, int b, NSString *description);
 
-@interface DoNotDisturbSwitch : NSObject <FSSwitchDataSource>
+@interface DoNotDisturbSwitch : NSObject <FSSwitchDataSource, DNDStateUpdateListener>
 @end
 
+static DNDStateService *stateService;
+static DNDModeAssertionService *assertionService;
 static BBSettingsGateway *gateway;
 static FSSwitchState state;
 
 @implementation DoNotDisturbSwitch
 
+- (id)init {
+	if ((self = [super init])) {
+		if (dlopen("/System/Library/PrivateFrameworks/DoNotDisturb.framework/DoNotDisturb", RTLD_LAZY)) {
+			if (!stateService) {
+				stateService = [(DNDStateService *)[objc_getClass("DNDStateService") serviceForClientIdentifier:@"com.apple.donotdisturb.control-center.module"] retain];
+				if (stateService) {
+					NSError *error = nil;
+					[stateService addStateUpdateListener:self error:&error];
+				}
+			}
+			if (!assertionService) {
+				assertionService = [(DNDModeAssertionService *)[objc_getClass("DNDModeAssertionService") serviceForClientIdentifier:@"com.apple.donotdisturb.control-center.module"] retain];
+			}
+		}
+	}
+	return self;
+}
+
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
+	if (stateService) {
+		return [[stateService queryCurrentStateWithError:NULL] isActive] ? FSSwitchStateOn : FSSwitchStateOff;
+	}
 	return state;
 }
 
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
 {
+	if (assertionService) {
+		switch (newState) {
+			case FSSwitchStateOn: {
+			    DNDModeAssertionDetails *newAssertion = [objc_getClass("DNDModeAssertionDetails") userRequestedAssertionDetailsWithIdentifier:@"com.apple.control-center.manual-toggle" modeIdentifier:@"com.apple.donotdisturb.mode.default" lifetime:nil];
+			    [assertionService takeModeAssertionWithDetails:newAssertion error:NULL];
+				return;
+			}
+			case FSSwitchStateOff:
+			    [assertionService invalidateAllActiveModeAssertionsWithError:NULL];
+				return;
+			default:
+				return;
+		}
+	}
 	int mode;
 	switch (newState) {
 		case FSSwitchStateOn:
@@ -53,6 +91,11 @@ static FSSwitchState state;
 	}
 }
 
+- (void)stateService:(DNDStateService *)stateService didReceiveDoNotDisturbStateUpdate:(id)update
+{
+	[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.do-not-disturb"];
+}
+
 @end
 
 %ctor
@@ -62,21 +105,20 @@ static FSSwitchState state;
 	}
 	state = FSSwitchStateIndeterminate;
 	dispatch_async(dispatch_get_main_queue(), ^{
+		if (stateService) {
+			return;
+		}
 		Class BBSettingsGatewayClass = objc_getClass("BBSettingsGateway");
 		if ([BBSettingsGatewayClass instancesRespondToSelector:@selector(initWithQueue:)])
 			gateway = [[BBSettingsGatewayClass alloc] initWithQueue:dispatch_get_main_queue()];
 		else
 			gateway = [[BBSettingsGatewayClass alloc] init];
-		if ([gateway respondsToSelector:@selector(setActiveBehaviorOverrideTypesChangeHandler:)]) {
-			[gateway setActiveBehaviorOverrideTypesChangeHandler:^(int value) {
-				state = value & 1;
-				[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.do-not-disturb"];
-			}];
-		}
-		if ([gateway respondsToSelector:@selector(setBehaviorOverrideStatusChangeHandler:)]) {
-			[gateway setBehaviorOverrideStatusChangeHandler:^(int value){
-			}];
-		}
+		[gateway setActiveBehaviorOverrideTypesChangeHandler:^(int value) {
+			state = value & 1;
+			[[FSSwitchPanel sharedPanel] stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.do-not-disturb"];
+		}];
+		[gateway setBehaviorOverrideStatusChangeHandler:^(int value){
+		}];
 		if (kCFCoreFoundationVersionNumber < 800.0) {
 			// Don't force terminate the Settings app on iOS 7. Usual toggle doesn't terminate and leaves the state inconsistent, so we may as well follow suit
 			BKSTerminateApplicationForReasonAndReportWithDescription = dlsym(RTLD_DEFAULT, "BKSTerminateApplicationForReasonAndReportWithDescription");

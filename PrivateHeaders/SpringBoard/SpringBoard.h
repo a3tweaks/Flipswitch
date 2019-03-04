@@ -16,7 +16,7 @@
 @interface SBAirplaneModeController : NSObject
 @property (getter=isInAirplaneMode, assign, nonatomic) BOOL inAirplaneMode;
 
-+ (SBAirplaneModeController *)sharedInstance;
++ (id)sharedInstance;
 
 @end
 
