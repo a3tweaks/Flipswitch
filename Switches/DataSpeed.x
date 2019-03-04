@@ -1,5 +1,6 @@
 #import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
+#include <dlfcn.h>
 
 #ifndef CTREGISTRATION_H_
 extern CFStringRef const kCTRegistrationDataStatusChangedNotification;
@@ -121,7 +122,13 @@ static void FSDataStatusChanged(void);
 	if (currentRateIndex == NSNotFound)
 		return;
 	if (currentRateIndex != desiredRateIndex) {
-		CTRegistrationSetMaxAllowedDataRate((CFStringRef)desiredDataRate);
+		void *coreTelephony = dlopen("/System/Library/Frameworks/CoreTelephony.framework/CoreTelephony", RTLD_LAZY);
+		if (coreTelephony) {
+			void (*CTRegistrationSetMaxAllowedDataRate)(CFStringRef) = dlsym(coreTelephony, "CTRegistrationSetMaxAllowedDataRate");
+			if (CTRegistrationSetMaxAllowedDataRate) {
+				CTRegistrationSetMaxAllowedDataRate((CFStringRef)desiredDataRate);
+			}
+		}
 	}
 }
 
@@ -183,7 +190,7 @@ static void FSDataStatusChanged(void)
 
 %ctor
 {
-	if (kCFCoreFoundationVersionNumber < 700.0) {
+	if (kCFCoreFoundationVersionNumber < 700.0 || kCFCoreFoundationVersionNumber >= 1556.00) {
 		return;
 	}
 	CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, (CFNotificationCallback)FSDataStatusChanged, kCTRegistrationDataStatusChangedNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
