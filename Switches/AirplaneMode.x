@@ -65,7 +65,7 @@ static BOOL justSwitchedAirplaneModeOff;
 	}
 
 	if (%c(SBAirplaneModeController)) {
-		return [[%c(SBAirplaneModeController) sharedInstance] inAirplaneMode];
+		return [(SBAirplaneModeController *)[%c(SBAirplaneModeController) sharedInstance] isInAirplaneMode];
 	} else if ([%c(SBTelephonyManager) instancesRespondToSelector:@selector(isInAirplaneMode)]) {
 		return [[%c(SBTelephonyManager) sharedTelephonyManager] isInAirplaneMode];
 	}
@@ -79,7 +79,7 @@ static BOOL justSwitchedAirplaneModeOff;
 		return;
 
 	if (%c(SBAirplaneModeController)) {
-		[[%c(SBAirplaneModeController) sharedInstance] setInAirplaneMode:newState];
+		[(SBAirplaneModeController *)[%c(SBAirplaneModeController) sharedInstance] setInAirplaneMode:newState];
 	} else if ([%c(SBTelephonyManager) instancesRespondToSelector:@selector(setIsInAirplaneMode:)]) {
 		[[%c(SBTelephonyManager) sharedTelephonyManager] setIsInAirplaneMode:newState];
 	} else {
