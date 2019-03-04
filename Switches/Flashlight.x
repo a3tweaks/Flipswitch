@@ -96,6 +96,9 @@ static void StealFlashlight(void)
 		if (_flashlight) {
 			newFlashlight = *_flashlight;
 			if (newFlashlight) {
+				if (newFlashlight == flashlight) {
+					return;
+				}
 				[newFlashlight retain];
 				goto retain;
 			}
@@ -173,6 +176,7 @@ static float theJam;
 		if (flashlight)
 			return;
 	} else if (flashlight) {
+		[flashlight setFlashlightLevel:0.0 withError:NULL];
 		[flashlight turnPowerOff];
 		if (!prewarming) {
 			[flashlight removeObserver:self forKeyPath:@"available" context:NULL];
