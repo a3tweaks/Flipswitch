@@ -4,6 +4,10 @@
 #import <Foundation/Foundation.h>
 #undef __OSX_AVAILABLE_STARTING
 #define __OSX_AVAILABLE_STARTING(mac,ios)
+#ifdef API_UNAVAILABLE
+#undef API_UNAVAILABLE
+#endif
+#define API_UNAVAILABLE(...)
 #import <SystemConfiguration/SystemConfiguration.h>
 #import <SpringBoard/SpringBoard.h>
 
