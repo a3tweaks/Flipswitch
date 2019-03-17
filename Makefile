@@ -46,11 +46,13 @@ TARGET_CODESIGN_FLAGS = -Sentitlements.xml
 
 LEGACY_XCODE_PATH ?= /Applications/Xcode_Legacy.app/Contents/Developer
 CLASSIC_XCODE_PATH ?= /Volumes/Xcode/Xcode.app/Contents/Developer
+XCODE9_PATH ?= /Volumes/Xcode_9.4.1/Xcode.app/Contents/Developer
 
 ifneq ($(wildcard $(LEGACY_XCODE_PATH)/*),)
 THEOS_PLATFORM_SDK_ROOT_armv6 = $(LEGACY_XCODE_PATH)
 THEOS_PLATFORM_SDK_ROOT_armv7 = $(CLASSIC_XCODE_PATH)
 THEOS_PLATFORM_SDK_ROOT_armv7s = $(CLASSIC_XCODE_PATH)
+THEOS_PLATFORM_SDK_ROOT_arm64 = $(XCODE9_PATH)
 SDKVERSION_armv6 = 5.1
 INCLUDE_SDKVERSION_armv6 = latest
 TARGET_IPHONEOS_DEPLOYMENT_VERSION = 7.0

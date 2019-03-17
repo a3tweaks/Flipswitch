@@ -1,4 +1,8 @@
 #import <Foundation/Foundation.h>
+#ifdef API_UNAVAILABLE
+#undef API_UNAVAILABLE
+#endif
+#define API_UNAVAILABLE(...)
 #import <bsm/libbsm.h>
 #import <libproc/libproc.h>
 

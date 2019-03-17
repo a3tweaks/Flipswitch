@@ -1,3 +1,4 @@
+#import <UIKit/UIKit.h>
 #import <FSSwitchDataSource.h>
 #import <FSSwitchPanel.h>
 

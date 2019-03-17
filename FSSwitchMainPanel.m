@@ -1,3 +1,4 @@
+#import <UIKit/UIKit.h>
 #import "FSSwitchMainPanel.h"
 #import "FSSwitchPanel+Internal.h"
 #import "FSSwitchService.h"

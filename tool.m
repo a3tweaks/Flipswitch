@@ -24,6 +24,20 @@ static FSSwitchPanel *FSSwitchPanelMain(void)
 	return [objc_getClass("FSSwitchPanel") sharedPanel];
 }
 
+static NSString *getSwitchIdentifier(NSString *name) {
+	NSArray *identifiers = FSSwitchPanelMain().switchIdentifiers;
+	if ([identifiers containsObject:name]) {
+		return name;
+	}
+	NSString *suffix = [@"." stringByAppendingString:name];
+	for (NSString *identifier in identifiers) {
+		if ([identifier hasSuffix:suffix]) {
+			return identifier;
+		}
+	}
+	return nil;
+}
+
 int main(int argc, char *argv[])
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -48,7 +62,11 @@ int main(int argc, char *argv[])
 			break;
 		case 3:
 			if ([command isEqualToString:@"get"]) {
-				FSSwitchState state = [FSSwitchPanelMain() stateForSwitchIdentifier:[args objectAtIndex:2]];
+				NSString *identifier = getSwitchIdentifier([args objectAtIndex:2]);
+				if (!identifier) {
+					return 1;
+				}
+				FSSwitchState state = [FSSwitchPanelMain() stateForSwitchIdentifier:identifier];
 				switch (state) {
 					case FSSwitchStateOff:
 						fprintnsnl(stdout, @"off");
@@ -63,15 +81,27 @@ int main(int argc, char *argv[])
 				return 0;
 			}
 			if ([command isEqualToString:@"on"]) {
-				[FSSwitchPanelMain() setState:FSSwitchStateOn forSwitchIdentifier:[args objectAtIndex:2]];
+				NSString *identifier = getSwitchIdentifier([args objectAtIndex:2]);
+				if (!identifier) {
+					return 1;
+				}
+				[FSSwitchPanelMain() setState:FSSwitchStateOn forSwitchIdentifier:identifier];
 				return 0;
 			}
 			if ([command isEqualToString:@"off"]) {
-				[FSSwitchPanelMain() setState:FSSwitchStateOff forSwitchIdentifier:[args objectAtIndex:2]];
+				NSString *identifier = getSwitchIdentifier([args objectAtIndex:2]);
+				if (!identifier) {
+					return 1;
+				}
+				[FSSwitchPanelMain() setState:FSSwitchStateOff forSwitchIdentifier:identifier];
 				return 0;
 			}
 			if ([command isEqualToString:@"toggle"]) {
-				[FSSwitchPanelMain() applyActionForSwitchIdentifier:[args objectAtIndex:2]];
+				NSString *identifier = getSwitchIdentifier([args objectAtIndex:2]);
+				if (!identifier) {
+					return 1;
+				}
+				[FSSwitchPanelMain() applyActionForSwitchIdentifier:identifier];
 				return 0;
 			}
 			break;
