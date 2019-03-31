@@ -234,7 +234,11 @@ typedef enum {
 		if (disabledKey) {
 			[dict setObject:disabledIdentifiers forKey:disabledKey];
 		}
+#ifdef __arm64__
+		NSData *data = [NSPropertyListSerialization dataWithPropertyList:dict format:NSPropertyListBinaryFormat_v1_0 options:0 error:NULL];
+#else
 		NSData *data = [NSPropertyListSerialization dataFromPropertyList:dict format:NSPropertyListBinaryFormat_v1_0 errorDescription:NULL];
+#endif
 		[data writeToFile:settingsFile atomically:YES];
 	}
 	if (notificationName) {

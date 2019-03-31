@@ -464,6 +464,14 @@ static BOOL handleApproveOfMessage(FSSwitchServiceMessage messageId, mach_port_t
 	}
 }
 
+static id propertyListFromData(NSData *data) {
+#ifdef __arm64__
+	return [NSPropertyListSerialization propertyListWithData:data options:0 format:NULL error:NULL];
+#else
+	return [NSPropertyListSerialization propertyListFromData:data mutabilityOption:0 format:NULL errorDescription:NULL];
+#endif
+}
+
 #define PROTECT_MESSAGE() do { \
 	if (handleApproveOfMessage((FSSwitchServiceMessage)messageId, replyPort, data, self, token)) \
 		return; \
@@ -476,7 +484,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			LMSendPropertyListReply(replyPort, self.switchIdentifiers);
 			return;
 		case FSSwitchServiceMessageGetTitleForIdentifier: {
-			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			NSString *identifier = propertyListFromData((NSData *)data);
 			if ([identifier isKindOfClass:[NSString class]]) {
 				NSString *title = [self titleForSwitchIdentifier:identifier];
 				LMSendPropertyListReply(replyPort, title);
@@ -485,7 +493,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			break;
 		}
 		case FSSwitchServiceMessageGetStateForIdentifier: {
-			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			NSString *identifier = propertyListFromData((NSData *)data);
 			if ([identifier isKindOfClass:[NSString class]]) {
 				LMSendIntegerReply(replyPort, [self stateForSwitchIdentifier:identifier]);
 				return;
@@ -494,7 +502,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 		}
 		case FSSwitchServiceMessageSetStateForIdentifier: {
 			PROTECT_MESSAGE();
-			NSArray *args = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			NSArray *args = propertyListFromData((NSData *)data);
 			if ([args isKindOfClass:[NSArray class]] && [args count] == 2) {
 				NSNumber *state = [args objectAtIndex:0];
 				NSString *identifier = [args objectAtIndex:1];
@@ -505,7 +513,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			break;
 		}
 		case FSSwitchServiceMessageGetImageDescriptorForSwitch: {
-			NSDictionary *args = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			NSDictionary *args = propertyListFromData((NSData *)data);
 			if ([args isKindOfClass:[NSDictionary class]]) {
 				NSString *switchIdentifier = [args objectForKey:@"switchIdentifier"];
 				CGFloat size = [[args objectForKey:@"size"] floatValue];
@@ -523,14 +531,14 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 		}
 		case FSSwitchServiceMessageApplyActionForIdentifier: {
 			PROTECT_MESSAGE();
-			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			NSString *identifier = propertyListFromData((NSData *)data);
 			if ([identifier isKindOfClass:[NSString class]]) {
 				[self applyActionForSwitchIdentifier:identifier];
 			}
 			break;
 		}
 		case FSSwitchServiceMessageHasAlternateActionForIdentifier: {
-			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			NSString *identifier = propertyListFromData((NSData *)data);
 			if ([identifier isKindOfClass:[NSString class]]) {
 				LMSendIntegerReply(replyPort, [self hasAlternateActionForSwitchIdentifier:identifier]);
 				return;
@@ -539,7 +547,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 		}
 		case FSSwitchServiceMessageApplyAlternateActionForIdentifier: {
 			PROTECT_MESSAGE();
-			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			NSString *identifier = propertyListFromData((NSData *)data);
 			if ([identifier isKindOfClass:[NSString class]]) {
 				[self applyAlternateActionForSwitchIdentifier:identifier];
 			}
@@ -550,7 +558,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			return;
 		}
 		case FSSwitchServiceMessageGetEnabledForIdentifier: {
-			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			NSString *identifier = propertyListFromData((NSData *)data);
 			if ([identifier isKindOfClass:[NSString class]]) {
 				LMSendIntegerReply(replyPort, [self switchWithIdentifierIsEnabled:identifier]);
 				return;
@@ -559,7 +567,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 		}
 		case FSSwitchServiceMessageBeginPrewarmingForIdentifier: {
 			PROTECT_MESSAGE();
-			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			NSString *identifier = propertyListFromData((NSData *)data);
 			if ([identifier isKindOfClass:[NSString class]]) {
 				[self beginPrewarmingForSwitchIdentifier:identifier];
 				break;
@@ -568,7 +576,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 		}
 		case FSSwitchServiceMessageCancelPrewarmingForIdentifier: {
 			PROTECT_MESSAGE();
-			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			NSString *identifier = propertyListFromData((NSData *)data);
 			if ([identifier isKindOfClass:[NSString class]]) {
 				[self cancelPrewarmingForSwitchIdentifier:identifier];
 				break;
@@ -577,7 +585,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 		}
 		case FSSwitchServiceMessageOpenURLAsAlternateAction: {
 			PROTECT_MESSAGE();
-			NSString *url = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			NSString *url = propertyListFromData((NSData *)data);
 			if ([url isKindOfClass:[NSString class]]) {
 				[self openURLAsAlternateAction:[NSURL URLWithString:url]];
 				break;
@@ -585,7 +593,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			break;
 		}
 		case FSSwitchServiceMessageSettingsViewControllerForIdentifier: {
-			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			NSString *identifier = propertyListFromData((NSData *)data);
 			if ([identifier isKindOfClass:[NSString class]]) {
 				Class _class = [self settingsViewControllerClassForSwitchIdentifier:identifier];
 				if (_class) {
@@ -598,7 +606,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			break;
 		}
 		case FSSwitchServiceMessageDescriptionOfStateForIdentifier: {
-			NSArray *args = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			NSArray *args = propertyListFromData((NSData *)data);
 			if ([args isKindOfClass:[NSArray class]] && [args count] == 2) {
 				NSString *identifier = [args objectAtIndex:0];
 				if ([identifier isKindOfClass:[NSString class]]) {
@@ -615,7 +623,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			break;
 		}
 		case FSSwitchServiceMessageGetIsSimpleActionForIdentifier: {
-			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			NSString *identifier = propertyListFromData((NSData *)data);
 			if ([identifier isKindOfClass:[NSString class]]) {
 				LMSendIntegerReply(replyPort, [self switchWithIdentifierIsSimpleAction:identifier]);
 				return;
@@ -623,7 +631,7 @@ static void processMessage(FSSwitchMainPanel *self, SInt32 messageId, mach_port_
 			break;
 		}
 		case FSSwitchServiceMessageGetPrimaryColorForIdentifier: {
-			NSString *identifier = [NSPropertyListSerialization propertyListFromData:(NSData *)data mutabilityOption:0 format:NULL errorDescription:NULL];
+			NSString *identifier = propertyListFromData((NSData *)data);
 			if ([identifier isKindOfClass:[NSString class]]) {
 				UIColor *color = [self primaryColorForSwitchIdentifier:identifier];
 				if (color) {

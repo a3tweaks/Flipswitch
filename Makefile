@@ -7,7 +7,6 @@ libflipswitch_USE_MODULES = 0
 libFlipswitchSpringBoard_FILES = FSSwitchDataSource.m FSSwitchMainPanel.m FSPreferenceSwitchDataSource.m FSLazySwitch.m FSCapability.m FSLaunchURL.x
 libFlipswitchSpringBoard_LIBRARIES = flipswitch bsm
 libFlipswitchSpringBoard_FRAMEWORKS = UIKit
-libFlipswitchSpringBoard_PRIVATE_FRAMEWORKS = GraphicsServices
 libFlipswitchSpringBoard_LDFLAGS = -L$(THEOS_OBJ_DIR)
 libFlipswitchSpringBoard_INSTALL_PATH = /Library/Flipswitch
 libFlipswitchSpringBoard_USE_MODULES = 0
@@ -55,17 +54,20 @@ THEOS_PLATFORM_SDK_ROOT_armv7s = $(CLASSIC_XCODE_PATH)
 THEOS_PLATFORM_SDK_ROOT_arm64 = $(XCODE9_PATH)
 SDKVERSION_armv6 = 5.1
 INCLUDE_SDKVERSION_armv6 = latest
-TARGET_IPHONEOS_DEPLOYMENT_VERSION = 7.0
+TARGET_IPHONEOS_DEPLOYMENT_VERSION = 8.4
 TARGET_IPHONEOS_DEPLOYMENT_VERSION_armv6 = 3.0
 TARGET_IPHONEOS_DEPLOYMENT_VERSION_armv7 = 3.0
 TARGET_IPHONEOS_DEPLOYMENT_VERSION_armv7s = 6.0
 TARGET_IPHONEOS_DEPLOYMENT_VERSION_arm64 = 7.0
-IPHONE_ARCHS = armv6 armv7 arm64
-libflipswitch_IPHONE_ARCHS = armv6 armv7 armv7s arm64
+TARGET_IPHONEOS_DEPLOYMENT_VERSION_arm64e = 8.4
+IPHONE_ARCHS = armv6 armv7 arm64 arm64e
+libflipswitch_IPHONE_ARCHS = armv6 armv7 armv7s arm64 arm64e
+FlipswitchSettings_IPHONE_ARCHS = armv6 arm64 arm64e
+switch_IPHONE_ARCHS = armv6 arm64
 else
-TARGET_IPHONEOS_DEPLOYMENT_VERSION = 7.0
-IPHONE_ARCHS = armv7 arm64
-libflipswitch_IPHONE_ARCHS = armv7 armv7s arm64
+TARGET_IPHONEOS_DEPLOYMENT_VERSION = 8.4
+IPHONE_ARCHS = armv7 arm64 arm64e
+libflipswitch_IPHONE_ARCHS = armv7 armv7s arm64 arm64e
 ifeq ($(FINALPACKAGE),1)
 $(error Building final package requires a legacy Xcode install!)
 endif
