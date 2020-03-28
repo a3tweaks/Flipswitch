@@ -24,14 +24,24 @@ static void RingerSettingsChanged(CFNotificationCenterRef center, void *observer
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
-	return ![[%c(SBMediaController) sharedInstance] isRingerMuted];
+	Class SBMediaControllerClass = %c(SBMediaController);
+	if ([SBMediaControllerClass instancesRespondToSelector:@selector(isRingerMuted)]) {
+		return ![[SBMediaControllerClass sharedInstance] isRingerMuted];
+	} else {
+		return ![[[%c(SBMainWorkspace) sharedInstance] ringerControl] isRingerMuted];
+	}
 }
 
 - (void)applyState:(FSSwitchState)newState forSwitchIdentifier:(NSString *)switchIdentifier
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
-	[[%c(SBMediaController) sharedInstance] setRingerMuted:!newState];
+	Class SBMediaControllerClass = %c(SBMediaController);
+	if ([SBMediaControllerClass instancesRespondToSelector:@selector(setRingerMuted:)]) {
+		[[SBMediaControllerClass sharedInstance] setRingerMuted:!newState];
+	} else {
+		[[[%c(SBMainWorkspace) sharedInstance] ringerControl] setRingerMuted:!newState];
+	}
 }
 
 @end

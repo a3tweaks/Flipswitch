@@ -332,6 +332,17 @@ typedef struct {
 @property (assign, nonatomic) NSUInteger level;
 @end
 
+// iOS 13
+
+@interface SBRingerControl : NSObject
+@property (assign, getter=isRingerMuted, nonatomic) BOOL ringerMuted;
+@end
+
+@interface SBMainWorkspace : NSObject
++ (SBMainWorkspace *)sharedInstance;
+@property (readonly, nonatomic) SBRingerControl *ringerControl;
+@end
+
 @interface FBSystemApp : NSObject
 + (id)sharedApplication;
 - (void)sendActionsToBackboard:(NSSet *)actions;
