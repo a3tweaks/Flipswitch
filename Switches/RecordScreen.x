@@ -7,6 +7,10 @@
 #import <dlfcn.h>
 #import <SpringBoard/SpringBoard.h>
 
+@interface RPScreenRecorder (iOS13)
+- (void)stopRecordingAndSaveToCameraRoll:(BOOL)save;
+@end
+
 @interface CCUIShortcutModule : NSObject
 @end
 
@@ -25,6 +29,10 @@
 - (void)warmup;
 - (void)cooldown;
 
+@end
+
+@interface CCUIShortcutModule (RPControlCenterModule)
+@property (nonatomic, readonly) RPControlCenterClient *client;
 @end
 
 static CCUIRecordScreenShortcut *staticRecordScreenShortcut;
@@ -99,12 +107,12 @@ static RPScreenRecorder *sharedRecorder(void)
 - (id)init
 {
 	if ((self = [super init])) {
+		dlopen("/System/Library/ControlCenter/Bundles/ReplayKitModule.bundle/ReplayKitModule", RTLD_LAZY);
 		if (!sharedRecorder().isAvailable) {
-			dlopen("/System/Library/ControlCenter/Bundles/ReplayKitModule.bundle/ReplayKitModule", RTLD_LAZY);
 			[self release];
 			return nil;
 		}
-		%init();
+		%init(CCUIRecordScreenShortcut = objc_getClass("CCUIRecordScreenShortcut") ?: objc_getClass("RPControlCenterModule"));
 	}
 	return self;
 }
@@ -120,14 +128,23 @@ static RPScreenRecorder *sharedRecorder(void)
 		return;
 	if (sharedRecorder().recording != newState) {
 		CCUIRecordScreenShortcut *shortcut = sharedRecordScreenShortcut();
-		if (shortcut) {
+		if ([shortcut respondsToSelector:@selector(_toggleState)]) {
 			[shortcut _toggleState];
 		} else {
-			RPControlCenterClient *client = (RPControlCenterClient *)[%c(RPControlCenterClient) sharedInstance];
-			if (newState == FSSwitchStateOn) {
-				[client startRecordingWithHandler:nil];
+			Class clientClass = %c(RPControlCenterClient);
+			if ([clientClass respondsToSelector:@selector(sharedInstance)]) {
+				RPControlCenterClient *client = (RPControlCenterClient *)[clientClass sharedInstance];
+				if (newState == FSSwitchStateOn) {
+					[client startRecordingWithHandler:nil];
+				} else {
+					[client stopCurrentSession:nil];
+				}
 			} else {
-				[client stopCurrentSession:nil];
+				if (newState == FSSwitchStateOn) {
+					[sharedRecorder() startRecordingWithHandler:nil];
+				} else {
+					[sharedRecorder() stopRecordingAndSaveToCameraRoll:nil];
+				}
 			}
 		}
 	}
