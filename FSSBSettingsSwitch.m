@@ -3,10 +3,10 @@
 #import "FSSwitchPanel.h"
 
 #include <notify.h>
-#include <dlfcn.h>
+#include "dlsymfn.h"
 #import <CoreFoundation/CFUserNotification.h>
 
-#define SBSFunction(toggle, name, def, funcType, ...) ({ const void *func = dlsym((toggle), #name); func ? ((funcType)func)(__VA_ARGS__) : (def); })
+#define SBSFunction(toggle, name, def, funcType, ...) ({ const void *func = dlsymfn((toggle), #name); func ? ((funcType)func)(__VA_ARGS__) : (def); })
 #define isCapable(toggle) SBSFunction(toggle, isCapable, YES, BOOL (*)(void))
 #define isEnabled(toggle) SBSFunction(toggle, isEnabled, NO, BOOL (*)(void))
 #define getStateFast(toggle) SBSFunction(toggle, getStateFast, NO, BOOL (*)(void))
@@ -104,7 +104,7 @@ static FSSBSettingsSwitch *sharedSwitch;
 {
 	NSString *toggleName = ToggleNameFromSwitchIdentifer(switchIdentifier);
 	void *toggle = (void *)CFDictionaryGetValue(switches, toggleName);
-	return dlsym(toggle, "invokeHoldAction") != NULL;
+	return dlsymfn(toggle, "invokeHoldAction") != NULL;
 }
 
 - (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier

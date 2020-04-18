@@ -3,7 +3,7 @@
 
 #import <BulletinBoard/BulletinBoard.h>
 #import <DoNotDisturbKit/DoNotDisturbKit.h>
-#include <dlfcn.h>
+#import "dlsymfn.h"
 #import <SpringBoard/SpringBoard.h>
 
 static void (*BKSTerminateApplicationForReasonAndReportWithDescription)(NSString *app, int a, int b, NSString *description);
@@ -121,7 +121,7 @@ static FSSwitchState state;
 		}];
 		if (kCFCoreFoundationVersionNumber < 800.0) {
 			// Don't force terminate the Settings app on iOS 7. Usual toggle doesn't terminate and leaves the state inconsistent, so we may as well follow suit
-			BKSTerminateApplicationForReasonAndReportWithDescription = dlsym(RTLD_DEFAULT, "BKSTerminateApplicationForReasonAndReportWithDescription");
+			BKSTerminateApplicationForReasonAndReportWithDescription = dlsymfn(RTLD_DEFAULT, "BKSTerminateApplicationForReasonAndReportWithDescription");
 		}
 	});
 }

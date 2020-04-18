@@ -1,6 +1,6 @@
 #import "FSCapability.h"
 
-#import <dlfcn.h>
+#import "dlsymfn.h"
 
 static BOOL (*MGGetBoolAnswer)(NSString *capability);
 
@@ -9,13 +9,13 @@ BOOL FSSystemHasCapability(NSString *capabilityName)
 	if (!MGGetBoolAnswer) {
 		void *libMobileGestalt = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_LAZY);
 		if (libMobileGestalt) {
-			MGGetBoolAnswer = dlsym(libMobileGestalt, "MGGetBoolAnswer");
+			MGGetBoolAnswer = dlsymfn(libMobileGestalt, "MGGetBoolAnswer");
 		}
 #ifndef __arm64__
 		if (!MGGetBoolAnswer) {
 			void *libGraphicServices = dlopen("/System/Library/PrivateFrameworks/GraphicsServices.framework/GraphicsServices", RTLD_LAZY);
 			if (libGraphicServices) {
-				MGGetBoolAnswer = dlsym(libGraphicServices, "GSSystemHasCapability");
+				MGGetBoolAnswer = dlsymfn(libGraphicServices, "GSSystemHasCapability");
 			}
 		}
 #endif

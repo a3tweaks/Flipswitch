@@ -4,7 +4,7 @@
 #import <Foundation/Foundation.h>
 #import <SpringBoard/SpringBoard.h>
 #include <dispatch/dispatch.h>
-#include <dlfcn.h>
+#import "dlsymfn.h"
 
 @interface AirplaneModeSwitch : NSObject <FSSwitchDataSource>
 @end
@@ -83,7 +83,7 @@ static BOOL justSwitchedAirplaneModeOff;
 	} else if ([%c(SBTelephonyManager) instancesRespondToSelector:@selector(setIsInAirplaneMode:)]) {
 		[[%c(SBTelephonyManager) sharedTelephonyManager] setIsInAirplaneMode:newState];
 	} else {
-		void (*enable)(int enabled) = dlsym(RTLD_DEFAULT, "CTPowerSetAirplaneMode");
+		void (*enable)(int enabled) = dlsymfn(RTLD_DEFAULT, "CTPowerSetAirplaneMode");
 		if (enable) {
 			enable(newState);
 		}

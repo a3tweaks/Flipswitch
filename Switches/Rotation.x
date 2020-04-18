@@ -9,14 +9,17 @@
 #import <FSSwitchSettingsViewController.h>
 
 #import "../NSObject+FSSwitchDataSource.h"
+#import "dlsymfn.h"
 
 #include <notify.h>
 #include <dlfcn.h>
 #include <objc/runtime.h>
 
 #define IsOS4 (kCFCoreFoundationVersionNumber >= 478.61)
+#ifndef __LP64__
 static BOOL (*isEnabled)(void);
 static void (*setEnabled)(BOOL newState);
+#endif
 
 @interface RotationSwitch : NSObject <FSSwitchDataSource>
 @end
@@ -53,6 +56,7 @@ static BOOL isLocked(SBOrientationLockManager *orientationLockManager)
 
 @implementation RotationSwitch
 
+#ifndef __LP64__
 - (id)init
 {
 	if (IsOS4 || (isEnabled && setEnabled))
@@ -60,13 +64,18 @@ static BOOL isLocked(SBOrientationLockManager *orientationLockManager)
 	[self release];
 	return nil;
 }
+#endif
 
 - (FSSwitchState)stateForSwitchIdentifier:(NSString *)switchIdentifier
 {
+#ifndef __LP64__
 	if (IsOS4)
+#endif
 		return !isLocked([%c(SBOrientationLockManager) sharedInstance]);
+#ifndef __LP64__
 	else
 		return isEnabled ? isEnabled() : YES;
+#endif
 }
 
 - (BOOL)hasAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
@@ -79,7 +88,9 @@ static BOOL isLocked(SBOrientationLockManager *orientationLockManager)
 {
 	if (newState == FSSwitchStateIndeterminate)
 		return;
+#ifndef __LP64__
 	if (IsOS4) {
+#endif
 		SBOrientationLockManager *lockManager = [%c(SBOrientationLockManager) sharedInstance];
 		if (newState) {
 			[lockManager unlock];
@@ -112,6 +123,7 @@ static BOOL isLocked(SBOrientationLockManager *orientationLockManager)
 				[*_orientationLockButton setSelected:isLocked(lockManager)];
 			}
 		}
+#ifndef __LP64__
 	} else {
 		if (setEnabled) {
 			setEnabled(newState);
@@ -120,6 +132,7 @@ static BOOL isLocked(SBOrientationLockManager *orientationLockManager)
 			[panel stateDidChangeForSwitchIdentifier:@"com.a3tweaks.switch.rotation-lock"];
 		}
 	}
+#endif
 }
 
 - (void)applyAlternateActionForSwitchIdentifier:(NSString *)switchIdentifier
@@ -229,9 +242,11 @@ static NSString *LockedOrientationName(void)
 CHConstructor
 {
 	%init();
+#ifndef __LP64__
 	if (!IsOS4) {
 		void *rotationinhibitor = dlopen("/Library/MobileSubstrate/DynamicLibraries/RotationInhibitor.dylib", RTLD_LAZY);
-		isEnabled = dlsym(rotationinhibitor, "isEnabled");
-		setEnabled = dlsym(rotationinhibitor, "setEnabled");
+		isEnabled = dlsymfn(rotationinhibitor, "isEnabled");
+		setEnabled = dlsymfn(rotationinhibitor, "setEnabled");
 	}
+#endif
 }
