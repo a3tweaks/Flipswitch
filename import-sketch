@@ -17,6 +17,9 @@ cp SketchImportSlashed/Bluetooth*.pdf Switches/Bluetooth/Resources/glyph-modern-
 # Data
 cp SketchImport/Cellular\ Data.pdf Switches/Data/Resources/glyph-modern.pdf
 cp SketchImportSlashed/Cellular\ Data*.pdf Switches/Data/Resources/glyph-modern-off.pdf
+# Dark Mode
+#cp SketchImport/Dark\ Mode.pdf Switches/Data/Resources/glyph-modern.pdf
+#cp SketchImportSlashed/Dark\ Mode*.pdf Switches/Data/Resources/glyph-modern-off.pdf
 # Do Not Disturb
 cp SketchImport/Do\ Not\ Disturb.pdf Switches/DoNotDisturb/Resources/glyph-modern.pdf
 cp SketchImportSlashed/Do\ Not\ Disturb*.pdf Switches/DoNotDisturb/Resources/glyph-modern-off.pdf
