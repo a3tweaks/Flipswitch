@@ -348,6 +348,11 @@ typedef struct {
 - (void)sendActionsToBackboard:(NSSet *)actions;
 @end
 
+@interface FBSystemShell : NSObject
++ (id)sharedInstance;
+- (void)sendActionsToBackBoard:(NSSet *)actions;
+@end
+
 @interface BKSRestartAction : NSObject
 + (id)actionWithOptions:(NSInteger)options;
 @end

@@ -22,7 +22,17 @@ static void PerformAction(CFIndex actionIndex)
 			if ([sb respondsToSelector:@selector(relaunchSpringBoard)]) {
 				[sb _relaunchSpringBoardNow];
 			} else {
-				[(FBSystemApp *)[objc_getClass("FBSystemApp") sharedApplication] sendActionsToBackboard:[NSSet setWithObject:[objc_getClass("BKSRestartAction") actionWithOptions:1]]];
+				NSSet *actions = [NSSet setWithObject:[objc_getClass("BKSRestartAction") actionWithOptions:1]];
+				Class systemAppClass = objc_getClass("FBSystemApp");
+				if ([systemAppClass instancesRespondToSelector:@selector(sendActionsToBackboard:)]) {
+					[(FBSystemApp *)[systemAppClass sharedApplication] sendActionsToBackboard:actions];
+				} else {
+					Class systemShellClass = objc_getClass("FBSystemShell");
+					if ([systemShellClass respondsToSelector:@selector(sharedInstance)] && [systemShellClass instancesRespondToSelector:@selector(sendActionsToBackBoard:)]) {
+						FBSystemShell *shell = [systemShellClass sharedInstance];
+						[shell sendActionsToBackBoard:actions];
+					}
+				}
 			}
 			break;
 		case 1:
