@@ -11,7 +11,7 @@ libFlipswitchSpringBoard_LDFLAGS = -L$(THEOS_OBJ_DIR)
 libFlipswitchSpringBoard_INSTALL_PATH = /Library/Flipswitch
 libFlipswitchSpringBoard_USE_MODULES = 0
 
-libFlipswitchSwitches_FILES = Switches/Adblock.x Switches/AirplaneMode.x Switches/AutoBrightness.x Switches/Autolock.x Switches/Bluetooth.x Switches/Data.x Switches/DataSpeed.x Switches/DoNotDisturb.x Switches/Flashlight.x Switches/Hotspot.x Switches/Location.x Switches/LowPower.x Switches/NightShift.x Switches/RecordScreen.x Switches/Respring.x Switches/Ringer.x Switches/Rotation.x Switches/Settings.x Switches/VPN.x Switches/Vibration.x Switches/Wifi.x Switches/WifiProxy.x
+libFlipswitchSwitches_FILES = Switches/Adblock.x Switches/AirplaneMode.x Switches/AutoBrightness.x Switches/Autolock.x Switches/Bluetooth.x Switches/DarkMode.x Switches/Data.x Switches/DataSpeed.x Switches/DoNotDisturb.x Switches/Flashlight.x Switches/Hotspot.x Switches/Location.x Switches/LowPower.x Switches/NightShift.x Switches/RecordScreen.x Switches/Respring.x Switches/Ringer.x Switches/Rotation.x Switches/Settings.x Switches/VPN.x Switches/Vibration.x Switches/Wifi.x Switches/WifiProxy.x
 libFlipswitchSwitches_FRAMEWORKS = UIKit CoreLocation SystemConfiguration
 libFlipswitchSwitches_PRIVATE_FRAMEWORKS = ManagedConfiguration GraphicsServices Preferences
 libFlipswitchSwitches_LIBRARIES = flipswitch FlipswitchSpringBoard
@@ -72,6 +72,9 @@ ifeq ($(FINALPACKAGE),1)
 $(error Building final package requires a legacy Xcode install!)
 endif
 endif
+
+arm64_CFLAGS = -Wno-unguarded-availability-new
+arm64e_CFLAGS = -Wno-unguarded-availability-new
 
 ifeq ($(THEOS_CURRENT_ARCH),armv6)
 	GO_EASY_ON_ME=1
